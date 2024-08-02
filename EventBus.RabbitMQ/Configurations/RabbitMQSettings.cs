@@ -10,10 +10,10 @@ public class RabbitMQSettings
     /// <summary>
     /// A dictionary where each key represents a publisher and its associated options for connecting to the RabbitMQ server and publishing messages. If no specific settings are provided, it will use the default options.
     /// </summary>
-    public Dictionary<string, RabbitMQEventOptions> Publishers { get; set; } = new();
+    public Dictionary<string, EventPublisherOptions> Publishers { get; set; } = new();
 
     /// <summary>
     /// A dictionary where each key represents a subscriber and its associated options for connecting to the RabbitMQ server and receiving messages. If no specific settings are provided, it will use the default options.
     /// </summary>
-    public Dictionary<string, RabbitMQEventOptions> Subscribers { get; set; } = new();
+    public Dictionary<string, EventSubscriberOptions> Subscribers { get; set; } = new();
 }

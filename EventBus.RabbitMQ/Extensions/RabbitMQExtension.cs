@@ -20,21 +20,24 @@ public static class RabbitMQExtension
     /// <param name="assemblies">Assemblies to find and load publisher and subscribers</param>
     public static void AddRabbitMQEventBus(this IServiceCollection services, IConfiguration configuration,
         Action<RabbitMQOptions>? defaultOptions = null,
-        Action<EventPublisherManagerOptions>? eventPublisherManagerOptions = null, params Assembly[] assemblies)
+        Action<EventPublisherManagerOptions>? eventPublisherManagerOptions = null,
+        Action<EventSubscriberManagerOptions>? eventSubscriberManagerOptions = null,
+        params Assembly[] assemblies)
     {
         var settings = configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>();
         var defaultSettings = GetDefaultRabbitMQOptions(settings);
         defaultOptions?.Invoke(defaultSettings);
-
+        services.AddSingleton(defaultSettings);
 
         services.AddSingleton<IEventPublisherManager>(serviceProvider =>
         {
             var logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
+            var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
 
-            var publisherManager = new EventPublisherManager(defaultSettings, logger);
-            var publishersOptions = settings?.Publishers ?? new Dictionary<string, RabbitMQEventOptions>();
-            var allPublisherTypes = GetPublishers(assemblies);
-            RegisterAllPublishers(publisherManager, allPublisherTypes, publishersOptions);
+            var publisherManager = new EventPublisherManager(_defaultSettings, logger);
+            var publishers = settings?.Publishers ?? new Dictionary<string, EventPublisherOptions>();
+            var allPublisherTypes = GetPublisherTypes(assemblies);
+            RegisterAllPublishers(publisherManager, allPublisherTypes, publishers);
 
             var publisherManagerOptions = new EventPublisherManagerOptions(publisherManager);
             eventPublisherManagerOptions?.Invoke(publisherManagerOptions);
@@ -43,27 +46,41 @@ public static class RabbitMQExtension
 
             return publisherManager;
         });
-        services.AddSingleton(defaultSettings);//TODO: does it needed
-        services.AddSingleton<EventSubscriberManager>();
+
+        services.AddSingleton<EventSubscriberManager>(serviceProvider =>
+        {
+            var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
+            var subscriberManager = new EventSubscriberManager(_defaultSettings);
+            var subscribers = settings?.Subscribers ?? new Dictionary<string, EventSubscriberOptions>();
+
+            RegisterAllSubscribers(subscriberManager, assemblies, subscribers);
+
+            var subscriberManagerOptions = new EventSubscriberManagerOptions(subscriberManager);
+            eventSubscriberManagerOptions?.Invoke(subscriberManagerOptions);
+
+            return subscriberManager;
+        });
 
         //services.AddHostedService<RabbitMQConsumerService>();
         //TODO
     }
 
-    private static Type[] GetPublishers(Assembly[]? assemblies)
+    #region Publishers
+
+    private static Type[] GetPublisherTypes(Assembly[]? assemblies)
     {
         var publisherType = typeof(IEventPublisher);
         if (assemblies is not null)
         {
             return assemblies.SelectMany(a => a.GetTypes())
-                .Where(t => t.IsClass && !t.IsAbstract && publisherType.IsAssignableFrom(t)).ToArray();
+                .Where(t => t is { IsClass: true, IsAbstract: false } && publisherType.IsAssignableFrom(t)).ToArray();
         }
 
         return [];
     }
 
     private static void RegisterAllPublishers(EventPublisherManager publisherManager,
-        Type[] publisherTypes, Dictionary<string, RabbitMQEventOptions> publishersOptions)
+        Type[] publisherTypes, Dictionary<string, EventPublisherOptions> publishersOptions)
     {
         foreach (var publisherType in publisherTypes)
         {
@@ -81,4 +98,52 @@ public static class RabbitMQExtension
 
         return defaultSettings;
     }
+
+    #endregion
+
+    #region Subscribers
+
+    private static void RegisterAllSubscribers(EventSubscriberManager subscriberManager,
+        Assembly[] assemblies, Dictionary<string, EventSubscriberOptions> subscribersOptions)
+    {
+        var subscriberHandlerTypes = GetSubscriberHandlerTypes(assemblies);
+
+        foreach (var (eventType, handlerType) in subscriberHandlerTypes)
+        {
+            if (subscribersOptions.TryGetValue(eventType.Name, out var settings))
+                subscriberManager.AddSubscriber(eventType, handlerType, settings);
+            else
+                subscriberManager.AddSubscriber(eventType, handlerType);
+        }
+    }
+
+    private static List<(Type eventType, Type handlerType)> GetSubscriberHandlerTypes(Assembly[]? assemblies)
+    {
+        List<(Type eventType, Type handlerType)> subscriberHandlerTypes = new();
+        var publisherType = typeof(IEventSubscriberHandler<>);
+        if (assemblies is not null)
+        {
+            var allTypes = assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t is { IsClass: true, IsAbstract: false });
+            foreach (var type in allTypes)
+            {
+                foreach (var implementedInterface in type.GetInterfaces())
+                {
+                    if (implementedInterface.IsGenericType &&
+                        implementedInterface.GetGenericTypeDefinition() == publisherType)
+                    {
+                        var eventType = implementedInterface.GetGenericArguments().Single();
+                        subscriberHandlerTypes.Add((eventType, type));
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return subscriberHandlerTypes;
+    }
+
+    #endregion
 }

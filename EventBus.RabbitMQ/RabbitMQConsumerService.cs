@@ -41,12 +41,12 @@ public class RabbitMQConsumerService : BackgroundService
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.ExchangeDeclare(_options.ExchangeName, ExchangeType.Topic);
+            _channel.ExchangeDeclare(_options.ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
             
             // Declare and bind the queue to the Topic exchange
-            _channel.QueueDeclare(_options.QueueName, true, false, false, null);
+            _channel.QueueDeclare(_options.QueueName, durable:true, exclusive: false, autoDelete:false, null);
             _channel.QueueBind(_options.QueueName, _options.ExchangeName, _options.RoutingKey);
-            _channel.BasicQos(0, 1, false);
+            //_channel.BasicQos(0, 1, false);
         }
         catch (Exception e)
         {
@@ -69,7 +69,7 @@ public class RabbitMQConsumerService : BackgroundService
             _channel.BasicAck(ea.DeliveryTag, false);
         };
 
-        _channel.BasicConsume(_options.QueueName, false, consumer);
+        _channel.BasicConsume(_options.QueueName, autoAck: false, consumer);
 
         return Task.CompletedTask;
     }

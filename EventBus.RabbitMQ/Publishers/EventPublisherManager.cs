@@ -9,13 +9,13 @@ namespace EventBus.RabbitMQ.Publishers;
 internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<EventPublisherManager> logger)
     : IEventPublisherManager
 {
-    private readonly Dictionary<string, RabbitMQEventOptions> _publishers = new();
+    private readonly Dictionary<string, EventPublisherOptions> _publishers = new();
 
     /// <summary>
     /// Registers a publisher.
     /// </summary>
     /// <param name="options">The options specific to the publisher, if any.</param>
-    public void AddPublisher<TPublisher>(Action<RabbitMQEventOptions>? options = null)
+    public void AddPublisher<TPublisher>(Action<EventPublisherOptions>? options = null)
         where TPublisher : class, IEventPublisher
     {
         var publisherName = typeof(TPublisher).Name;
@@ -25,10 +25,10 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         }
         else
         {
-            var settings  = defaultSettings.Clone<RabbitMQEventOptions>();
+            var settings  = defaultSettings.Clone<EventPublisherOptions>();
             options?.Invoke(settings);
 
-            _publishers[publisherName] = settings;
+            _publishers.Add(publisherName, settings);
         }
     }
 
@@ -37,12 +37,12 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
     /// </summary>
     /// <param name="typeOfPublisher">The type of the publisher.</param>
     /// <param name="settings">The options specific to the publisher, if any.</param>
-    public void AddPublisher(Type typeOfPublisher, RabbitMQEventOptions settings)
+    public void AddPublisher(Type typeOfPublisher, EventPublisherOptions settings)
     {
         var publisherName = typeOfPublisher.Name;
         if (!_publishers.TryGetValue(publisherName, out var _settings))
         {
-            _settings  = defaultSettings.Clone<RabbitMQEventOptions>();
+            _settings  = defaultSettings.Clone<EventPublisherOptions>();
             _publishers.Add(publisherName, _settings);
         }
         _settings.OverwriteSettings(settings);
@@ -54,7 +54,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
     /// <param name="typeOfPublisher">The type of the publisher.</param>
     public void AddPublisher(Type typeOfPublisher)
     {
-        AddPublisher(typeOfPublisher, defaultSettings.Clone<RabbitMQEventOptions>());
+        AddPublisher(typeOfPublisher, defaultSettings.Clone<EventPublisherOptions>());
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
                     continue;
                 }
 
-                channel.ExchangeDeclare(eventSettings!.ExchangeName, eventSettings.ExchangeType);
+                channel.ExchangeDeclare(eventSettings!.ExchangeName, eventSettings.ExchangeType, durable: true, autoDelete: false);
             }
             catch (Exception ex)
             {
@@ -84,7 +84,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         }
     }
 
-    private RabbitMQEventOptions GetPublisherSettings(string publisherName)
+    private EventPublisherOptions GetPublisherSettings(string publisherName)
     {
         if (_publishers.TryGetValue(publisherName, out var settings))
             return settings;
@@ -98,7 +98,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         try
         {
             var publisherName = @event.GetType().Name;
-            var channel = CreateChannel(publisherName, out RabbitMQEventOptions? eventSettings);
+            var channel = CreateChannel(publisherName, out EventPublisherOptions? eventSettings);
             if (channel is null)
             {
                 logger.LogWarning(
@@ -116,7 +116,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         }
     }
 
-    private IModel? CreateChannel(string publisherType, out RabbitMQEventOptions? settings)
+    private IModel? CreateChannel(string publisherType, out EventPublisherOptions? settings)
     {
         settings = null;
         try

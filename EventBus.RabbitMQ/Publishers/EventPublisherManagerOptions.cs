@@ -1,6 +1,6 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Configurations;
 
-namespace EventBus.RabbitMQ.Configurations;
+namespace EventBus.RabbitMQ.Publishers;
 
 public class EventPublisherManagerOptions
 {
@@ -14,10 +14,10 @@ public class EventPublisherManagerOptions
     /// <summary>
     /// Registers a publisher.
     /// </summary>
-    /// <param name="options">The options specific to the publisher, if any.</param>
-    public void AddPublisher<TPublisher>(Action<RabbitMQEventOptions>? options = null)
+    /// <param name="eventPublisherOptions">The eventPublisherOptions specific to the publisher, if any.</param>
+    public void AddPublisher<TPublisher>(Action<EventPublisherOptions>? eventPublisherOptions = null)
         where TPublisher : class, IEventPublisher
     {
-        _publisherManager.AddPublisher<TPublisher>(options);
+        _publisherManager.AddPublisher<TPublisher>(eventPublisherOptions);
     }
 }

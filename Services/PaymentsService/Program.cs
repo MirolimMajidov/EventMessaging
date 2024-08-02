@@ -1,4 +1,5 @@
 using EventBus.RabbitMQ.Extensions;
+using Payments.Service.Messaging.Handlers;
 using PaymentsService.Messaging.Events;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,18 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
-    options =>
+    options => { },
+    eventSubscriberManagerOptions: subscriberManager =>
     {
+        subscriberManager.AddSubscriber<UserDeleted, UserDeletedHandler>(op => { op.VirtualHost = "users/test"; });
     },
-    publisherManager =>
-    {
-        publisherManager.AddPublisher<UserCreated>(op =>
-        {
-            op.RoutingKey = "UserCreated";
-            op.RoutingKey = "users.*";
-        });
-    },
-    typeof(Program).Assembly);
+    assemblies: typeof(Program).Assembly);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

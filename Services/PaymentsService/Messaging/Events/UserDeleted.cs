@@ -3,7 +3,7 @@ using EventBus.RabbitMQ.Subscribers;
 
 namespace PaymentsService.Messaging.Events;
 
-public class UserCreated : EventSubscriber
+public class UserDeleted : EventSubscriber
 {
     public Guid UserId { get; set; }
 
