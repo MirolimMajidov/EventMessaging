@@ -1,7 +1,6 @@
-using EventBus.RabbitMQ;
 using EventBus.RabbitMQ.Publishers;
 using Microsoft.AspNetCore.Mvc;
-using UsersService.Events;
+using UsersService.Messaging.Events;
 using UsersService.Models;
 
 namespace UsersService.Controllers;

@@ -3,9 +3,6 @@ namespace EventBus.RabbitMQ.Publishers;
 /// <summary>
 /// Base interface for all publisher classes
 /// </summary>
-public interface IEventPublisher
+public interface IEventPublisher : IBaseEvent
 {
-    public Guid EventId { get; }
-    
-    public DateTime CreatedAt { get; }
 }

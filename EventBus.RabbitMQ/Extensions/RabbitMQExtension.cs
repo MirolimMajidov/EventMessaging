@@ -1,6 +1,7 @@
 using System.Reflection;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Subscribers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -42,7 +43,8 @@ public static class RabbitMQExtension
 
             return publisherManager;
         });
-        services.AddSingleton(defaultSettings);//TODO
+        services.AddSingleton(defaultSettings);//TODO: does it needed
+        services.AddSingleton<EventSubscriberManager>();
 
         //services.AddHostedService<RabbitMQConsumerService>();
         //TODO

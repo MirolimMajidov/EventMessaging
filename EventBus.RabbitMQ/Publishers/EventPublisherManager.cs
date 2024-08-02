@@ -19,13 +19,13 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         where TPublisher : class, IEventPublisher
     {
         var publisherName = typeof(TPublisher).Name;
-        if (_publishers.TryGetValue(publisherName, out RabbitMQEventOptions _settings))
+        if (_publishers.TryGetValue(publisherName, out var _settings))
         {
             options?.Invoke(_settings);
         }
         else
         {
-            var settings = defaultSettings.Clone();
+            var settings  = defaultSettings.Clone<RabbitMQEventOptions>();
             options?.Invoke(settings);
 
             _publishers[publisherName] = settings;
@@ -40,10 +40,9 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
     public void AddPublisher(Type typeOfPublisher, RabbitMQEventOptions settings)
     {
         var publisherName = typeOfPublisher.Name;
-        RabbitMQEventOptions _settings;
-        if (!_publishers.TryGetValue(publisherName, out _settings))
+        if (!_publishers.TryGetValue(publisherName, out var _settings))
         {
-            _settings = defaultSettings.Clone();
+            _settings  = defaultSettings.Clone<RabbitMQEventOptions>();
             _publishers.Add(publisherName, _settings);
         }
         _settings.OverwriteSettings(settings);
@@ -55,7 +54,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
     /// <param name="typeOfPublisher">The type of the publisher.</param>
     public void AddPublisher(Type typeOfPublisher)
     {
-        AddPublisher(typeOfPublisher, defaultSettings.Clone());
+        AddPublisher(typeOfPublisher, defaultSettings.Clone<RabbitMQEventOptions>());
     }
 
     /// <summary>
@@ -85,13 +84,6 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         }
     }
 
-    private RabbitMQEventOptions GetPublisherSettings<TEventPublisher>(TEventPublisher @event)
-        where TEventPublisher : IEventPublisher
-    {
-        var publisherName = typeof(TEventPublisher).Name;
-        return GetPublisherSettings(publisherName);
-    }
-
     private RabbitMQEventOptions GetPublisherSettings(string publisherName)
     {
         if (_publishers.TryGetValue(publisherName, out var settings))
@@ -105,7 +97,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
     {
         try
         {
-            var publisherName = typeof(TEventPublisher).Name;
+            var publisherName = @event.GetType().Name;
             var channel = CreateChannel(publisherName, out RabbitMQEventOptions? eventSettings);
             if (channel is null)
             {

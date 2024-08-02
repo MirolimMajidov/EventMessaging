@@ -62,7 +62,7 @@ public class RabbitMQConsumerService : BackgroundService
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            var yourMessageModel = JsonSerializer.Deserialize<BaseEventPublisher>(message);
+            var yourMessageModel = JsonSerializer.Deserialize<EventPublisher>(message);
             _logger.LogInformation("Message with the {id} id is received. Data is : {data}", yourMessageModel.EventId, message);
             // Handle your message
 

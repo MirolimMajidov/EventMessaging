@@ -48,6 +48,11 @@ internal static class RabbitMQOptionsConstant
     public const string RoutingKey = "DefaultRoutingKey";
 
     /// <summary>
+    /// Retry count to publish event. Default value is "1".
+    /// </summary>
+    public const int RetryPublishCount = 1;
+
+    /// <summary>
     /// Clone/Copying settings
     /// </summary>
     /// <returns>Returns a new copy of settings</returns>
@@ -63,7 +68,8 @@ internal static class RabbitMQOptionsConstant
             ExchangeName = ExchangeName,
             ExchangeType = ExchangeType,
             QueueName = QueueName,
-            RoutingKey = RoutingKey
+            RoutingKey = RoutingKey,
+            RetryPublishCount = RetryPublishCount
         };
     }
 }

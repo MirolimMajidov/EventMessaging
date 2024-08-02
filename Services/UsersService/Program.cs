@@ -1,5 +1,5 @@
 using EventBus.RabbitMQ.Extensions;
-using UsersService.Events;
+using UsersService.Messaging.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 

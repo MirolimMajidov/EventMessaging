@@ -1,8 +1,8 @@
 using EventBus.RabbitMQ.Publishers;
 
-namespace UsersService.Events;
+namespace UsersService.Messaging.Events;
 
-public class UserCreated : BaseEventPublisher
+public class UserCreated : EventPublisher
 {
     public Guid UserId { get; set; }
     
