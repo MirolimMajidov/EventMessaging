@@ -42,6 +42,7 @@ public static class RabbitMQExtension
             var publisherManagerOptions = new EventPublisherManagerOptions(publisherManager);
             eventPublisherManagerOptions?.Invoke(publisherManagerOptions);
 
+            publisherManager.SetEventNameOfPublishers();
             publisherManager.CreateExchangeForPublishers();
 
             return publisherManager;
@@ -57,6 +58,8 @@ public static class RabbitMQExtension
 
             var subscriberManagerOptions = new EventSubscriberManagerOptions(subscriberManager);
             eventSubscriberManagerOptions?.Invoke(subscriberManagerOptions);
+            
+            subscriberManager.CreateConsumerForEachQueue();
 
             return subscriberManager;
         });

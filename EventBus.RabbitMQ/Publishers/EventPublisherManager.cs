@@ -58,20 +58,32 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
     }
 
     /// <summary>
-    /// Creating an exchange for each registered publisher
+    /// Setting an event name of publisher if empty
+    /// </summary>
+    public void SetEventNameOfPublishers()
+    {
+        foreach (var (eventName, eventSettings) in _publishers)
+        {
+            if (string.IsNullOrEmpty(eventSettings.EventTypeName))
+                eventSettings.EventTypeName = eventName;
+        }
+    }
+
+    /// <summary>
+    /// Creating an exchange for each registered publisher and 
     /// </summary>
     public void CreateExchangeForPublishers()
     {
-        foreach (var publisher in _publishers)
+        foreach (var (eventName, eventSettings) in _publishers)
         {
             try
             {
-                var channel = CreateChannel(publisher.Key, out var eventSettings);
+                var channel = CreateChannel(eventName, eventSettings);
                 if (channel is null)
                 {
                     logger.LogWarning(
                         "An exchange did not create for {publisherName} publisher with the {exchangeName}. Something is wrong while opening connection to the RabbitMQ.",
-                        publisher.Key, eventSettings!.ExchangeName);
+                        eventName, eventSettings.ExchangeName);
                     continue;
                 }
 
@@ -79,7 +91,7 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while creating an exchange for {publisherName} publisher.", publisher.Key);
+                logger.LogError(ex, "Error while creating an exchange for {publisherName} publisher.", eventName);
             }
         }
     }
@@ -98,7 +110,8 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         try
         {
             var publisherName = @event.GetType().Name;
-            var channel = CreateChannel(publisherName, out EventPublisherOptions? eventSettings);
+            var eventSettings = GetPublisherSettings(publisherName);
+            var channel = CreateChannel(publisherName, eventSettings);
             if (channel is null)
             {
                 logger.LogWarning(
@@ -116,12 +129,10 @@ internal class EventPublisherManager(RabbitMQOptions defaultSettings, ILogger<Ev
         }
     }
 
-    private IModel? CreateChannel(string publisherType, out EventPublisherOptions? settings)
+    private IModel? CreateChannel(string publisherType, EventPublisherOptions settings)
     {
-        settings = null;
         try
         {
-            settings = GetPublisherSettings(publisherType);
             var factory = new ConnectionFactory
             {
                 HostName = settings.HostName,

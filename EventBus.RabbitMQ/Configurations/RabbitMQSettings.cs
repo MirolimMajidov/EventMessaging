@@ -1,3 +1,6 @@
+using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Subscribers;
+
 namespace EventBus.RabbitMQ.Configurations;
 
 public class RabbitMQSettings

@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace EventBus.RabbitMQ.Configurations;
 
 public abstract class BaseEventOptions
@@ -51,13 +53,28 @@ public abstract class BaseEventOptions
     {
         if (settings is not null)
         {
-            var properties = this.GetType().GetProperties();
+            var properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var property in properties)
             {
-                var value = property.GetValue(settings);
+                var value = settings[property.Name];
                 if (value is not null)
                     property.SetValue(this, value);
             }
+        }
+    }
+
+    internal object? this[string propertyName]
+    {
+        get
+        {
+            var propertyInfo = GetType().GetProperty(propertyName);
+            return propertyInfo?.GetValue(this);
+        }
+        set
+        {
+            var propertyInfo = GetType().GetProperty(propertyName);
+            if (propertyInfo != null)
+                propertyInfo.SetValue(this, Convert.ChangeType(value, propertyInfo.PropertyType), null);
         }
     }
 }

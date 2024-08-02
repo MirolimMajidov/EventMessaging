@@ -11,6 +11,11 @@ public class EventSubscriberManager(RabbitMQOptions defaultSettings) //TODO: it 
         _subscribers = new();
 
     /// <summary>
+    /// List of consumers for each unique a queue for different virtual host 
+    /// </summary>
+    private readonly Dictionary<string, IEventConsumerService> _eventConsumers = new();
+
+    /// <summary>
     /// Registers a subscriber 
     /// </summary>
     /// <param name="options">The options specific to the subscriber, if any.</param>
@@ -66,5 +71,36 @@ public class EventSubscriberManager(RabbitMQOptions defaultSettings) //TODO: it 
     public void AddSubscriber(Type typeOfSubscriber, Type typeOfHandler)
     {
         AddSubscriber(typeOfSubscriber, typeOfHandler, defaultSettings.Clone<EventSubscriberOptions>());
+    }
+
+    /// <summary>
+    /// Setting an event name of subscriber if empty
+    /// </summary>
+    public void SetEventNameOfSubscribers()
+    {
+        foreach (var (subscriberName, (_, _, eventSettings)) in _subscribers)
+        {
+            if (string.IsNullOrEmpty(eventSettings.EventTypeName))
+                eventSettings.EventTypeName = subscriberName;
+        }
+    }
+
+    /// <summary>
+    /// Creating and register each unique a queue for different virtual host
+    /// </summary>
+    public void CreateConsumerForEachQueue()
+    {
+        foreach (var (_, eventInfo) in _subscribers)
+        {
+            var consumerId = $"{eventInfo.EventSettings.VirtualHost}-{eventInfo.EventSettings.QueueName}";
+            if (!_eventConsumers.TryGetValue(consumerId, out IEventConsumerService _eventConsumer))
+            {
+                _eventConsumer = new EventConsumerService(eventInfo.EventSettings);
+                _eventConsumers.Add(consumerId, _eventConsumer);
+            }
+
+            //TODO
+            _eventConsumer.AddSubscriber(eventInfo);
+        }
     }
 }
