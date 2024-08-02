@@ -15,7 +15,7 @@ public class EventPublisherManagerOptions
     /// Registers a publisher.
     /// </summary>
     /// <param name="options">The options specific to the publisher, if any.</param>
-    public void AddPublisher<TPublisher>(Action<RabbitMQOptions>? options = null)
+    public void AddPublisher<TPublisher>(Action<RabbitMQEventOptions>? options = null)
         where TPublisher : class, IEventPublisher
     {
         _publisherManager.AddPublisher<TPublisher>(options);

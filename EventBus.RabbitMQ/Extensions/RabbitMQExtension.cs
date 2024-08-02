@@ -31,7 +31,7 @@ public static class RabbitMQExtension
             var logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
 
             var publisherManager = new EventPublisherManager(defaultSettings, logger);
-            var publishersOptions = settings?.Publishers ?? new Dictionary<string, RabbitMQOptions>();
+            var publishersOptions = settings?.Publishers ?? new Dictionary<string, RabbitMQEventOptions>();
             var allPublisherTypes = GetPublishers(assemblies);
             RegisterAllPublishers(publisherManager, allPublisherTypes, publishersOptions);
 
@@ -42,8 +42,7 @@ public static class RabbitMQExtension
 
             return publisherManager;
         });
-        services.AddSingleton(defaultSettings);
-        services.AddSingleton<RabbitMQClientService>();
+        services.AddSingleton(defaultSettings);//TODO
 
         //services.AddHostedService<RabbitMQConsumerService>();
         //TODO
@@ -62,7 +61,7 @@ public static class RabbitMQExtension
     }
 
     private static void RegisterAllPublishers(EventPublisherManager publisherManager,
-        Type[] publisherTypes, Dictionary<string, RabbitMQOptions> publishersOptions)
+        Type[] publisherTypes, Dictionary<string, RabbitMQEventOptions> publishersOptions)
     {
         foreach (var publisherType in publisherTypes)
         {

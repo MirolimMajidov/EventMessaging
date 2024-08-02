@@ -1,4 +1,5 @@
 using EventBus.RabbitMQ.Extensions;
+using UsersService.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,15 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
     options =>
     {
-        //options.HostName = "localhost";
+        options.HostName = "localhost";
     },
     publisherManager =>
     {
-        //publisherManager.AddPublisher<>();
+        publisherManager.AddPublisher<UserDeleted>(op => op.RoutingKey = "users.deleted");
+        publisherManager.AddPublisher<UserUpdated>(op => op.RoutingKey = "users.updated");
     },
     typeof(Program).Assembly);
+
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
