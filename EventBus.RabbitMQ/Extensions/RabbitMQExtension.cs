@@ -33,15 +33,15 @@ public static class RabbitMQExtension
         {
             var logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
             var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
-
+            
             var publisherManager = new EventPublisherManager(_defaultSettings, logger);
-            var publishers = settings?.Publishers ?? new Dictionary<string, EventPublisherOptions>();
-            var allPublisherTypes = GetPublisherTypes(assemblies);
-            RegisterAllPublishers(publisherManager, allPublisherTypes, publishers);
-
             var publisherManagerOptions = new EventPublisherManagerOptions(publisherManager);
             eventPublisherManagerOptions?.Invoke(publisherManagerOptions);
 
+            var publishers = settings?.Publishers ?? new Dictionary<string, EventPublisherOptions>();
+            var allPublisherTypes = GetPublisherTypes(assemblies);
+            RegisterAllPublishers(publisherManager, allPublisherTypes, publishers);
+            
             publisherManager.SetEventNameOfPublishers();
             publisherManager.CreateExchangeForPublishers();
 
@@ -52,13 +52,13 @@ public static class RabbitMQExtension
         {
             var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
             var subscriberManager = new EventSubscriberManager(_defaultSettings);
-            var subscribers = settings?.Subscribers ?? new Dictionary<string, EventSubscriberOptions>();
-
-            RegisterAllSubscribers(subscriberManager, assemblies, subscribers);
 
             var subscriberManagerOptions = new EventSubscriberManagerOptions(subscriberManager);
             eventSubscriberManagerOptions?.Invoke(subscriberManagerOptions);
-            
+
+            var subscribers = settings?.Subscribers ?? new Dictionary<string, EventSubscriberOptions>();
+            RegisterAllSubscribers(subscriberManager, assemblies, subscribers);
+
             subscriberManager.CreateConsumerForEachQueue();
 
             return subscriberManager;
