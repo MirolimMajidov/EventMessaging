@@ -44,7 +44,6 @@ internal class EventConsumerService : IEventConsumerService
     {
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
         consumer.Received += Consumer_Received;
-
         _consumerChannel.BasicConsume(queue: _connectionOptions.QueueName, autoAck: false, consumer: consumer);
     }
 
@@ -81,18 +80,16 @@ internal class EventConsumerService : IEventConsumerService
     /// </summary>
     private async Task Consumer_Received(object sender, BasicDeliverEventArgs eventArgs)
     {
+        var eventId = eventArgs.BasicProperties.MessageId;
         try
         {
             var eventName = eventArgs.RoutingKey;
-            if (eventArgs.BasicProperties.Headers?.TryGetValue(NameOfEventType, out var _eventName) == true)
-                eventName = _eventName as string;
+            if (eventArgs.BasicProperties.Headers?.TryGetValue(NameOfEventType, out object _eventTypeName) == true)
+                eventName = Encoding.UTF8.GetString((byte[])_eventTypeName);
                 
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
-            if (message.ToLowerInvariant().Contains("throw-fake-exception"))
-                throw new InvalidOperationException($"Fake exception requested: \"{message}\"");
-
-            _logger.LogTrace("Received RabbitMQ event: {EventName}", eventName);
+            _logger.LogTrace("Received RabbitMQ event: {EventName}, id: {EventId}", eventName, eventId);
 
             if (_subscribers.TryGetValue(eventName,
                     out (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) info))
@@ -107,13 +104,12 @@ internal class EventConsumerService : IEventConsumerService
             }
             else
             {
-                _logger.LogWarning("No subscription for RabbitMQ {EventName} event with the {RoutingKey}", eventName, eventArgs.RoutingKey);
+                _logger.LogWarning("No subscription for RabbitMQ's {EventName} event with the {RoutingKey} routing key and {EventId} event id.", eventName, eventArgs.RoutingKey, eventId);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "----- ERROR on processing message of {RoutingKey}", eventArgs.RoutingKey);
+            _logger.LogError(ex, "----- ERROR on processing message of {RoutingKey} routing key and {EventId} event id.", eventArgs.RoutingKey, eventId);
         }
-
     }
 }

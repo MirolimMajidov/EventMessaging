@@ -1,8 +1,8 @@
 using EventBus.RabbitMQ.Subscribers;
 
-namespace PaymentsService.Messaging.Events;
+namespace OrdersService.Messaging.Events;
 
-public class UserDeleted : EventSubscriber
+public class UserCreated : EventSubscriber
 {
     public Guid UserId { get; set; }
 

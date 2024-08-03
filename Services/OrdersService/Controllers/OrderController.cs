@@ -17,4 +17,9 @@ public class OrderController : ControllerBase
         _eventPublisherManager = eventPublisherManager;
     }
 
+    [HttpGet]
+    public IActionResult GetItems()
+    {
+        return Ok();
+    }
 }

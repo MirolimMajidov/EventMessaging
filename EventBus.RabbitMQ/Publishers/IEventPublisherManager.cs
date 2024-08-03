@@ -8,4 +8,9 @@ public interface IEventPublisherManager
     /// <param name="event">Event to publish</param>
     /// <typeparam name="TEventPublisher">Event type that must implement from the IEventPublisher</typeparam>
     public void Publish<TEventPublisher>(TEventPublisher @event) where TEventPublisher : IEventPublisher;
+
+    /// <summary>
+    /// Creating an exchange for each registered publisher and 
+    /// </summary>
+    internal void CreateExchangeForPublishers();
 }

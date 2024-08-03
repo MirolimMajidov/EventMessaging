@@ -1,7 +1,7 @@
 using EventBus.RabbitMQ.Subscribers;
-using PaymentsService.Messaging.Events;
+using OrdersService.Messaging.Events;
 
-namespace Payments.Service.Messaging.Handlers;
+namespace OrdersService.Messaging.Handlers;
 
 public class UserCreatedHandler : IEventSubscriberHandler<UserCreated>
 {

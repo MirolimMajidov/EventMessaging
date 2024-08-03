@@ -14,7 +14,7 @@ public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
 
     public Task Handle(UserDeleted @event)
     {
-        _logger.LogInformation("EventId id ({EventId}): {UserName} user is deleted, the id is {UserId}", @event.UserId,
+        _logger.LogInformation("EventId ({EventId}): {UserName} user is deleted, the User id is {UserId}", @event.EventId,
             @event.UserName, @event.UserId);
 
         return Task.CompletedTask;

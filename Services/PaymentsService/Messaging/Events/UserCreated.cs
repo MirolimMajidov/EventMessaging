@@ -1,4 +1,3 @@
-using EventBus.RabbitMQ.Publishers;
 using EventBus.RabbitMQ.Subscribers;
 
 namespace PaymentsService.Messaging.Events;

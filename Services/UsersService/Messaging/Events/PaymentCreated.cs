@@ -1,16 +1,16 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Subscribers;
 
 namespace UsersService.Messaging.Events;
 
-public class UserUpdated : IEventPublisher
+public class PaymentCreated : IEventSubscriber
 {
     public Guid EventId { get; } = Guid.NewGuid();
 
     public DateTime CreatedAt { get; } = DateTime.Now;
-    
+
+    public Guid PaymentId { get; set; }
+
     public Guid UserId { get; set; }
-    
-    public string OldUserName { get; set; }
-    
-    public string NewUserName { get; set; }
+
+    public double Amount { get; set; }
 }

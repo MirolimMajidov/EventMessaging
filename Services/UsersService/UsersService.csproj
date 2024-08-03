@@ -14,8 +14,4 @@
       <ProjectReference Include="..\..\EventBus.RabbitMQ\EventBus.RabbitMQ.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Messaging\" />
-    </ItemGroup>
-
 </Project>

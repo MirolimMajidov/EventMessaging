@@ -32,39 +32,39 @@ public static class RabbitMQExtension
         services.AddSingleton<IEventPublisherManager>(serviceProvider =>
         {
             var publisherManager = new EventPublisherManager(serviceProvider);
-            var publisherManagerOptions = new EventPublisherManagerOptions(publisherManager);
-            eventPublisherManagerOptions?.Invoke(publisherManagerOptions);
 
             var publishers = settings?.Publishers ?? new Dictionary<string, EventPublisherOptions>();
             var allPublisherTypes = GetPublisherTypes(assemblies);
             RegisterAllPublishers(publisherManager, allPublisherTypes, publishers);
-            
+
+            var publisherManagerOptions = new EventPublisherManagerOptions(publisherManager);
+            eventPublisherManagerOptions?.Invoke(publisherManagerOptions);
+
             publisherManager.SetEventNameOfPublishers();
-            publisherManager.CreateExchangeForPublishers();
 
             return publisherManager;
         });
 
-        services.AddSingleton<EventSubscriberManager>(serviceProvider =>
+        RegisterAllSubscriberHandlersToDI(services, assemblies);
+
+        services.AddSingleton<IEventSubscriberManager>(serviceProvider =>
         {
             var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
-            
-            var subscriberManager = new EventSubscriberManager(_defaultSettings, serviceProvider);
 
-            var subscriberManagerOptions = new EventSubscriberManagerOptions(subscriberManager);
-            eventSubscriberManagerOptions?.Invoke(subscriberManagerOptions);
+            var subscriberManager = new EventSubscriberManager(_defaultSettings, serviceProvider);
 
             var subscribers = settings?.Subscribers ?? new Dictionary<string, EventSubscriberOptions>();
             RegisterAllSubscribers(subscriberManager, assemblies, subscribers);
 
+            var subscriberManagerOptions = new EventSubscriberManagerOptions(subscriberManager);
+            eventSubscriberManagerOptions?.Invoke(subscriberManagerOptions);
+
             subscriberManager.SetEventNameOfSubscribers();
-            subscriberManager.CreateConsumerForEachQueue();
 
             return subscriberManager;
         });
 
-        //services.AddHostedService<RabbitMQConsumerService>();
-        //TODO
+        services.AddHostedService<StartSubscribingAndPublishingEventBusService>();
     }
 
     #region Publishers
@@ -117,6 +117,13 @@ public static class RabbitMQExtension
             else
                 subscriberManager.AddSubscriber(eventType, handlerType);
         }
+    }
+
+    private static void RegisterAllSubscriberHandlersToDI(IServiceCollection services, Assembly[] assemblies)
+    {
+        var subscriberHandlerTypes = GetSubscriberHandlerTypes(assemblies);
+        foreach (var (eventType, handlerType) in subscriberHandlerTypes)
+            services.AddTransient(handlerType);
     }
 
     private static List<(Type eventType, Type handlerType)> GetSubscriberHandlerTypes(Assembly[]? assemblies)

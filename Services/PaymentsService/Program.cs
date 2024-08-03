@@ -7,9 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
+    options => { options.QueueName = "payments_queue"; },
     eventSubscriberManagerOptions: subscriberManager =>
     {
-        subscriberManager.AddSubscriber<UserDeleted, UserDeletedHandler>(op => { op.VirtualHost = "users/test"; });
+        subscriberManager.AddSubscriber<UserDeleted, UserDeletedHandler>(op => op.RoutingKey = "users.deleted");
     },
     assemblies: typeof(Program).Assembly);
 builder.Services.AddControllers();

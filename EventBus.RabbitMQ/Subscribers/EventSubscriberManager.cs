@@ -2,24 +2,20 @@ using EventBus.RabbitMQ.Configurations;
 
 namespace EventBus.RabbitMQ.Subscribers;
 
-public class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceProvider serviceProvider) //TODO: it should not be public
+internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceProvider serviceProvider)
+    : IEventSubscriberManager
 {
     /// <summary>
     /// Dictionary collection to store all event and event handler information
     /// </summary>
-    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings)> _subscribers = new();
+    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings)>
+        _subscribers = new();
 
     /// <summary>
     /// List of consumers for each unique a queue for different virtual host 
     /// </summary>
     private readonly Dictionary<string, IEventConsumerService> _eventConsumers = new();
 
-    /// <summary>
-    /// Registers a subscriber 
-    /// </summary>
-    /// <param name="options">The options specific to the subscriber, if any.</param>
-    /// <typeparam name="TEvent">Event which we want to subscribe</typeparam>
-    /// <typeparam name="TEventHandler">Handler class of the event which we want to receive event</typeparam>
     public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions>? options = null)
         where TEvent : class, IEventSubscriber
         where TEventHandler : class, IEventSubscriberHandler<TEvent>
@@ -84,10 +80,7 @@ public class EventSubscriberManager(RabbitMQOptions defaultSettings, IServicePro
         }
     }
 
-    /// <summary>
-    /// Creating and register each unique a queue for different virtual host
-    /// </summary>
-    public void CreateConsumerForEachQueue()
+    public void CreateConsumerForEachQueueAndStartReceivingEvents()
     {
         foreach (var (_, eventInfo) in _subscribers)
         {
@@ -97,6 +90,7 @@ public class EventSubscriberManager(RabbitMQOptions defaultSettings, IServicePro
                 _eventConsumer = new EventConsumerService(eventInfo.eventSettings, serviceProvider);
                 _eventConsumers.Add(consumerId, _eventConsumer);
             }
+
             _eventConsumer.AddSubscriber(eventInfo);
         }
 
