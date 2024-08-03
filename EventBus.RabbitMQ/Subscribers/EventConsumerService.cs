@@ -1,22 +1,119 @@
+using System.Text;
+using System.Text.Json;
+using EventBus.RabbitMQ.Connections;
+using EventBus.RabbitMQ.Publishers;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+
 namespace EventBus.RabbitMQ.Subscribers;
 
 internal class EventConsumerService : IEventConsumerService
 {
+    private readonly EventSubscriberOptions _connectionOptions;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<EventConsumerService> _logger;
+    private readonly IRabbitMQConnection _connection;
+    private IModel _consumerChannel;
+
     /// <summary>
     /// Dictionary collection to store all event and event handler information
     /// </summary>
-    private readonly List<(Type EventType, Type EventHandlerType, EventSubscriberOptions EventSettings)>
-        _subscribers = new();
+    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings)> _subscribers = new();
 
-    private readonly EventSubscriberOptions _defaultEventSubscriberOptions;
-    
-    public EventConsumerService(EventSubscriberOptions defaultEventSubscriberOptions)
+    public EventConsumerService(EventSubscriberOptions connectionOptions, IServiceProvider serviceProvider)
     {
-        _defaultEventSubscriberOptions = defaultEventSubscriberOptions;
+        _connectionOptions = connectionOptions;
+        _serviceProvider = serviceProvider;
+        _logger = _serviceProvider.GetRequiredService<ILogger<EventConsumerService>>();
+
+        _connection = new RabbitMQConnection(_connectionOptions, serviceProvider);
+        _consumerChannel = CreateConsumerChannel();
     }
 
-    public void AddSubscriber((Type, Type, EventSubscriberOptions) eventInfo)
+    public void AddSubscriber((Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) eventInfo)
     {
-        _subscribers.Add(eventInfo);
+        _subscribers.Add(eventInfo.Item3.EventTypeName!, eventInfo);
+    }
+
+    /// <summary>
+    /// Starts receiving events by creating a consumer
+    /// </summary>
+    public void StartAndSubscribeReceiver()
+    {
+        var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
+        consumer.Received += Consumer_Received;
+
+        _consumerChannel.BasicConsume(queue: _connectionOptions.QueueName, autoAck: false, consumer: consumer);
+    }
+
+    /// <summary>
+    /// To create channel for consumer
+    /// </summary>
+    /// <returns>Returns create channel</returns>
+    private IModel CreateConsumerChannel()
+    {
+        _logger.LogTrace("Creating RabbitMQ consumer channel");
+
+        var channel = _connection.CreateChannel();
+
+        channel.ExchangeDeclare(exchange: _connectionOptions.ExchangeName, type: _connectionOptions.ExchangeType,  durable: true, autoDelete: false);
+        channel.QueueDeclare(_connectionOptions.QueueName, durable:true, exclusive: false, autoDelete:false, null);
+        channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.ExchangeName, _connectionOptions.RoutingKey);
+
+        channel.CallbackException += (sender, ea) =>
+        {
+            _logger.LogWarning(ea.Exception, "Recreating RabbitMQ consumer channel");
+
+            _consumerChannel.Dispose();
+            _consumerChannel = CreateConsumerChannel();
+            StartAndSubscribeReceiver();
+        };
+
+        return channel;
+    }
+
+    private const string NameOfEventType = nameof(EventPublisherOptions.EventTypeName);
+    private const string HandlerMethodName = nameof(IEventSubscriberHandler<IEventSubscriber>.Handle);
+    /// <summary>
+    /// An event to receive all sent events
+    /// </summary>
+    private async Task Consumer_Received(object sender, BasicDeliverEventArgs eventArgs)
+    {
+        try
+        {
+            var eventName = eventArgs.RoutingKey;
+            if (eventArgs.BasicProperties.Headers?.TryGetValue(NameOfEventType, out var _eventName) == true)
+                eventName = _eventName as string;
+                
+            var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+
+            if (message.ToLowerInvariant().Contains("throw-fake-exception"))
+                throw new InvalidOperationException($"Fake exception requested: \"{message}\"");
+
+            _logger.LogTrace("Received RabbitMQ event: {EventName}", eventName);
+
+            if (_subscribers.TryGetValue(eventName,
+                    out (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) info))
+            {
+                var eventSubscriber = JsonSerializer.Deserialize(message, info.eventType) as IEventSubscriber;
+                var eventHandlerSubscriber = _serviceProvider.GetRequiredService(info.eventHandlerType);
+
+                var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
+                await (Task)handleMethod.Invoke(eventHandlerSubscriber, [eventSubscriber]);
+                    
+                _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+            }
+            else
+            {
+                _logger.LogWarning("No subscription for RabbitMQ {EventName} event with the {RoutingKey}", eventName, eventArgs.RoutingKey);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "----- ERROR on processing message of {RoutingKey}", eventArgs.RoutingKey);
+        }
+
     }
 }

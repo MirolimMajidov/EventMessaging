@@ -31,10 +31,7 @@ public static class RabbitMQExtension
 
         services.AddSingleton<IEventPublisherManager>(serviceProvider =>
         {
-            var logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
-            var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
-            
-            var publisherManager = new EventPublisherManager(_defaultSettings, logger);
+            var publisherManager = new EventPublisherManager(serviceProvider);
             var publisherManagerOptions = new EventPublisherManagerOptions(publisherManager);
             eventPublisherManagerOptions?.Invoke(publisherManagerOptions);
 
@@ -51,7 +48,8 @@ public static class RabbitMQExtension
         services.AddSingleton<EventSubscriberManager>(serviceProvider =>
         {
             var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
-            var subscriberManager = new EventSubscriberManager(_defaultSettings);
+            
+            var subscriberManager = new EventSubscriberManager(_defaultSettings, serviceProvider);
 
             var subscriberManagerOptions = new EventSubscriberManagerOptions(subscriberManager);
             eventSubscriberManagerOptions?.Invoke(subscriberManagerOptions);
@@ -59,6 +57,7 @@ public static class RabbitMQExtension
             var subscribers = settings?.Subscribers ?? new Dictionary<string, EventSubscriberOptions>();
             RegisterAllSubscribers(subscriberManager, assemblies, subscribers);
 
+            subscriberManager.SetEventNameOfSubscribers();
             subscriberManager.CreateConsumerForEachQueue();
 
             return subscriberManager;

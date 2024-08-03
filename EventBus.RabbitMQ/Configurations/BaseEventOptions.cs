@@ -45,6 +45,11 @@ public abstract class BaseEventOptions
     public string? RoutingKey { get; set; }
     
     /// <summary>
+    /// Retry count to connect to the RabbitMQ. Default value is "5".
+    /// </summary>
+    public int? RetryConnectionCount { get; set;  }
+    
+    /// <summary>
     /// Overwriting settings
     /// </summary>
     /// <param name="settings">Settings to use for overwriting the main settings if the settings parameter value is not null</param>
