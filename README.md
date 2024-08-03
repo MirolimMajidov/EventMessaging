@@ -121,10 +121,10 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
   }
 ```
 
-A section may have the following subsections:
-`DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;
-`Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings;
-`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings.
+A section may have the following subsections: <br/>
+`DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
+`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. 
 
 ## Advanced configuration of publishers and subscribers while registring to the DI services.
 
@@ -151,8 +151,8 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 );
 ```
 
-`defaultOptions` - it is alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;
-`eventPublisherManagerOptions` - it is alternative way of overwriting `Publishers` settings, to registir and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings;
-`eventSubscriberManagerOptions` - it is alternative way of overwriting `Subscribers` settings, to registir and set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings;
+`defaultOptions` - it is alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`eventPublisherManagerOptions` - it is alternative way of overwriting `Publishers` settings, to registir and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
+`eventSubscriberManagerOptions` - it is alternative way of overwriting `Subscribers` settings, to registir and set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
 
