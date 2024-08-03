@@ -1,6 +1,6 @@
 # Getting Started
 
-EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multible a virtual hosts of RabbitMQ. 
+EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multiple a virtual hosts of RabbitMQ. 
 
 
 ## List of NuGet packages
@@ -128,7 +128,7 @@ A section may have the following subsections: <br/>
 
 ## Advanced configuration of publishers and subscribers while registring to the DI services.
 
-Since the library is designed to work with multiple virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registring to the DI services.
+Since the library is designed to work with multiple a virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registring to the DI services.
 ```
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
     defaultOptions: options =>
