@@ -6,18 +6,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
-    options => { options.HostName = "localhost"; },
-    publisherManager =>
+    defaultOptions: options =>
+    {
+        options.HostName = "localhost";
+    },
+    eventPublisherManagerOptions: publisherManager =>
     {
         publisherManager.AddPublisher<UserDeleted>(op => op.RoutingKey = "users.deleted");
         publisherManager.AddPublisher<UserUpdated>(op => op.RoutingKey = "users.updated");
     },
-    subscriberManager =>
+    eventSubscriberManagerOptions: subscriberManager =>
     {
         subscriberManager.AddSubscriber<PaymentCreated, PaymentCreatedHandler>(op =>
-            op.VirtualHost ="users/test");
+        {
+            op.VirtualHost = "users/test";
+        });
     },
-    assemblies: typeof(Program).Assembly);
+    assemblies: typeof(Program).Assembly
+);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
