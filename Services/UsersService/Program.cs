@@ -1,5 +1,6 @@
 using EventBus.RabbitMQ.Extensions;
 using UsersService.Messaging.Events;
+using UsersService.Messaging.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,11 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     {
         publisherManager.AddPublisher<UserDeleted>(op => op.RoutingKey = "users.deleted");
         publisherManager.AddPublisher<UserUpdated>(op => op.RoutingKey = "users.updated");
+    },
+    subscriberManager =>
+    {
+        subscriberManager.AddSubscriber<PaymentCreated, PaymentCreatedHandler>(op =>
+            op.VirtualHost ="users/test");
     },
     assemblies: typeof(Program).Assembly);
 

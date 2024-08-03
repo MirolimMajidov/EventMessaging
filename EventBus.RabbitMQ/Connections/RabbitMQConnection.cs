@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using EventBus.RabbitMQ.Configurations;
+using EventBus.RabbitMQ.Subscribers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -19,6 +20,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
     private readonly BaseEventOptions _connectionOptions;
     private readonly ILogger<RabbitMQConnection> _logger;
     private IConnection? _connection;
+    private static string _connectTitle;
 
     public RabbitMQConnection(BaseEventOptions connectionOptions, IServiceProvider serviceProvider)
     {
@@ -35,6 +37,14 @@ internal class RabbitMQConnection : IRabbitMQConnection
 
         _logger = serviceProvider.GetRequiredService<ILogger<RabbitMQConnection>>();
         RetryConnectionCount = (int)connectionOptions.RetryConnectionCount!;
+
+        string connectionDetail;
+        if (connectionOptions is EventSubscriberOptions subscriberOptions)
+            connectionDetail = $"'{subscriberOptions.QueueName}' queue of subscribers/receivers";
+        else
+            connectionDetail = $"'{connectionOptions.ExchangeName}' exchange of publishers";
+        
+        _connectTitle = $"The RabbitMQ connection is opened for the {connectionDetail} on the '{connectionOptions.HostName}' host's '{connectionOptions.VirtualHost}' virtual host.";
     }
 
     readonly object _lockOpenConnection = new();
@@ -66,8 +76,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
                 _connection.CallbackException += OnCallbackException;
                 _connection.ConnectionBlocked += OnConnectionBlocked;
 
-                _logger.LogInformation("RabbitMQ connection is opened on '{HostName}' host",
-                    _connection.Endpoint.HostName);
+                _logger.LogInformation(_connectTitle);
 
                 return true;
             }
