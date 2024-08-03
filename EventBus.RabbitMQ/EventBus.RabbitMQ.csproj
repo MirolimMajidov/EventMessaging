@@ -4,6 +4,16 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Title>EventBus.RabbitMQ</Title>
+        <Authors>MirolimMajidov</Authors>
+        <Description>It's easier to implement EventBus with RabbitMQ to publish and receive events. It is designed to work with multiple virtual hosts.</Description>
+        <PackageProjectUrl>https://github.com/MirolimMajidov/EventBus.RabbitMQ</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MirolimMajidov/EventBus.RabbitMQ</RepositoryUrl>
+        <RepositoryType>public</RepositoryType>
+        <PackageTags>EventBus.RabbitMQ, RabbitMQ, EventBus</PackageTags>
+        <Company>Alif Bank</Company>
+        <NeutralLanguage>en</NeutralLanguage>
+        <AssemblyName>Mirolim.EventBus.RabbitMQ</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,7 +22,6 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0"/>
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0"/>
         <PackageReference Include="RabbitMQ.Client" Version="6.8.1"/>
-        <PackageReference Include="AutoMapper" Version="13.0.1"/>
         <PackageReference Include="Polly" Version="8.4.1" />
     </ItemGroup>
 
