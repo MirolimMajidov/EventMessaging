@@ -156,3 +156,25 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 `eventSubscriberManagerOptions` - it is alternative way of overwriting `Subscribers` settings, to registir and set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
 
+## Adding property to the publishing event's headers
+
+Before publishing an event, you can attach properties to event headers by passing the header name and value to the `TryAddHeader` method. Keep in mind, the header name must be unique, otherwise it will be ignored. Example: 
+```
+var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+userCreated.TryAddHeader("TraceId", HttpContext.TraceIdentifier);
+_eventPublisher.Publish(userCreated);
+```
+
+## Reading property from the subscribed event's headers
+
+The `Handle` method of the subscriber handler has a collection parameter named `eventHeaders`. From this you can read the property value from the event's headers. Example: 
+```
+public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
+{
+   if (eventHeaders?.TryGetValue("TraceId", out object traceId) == true)
+   {
+   }
+
+   return Task.CompletedTask;
+}
+```
