@@ -160,10 +160,8 @@ internal class EventPublisherManager : IEventPublisherManager
             
             var properties = channel.CreateBasicProperties();
             properties.MessageId = @event.EventId.ToString();
-            properties.Headers = new Dictionary<string, object?>
-            {
-                { NameOfEventType, eventSettings.EventTypeName }
-            };
+            properties.Type = eventSettings.EventTypeName;
+            properties.Headers = @event.GetHeaders();
             
             var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event));
             channel.BasicPublish(eventSettings.ExchangeName, eventSettings.RoutingKey, properties, messageBody);

@@ -9,6 +9,7 @@ public interface IEventSubscriberHandler<TEventSubscriber>
     /// <summary>
     /// To receive a message 
     /// </summary>
-    /// <param name="event">Sent event by event bus</param>
-    Task Handle(TEventSubscriber @event);
+    /// <param name="event">Received event by event bus</param>
+    /// <param name="eventHeaders">Headers collection of received event</param>
+    Task Handle(TEventSubscriber @event, Dictionary<string, object>? eventHeaders);
 }

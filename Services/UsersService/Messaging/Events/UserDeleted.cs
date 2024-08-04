@@ -4,7 +4,7 @@ namespace UsersService.Messaging.Events;
 
 public class UserDeleted : EventPublisher
 {
-    public Guid UserId { get; set; }
+    public Guid UserId { get; init; }
     
-    public string UserName { get; set; }
+    public string UserName { get; init; }
 }

@@ -40,7 +40,10 @@ public class UserController : ControllerBase
     {
         Items.Add(item.Id, item);
 
-        _eventPublisher.Publish(new UserCreated { UserId = item.Id, UserName = item.Name });
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        userCreated.TryAddHeader("TraceId", HttpContext.TraceIdentifier);
+        
+        _eventPublisher.Publish(userCreated);
         return Ok();
     }
 
