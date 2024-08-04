@@ -1,6 +1,6 @@
 # Getting Started
 
-EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multible a virtual hosts of RabbitMQ. 
+EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multiple a virtual hosts of RabbitMQ. 
 
 
 ## List of NuGet packages
@@ -121,14 +121,14 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
   }
 ```
 
-A section may have the following subsections:
-`DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;
-`Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings;
-`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings.
+A section may have the following subsections: <br/>
+`DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
+`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. 
 
 ## Advanced configuration of publishers and subscribers while registring to the DI services.
 
-Since the library is designed to work with multiple virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registring to the DI services.
+Since the library is designed to work with multiple a virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registring to the DI services.
 ```
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
     defaultOptions: options =>
@@ -151,8 +151,30 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 );
 ```
 
-`defaultOptions` - it is alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;
-`eventPublisherManagerOptions` - it is alternative way of overwriting `Publishers` settings, to registir and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings;
-`eventSubscriberManagerOptions` - it is alternative way of overwriting `Subscribers` settings, to registir and set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings;
+`defaultOptions` - it is alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`eventPublisherManagerOptions` - it is alternative way of overwriting `Publishers` settings, to registir and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
+`eventSubscriberManagerOptions` - it is alternative way of overwriting `Subscribers` settings, to registir and set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
 
+## Adding property to the publishing event's headers
+
+Before publishing an event, you can attach properties to event headers by passing the header name and value to the `TryAddHeader` method. Keep in mind, the header name must be unique, otherwise it will be ignored. Example: 
+```
+var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+userCreated.TryAddHeader("TraceId", HttpContext.TraceIdentifier);
+_eventPublisher.Publish(userCreated);
+```
+
+## Reading property from the subscribed event's headers
+
+The `Handle` method of the subscriber handler has a collection parameter named `eventHeaders`. From this you can read the property value from the event's headers. Example: 
+```
+public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
+{
+   if (eventHeaders?.TryGetValue("TraceId", out object traceId) == true)
+   {
+   }
+
+   return Task.CompletedTask;
+}
+```
