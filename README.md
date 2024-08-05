@@ -74,7 +74,7 @@ public class UserCreatedHandler : IEventSubscriberHandler<UserCreated>
         _logger = logger;
     }
 
-    public Task Handle(UserCreated @event)
+    public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
     {
         _logger.LogInformation("EventId ({EventId}): {UserName} user is created with the {UserId} id", @event.EventId,
             @event.UserName, @event.UserId);
