@@ -43,22 +43,23 @@ public abstract class BaseEventOptions
     /// The routing key to use for message routing in RabbitMQ. Default value is "DefaultRoutingKey".
     /// </summary>
     public string? RoutingKey { get; set; }
-    
+
     /// <summary>
     /// Retry count to connect to the RabbitMQ. Default value is "5".
     /// </summary>
-    public int? RetryConnectionCount { get; set;  }
-    
+    public int? RetryConnectionCount { get; set; }
+
     /// <summary>
     /// Overwriting settings
     /// </summary>
     /// <param name="settings">Settings to use for overwriting the main settings if the settings parameter value is not null</param>
     /// <returns></returns>
-    internal void OverwriteSettings(BaseEventOptions? settings)
+    internal virtual void OverwriteSettings(BaseEventOptions? settings)
     {
         if (settings is not null)
         {
-            var properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => !p.PropertyType.IsGenericType);
             foreach (var property in properties)
             {
                 var value = settings[property.Name];

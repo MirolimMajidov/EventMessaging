@@ -4,7 +4,6 @@ using EventBus.RabbitMQ.Publishers;
 using EventBus.RabbitMQ.Subscribers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EventBus.RabbitMQ.Extensions;
 
@@ -50,7 +49,6 @@ public static class RabbitMQExtension
         services.AddSingleton<IEventSubscriberManager>(serviceProvider =>
         {
             var _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
-
             var subscriberManager = new EventSubscriberManager(_defaultSettings, serviceProvider);
 
             var subscribers = settings?.Subscribers ?? new Dictionary<string, EventSubscriberOptions>();

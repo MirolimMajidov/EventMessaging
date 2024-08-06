@@ -9,6 +9,7 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     defaultOptions: options =>
     {
         options.HostName = "localhost";
+        options.QueueArguments.Add("x-priority", 10);
     },
     eventPublisherManagerOptions: publisherManager =>
     {
