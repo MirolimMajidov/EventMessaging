@@ -101,7 +101,10 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
       "ExchangeType": "topic",
       "QueueName": "users_queue",
       "RoutingKey": "users.created",
-      "RetryConnectionCount": 5
+      "RetryConnectionCount": 5,
+      "QueueArguments": {
+        "x-queue-type": "quorum"
+      }
     },
     "Publishers": {
       "UserDeleted": {
@@ -115,16 +118,20 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
       "PaymentCreated": {
         "ExchangeName": "payments_exchange_name",
         "VirtualHost": "users/test",
-        "RoutingKey": "payments.created"
+        "RoutingKey": "payments.created",
+        "QueueArguments": {
+          "x-queue-type": "classic",
+          "max-length-bytes": 1048576
+        }
       }
     }
   }
 ```
 
 A section may have the following subsections: <br/>
-`DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;  The default settings has optional parameter named `QueueArguments` to pass the arguments to the queue. <br/>
 `Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
-`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. 
+`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
 
 ## Advanced configuration of publishers and subscribers while registring to the DI services.
 
