@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using EventBus.RabbitMQ.Connections;
-using EventBus.RabbitMQ.Publishers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -20,7 +19,8 @@ internal class EventConsumerService : IEventConsumerService
     /// <summary>
     /// Dictionary collection to store all event and event handler information
     /// </summary>
-    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings)> _subscribers = new();
+    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings)>
+        _subscribers = new();
 
     public EventConsumerService(EventSubscriberOptions connectionOptions, IServiceProvider serviceProvider)
     {
@@ -57,8 +57,10 @@ internal class EventConsumerService : IEventConsumerService
 
         var channel = _connection.CreateChannel();
 
-        channel.ExchangeDeclare(exchange: _connectionOptions.ExchangeName, type: _connectionOptions.ExchangeType,  durable: true, autoDelete: false);
-        channel.QueueDeclare(_connectionOptions.QueueName, durable:true, exclusive: false, autoDelete:false, null);
+        channel.ExchangeDeclare(exchange: _connectionOptions.ExchangeName, type: _connectionOptions.ExchangeType,
+            durable: true, autoDelete: false);
+        channel.QueueDeclare(_connectionOptions.QueueName, durable: true, exclusive: false, autoDelete: false,
+            _connectionOptions.QueueArguments);
         channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.ExchangeName, _connectionOptions.RoutingKey);
 
         channel.CallbackException += (sender, ea) =>
@@ -73,39 +75,44 @@ internal class EventConsumerService : IEventConsumerService
         return channel;
     }
 
-    private const string NameOfEventType = nameof(EventPublisherOptions.EventTypeName);
     private const string HandlerMethodName = nameof(IEventSubscriberHandler<IEventSubscriber>.Handle);
+
     /// <summary>
     /// An event to receive all sent events
     /// </summary>
     private async Task Consumer_Received(object sender, BasicDeliverEventArgs eventArgs)
     {
+        var eventType = eventArgs.BasicProperties.Type;
         try
         {
-            var eventType = eventArgs.BasicProperties.Type;
             if (_subscribers.TryGetValue(eventType,
                     out (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) info))
             {
-                _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType, eventArgs.BasicProperties.MessageId);
-                
+                _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType,
+                    eventArgs.BasicProperties.MessageId);
+
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var eventSubscriber = JsonSerializer.Deserialize(message, info.eventType) as IEventSubscriber;
                 var eventHandlerSubscriber = _serviceProvider.GetRequiredService(info.eventHandlerType);
                 Dictionary<string, object> eventHeaders = GetEventHeaders();
-                
+
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
                 await (Task)handleMethod.Invoke(eventHandlerSubscriber, [eventSubscriber, eventHeaders]);
-                    
+
                 _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
             }
             else
             {
-                _logger.LogWarning("No subscription for RabbitMQ {EventType} event with the {RoutingKey} routing key and {EventId} event id.", eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
+                _logger.LogWarning(
+                    "No subscription for RabbitMQ {EventType} event with the {RoutingKey} routing key and {EventId} event id.",
+                    eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "----- ERROR on processing message of {RoutingKey} routing key and {EventId} event id.", eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
+            _logger.LogError(ex,
+                "----- ERROR on receiving {EventType} event type with the {RoutingKey} routing key and {EventId} event id.",
+                eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
         }
 
         Dictionary<string, object> GetEventHeaders()
