@@ -12,7 +12,7 @@ public class UserCreatedHandler : IEventSubscriberHandler<UserCreated>
         _logger = logger;
     }
 
-    public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
+    public Task Handle(UserCreated @event, Dictionary<string, object> eventHeaders)
     {
         if (eventHeaders?.TryGetValue("TraceId", out object traceId) == true)
         {

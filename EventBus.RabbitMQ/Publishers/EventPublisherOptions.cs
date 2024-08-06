@@ -7,5 +7,5 @@ public class EventPublisherOptions : BaseEventOptions
     /// <summary>
     /// The name of the event. By default, it will get an event name.
     /// </summary>
-    public string? EventTypeName { get; set; }
+    public string EventTypeName { get; set; }
 }

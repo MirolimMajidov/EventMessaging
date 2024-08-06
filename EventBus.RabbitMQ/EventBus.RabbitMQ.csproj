@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
         <Title>EventBus.RabbitMQ</Title>
         <Authors>MirolimMajidov</Authors>
         <Description>It's easier to implement EventBus with RabbitMQ to publish and receive events. It is designed to work with multiple virtual hosts.</Description>
