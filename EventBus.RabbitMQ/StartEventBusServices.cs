@@ -11,13 +11,13 @@ using RabbitMQ.Client.Events;
 
 namespace EventBus.RabbitMQ;
 
-internal class StartSubscribingAndPublishingEventBusService : BackgroundService
+internal class StartEventBusServices : BackgroundService
 {
     private readonly IEventSubscriberManager _subscriberManager;
     private readonly IEventPublisherManager _publisherManager;
-    private readonly ILogger<StartSubscribingAndPublishingEventBusService> _logger;
+    private readonly ILogger<StartEventBusServices> _logger;
 
-    public StartSubscribingAndPublishingEventBusService(IEventSubscriberManager subscriberManager, IEventPublisherManager publisherManager, ILogger<StartSubscribingAndPublishingEventBusService> logger)
+    public StartEventBusServices(IEventSubscriberManager subscriberManager, IEventPublisherManager publisherManager, ILogger<StartEventBusServices> logger)
     {
         _publisherManager = publisherManager;
         _subscriberManager = subscriberManager;

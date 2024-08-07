@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 
 namespace EventBus.RabbitMQ.Configurations;
 
@@ -50,6 +51,11 @@ public abstract class BaseEventOptions
     public int? RetryConnectionCount { get; set; }
 
     /// <summary>
+    /// Naming police for serializing and deserializing properties of Event. Default value is "PascalCase". It can be one of "PascalCase", "CamelCase", "SnakeCaseLower", "SnakeCaseUpper", "KebabCaseLower", or "KebabCaseUpper".
+    /// </summary>
+    public string PropertyNamingPolicy { get; set; }
+
+    /// <summary>
     /// Overwriting settings
     /// </summary>
     /// <param name="settings">Settings to use for overwriting the main settings if the settings parameter value is not null</param>
@@ -82,5 +88,34 @@ public abstract class BaseEventOptions
             if (propertyInfo != null)
                 propertyInfo.SetValue(this, Convert.ChangeType(value, propertyInfo.PropertyType), null);
         }
+    }
+
+    /// <summary>
+    /// Gets JsonSerializerOptions to use on naming police for serializing and deserializing properties of Event 
+    /// </summary>
+    /// <returns></returns>
+    public JsonSerializerOptions GetJsonSerializer()
+    {
+        var settings = new JsonSerializerOptions();
+        switch (PropertyNamingPolicy)
+        {
+            case nameof(JsonNamingPolicy.CamelCase):
+                settings.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                break;
+            case nameof(JsonNamingPolicy.SnakeCaseLower):
+                settings.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+                break;
+            case nameof(JsonNamingPolicy.SnakeCaseUpper):
+                settings.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseUpper;
+                break;
+            case nameof(JsonNamingPolicy.KebabCaseLower):
+                settings.PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower;
+                break;
+            case nameof(JsonNamingPolicy.KebabCaseUpper):
+                settings.PropertyNamingPolicy = JsonNamingPolicy.KebabCaseUpper;
+                break;
+        }
+
+        return settings;
     }
 }

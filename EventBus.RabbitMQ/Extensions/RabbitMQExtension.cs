@@ -62,7 +62,7 @@ public static class RabbitMQExtension
             return subscriberManager;
         });
 
-        services.AddHostedService<StartSubscribingAndPublishingEventBusService>();
+        services.AddHostedService<StartEventBusServices>();
     }
 
     #region Publishers

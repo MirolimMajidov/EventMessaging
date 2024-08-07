@@ -163,7 +163,8 @@ internal class EventPublisherManager : IEventPublisherManager
             properties.Type = eventSettings.EventTypeName;
             properties.Headers = @event.GetHeaders();
             
-            var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event));
+            var jsonSerializerSetting = eventSettings.GetJsonSerializer();
+            var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event, jsonSerializerSetting));
             channel.BasicPublish(eventSettings.ExchangeName, eventSettings.RoutingKey, properties, messageBody);
         }
         catch (Exception ex)

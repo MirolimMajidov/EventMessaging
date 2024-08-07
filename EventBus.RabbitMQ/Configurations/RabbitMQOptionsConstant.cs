@@ -1,3 +1,4 @@
+
 namespace EventBus.RabbitMQ.Configurations;
 
 internal static class RabbitMQOptionsConstant
@@ -53,6 +54,11 @@ internal static class RabbitMQOptionsConstant
     const int RetryConnectionCount = 3;
 
     /// <summary>
+    /// Naming police for serializing and deserializing properties of Event. Default value is "PascalCase". It can be one of "PascalCase", "CamelCase", "SnakeCaseLower", "SnakeCaseUpper", "KebabCaseLower", or "KebabCaseUpper".
+    /// </summary>
+    const string PropertyNamingPolicy = "PascalCase";
+
+    /// <summary>
     /// Clone/Copying settings
     /// </summary>
     /// <returns>Returns a new copy of settings</returns>
@@ -69,7 +75,8 @@ internal static class RabbitMQOptionsConstant
             ExchangeType = ExchangeType,
             QueueName = QueueName,
             RoutingKey = RoutingKey,
-            RetryConnectionCount = RetryConnectionCount
+            RetryConnectionCount = RetryConnectionCount,
+            PropertyNamingPolicy = PropertyNamingPolicy,
         };
     }
 }

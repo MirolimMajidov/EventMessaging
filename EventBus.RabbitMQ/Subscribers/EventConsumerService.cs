@@ -91,8 +91,9 @@ internal class EventConsumerService : IEventConsumerService
                 _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType,
                     eventArgs.BasicProperties.MessageId);
 
+                var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                var eventSubscriber = JsonSerializer.Deserialize(message, info.eventType) as IEventSubscriber;
+                var eventSubscriber = JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as IEventSubscriber;
                 var eventHandlerSubscriber = _serviceProvider.GetRequiredService(info.eventHandlerType);
                 Dictionary<string, object> eventHeaders = GetEventHeaders();
 
@@ -118,7 +119,7 @@ internal class EventConsumerService : IEventConsumerService
         Dictionary<string, object> GetEventHeaders()
         {
             Dictionary<string, object> eventHeaders = null;
-            if (eventArgs.BasicProperties.IsHeadersPresent())
+            if (eventArgs.BasicProperties.Headers is not null)
             {
                 eventHeaders = new();
                 foreach (var header in eventArgs.BasicProperties.Headers)
