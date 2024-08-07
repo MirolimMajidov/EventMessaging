@@ -82,7 +82,7 @@ internal class EventConsumerService : IEventConsumerService
     /// </summary>
     private async Task Consumer_Received(object sender, BasicDeliverEventArgs eventArgs)
     {
-        var eventType = eventArgs.BasicProperties.Type;
+        var eventType = eventArgs.BasicProperties.Type ?? eventArgs.RoutingKey;
         try
         {
             if (_subscribers.TryGetValue(eventType,
@@ -93,7 +93,8 @@ internal class EventConsumerService : IEventConsumerService
 
                 var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                var eventSubscriber = JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as IEventSubscriber;
+                var eventSubscriber =
+                    JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as IEventSubscriber;
                 var eventHandlerSubscriber = _serviceProvider.GetRequiredService(info.eventHandlerType);
                 Dictionary<string, object> eventHeaders = GetEventHeaders();
 
