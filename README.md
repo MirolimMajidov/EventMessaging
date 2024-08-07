@@ -185,3 +185,29 @@ public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
    return Task.CompletedTask;
 }
 ```
+
+
+
+## Changing a naming police for serializing and deserializing properties of Event
+
+By default while serializing and deserializing properties of event, it will uses the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers or you can use it only for publisher or subscriber event. Example: 
+```
+"RabbitMQSettings": {
+    "DefaultSettings": {
+      //your settings
+      "PropertyNamingPolicy": "KebabCaseLower"
+    },
+    "Publishers": {
+      "PaymentCreated": {
+        //your settings
+        "PropertyNamingPolicy": "SnakeCaseUpper"
+      }
+    },
+    "Subscribers": {
+      "UserDeleted": {
+        //your settings
+        "PropertyNamingPolicy": "CamelCase"
+      }
+    }
+  }
+```
