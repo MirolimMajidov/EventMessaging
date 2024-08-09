@@ -29,7 +29,6 @@ internal class EventConsumerService : IEventConsumerService
         _logger = _serviceProvider.GetRequiredService<ILogger<EventConsumerService>>();
 
         _connection = new RabbitMQConnection(_connectionOptions, serviceProvider);
-        _consumerChannel = CreateConsumerChannel();
     }
 
     public void AddSubscriber((Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) eventInfo)
@@ -42,6 +41,7 @@ internal class EventConsumerService : IEventConsumerService
     /// </summary>
     public void StartAndSubscribeReceiver()
     {
+        _consumerChannel = CreateConsumerChannel();
         var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
         consumer.Received += Consumer_Received;
         _consumerChannel.BasicConsume(queue: _connectionOptions.QueueName, autoAck: false, consumer: consumer);
@@ -61,7 +61,9 @@ internal class EventConsumerService : IEventConsumerService
             durable: true, autoDelete: false);
         channel.QueueDeclare(_connectionOptions.QueueName, durable: true, exclusive: false, autoDelete: false,
             _connectionOptions.QueueArguments);
-        channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.ExchangeName, _connectionOptions.RoutingKey);
+        foreach (var eventSettings in _subscribers.Values.Select(s => s.eventSettings))
+            channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.ExchangeName,
+                eventSettings.RoutingKey);
 
         channel.CallbackException += (sender, ea) =>
         {
