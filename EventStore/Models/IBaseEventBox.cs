@@ -31,11 +31,6 @@ public interface IBaseEventBox
     string Metadata { get; init; }
 
     /// <summary>
-    /// Gets or sets the type of stored event. It can be Outbox or Inbox.
-    /// </summary>
-    string StoredEventType { get; init; }
-
-    /// <summary>
     /// Gets the creation time of the event.
     /// </summary>
     DateTimeOffset CreatedAt { get; }

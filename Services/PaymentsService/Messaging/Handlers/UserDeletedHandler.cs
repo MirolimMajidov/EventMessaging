@@ -12,7 +12,7 @@ public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
         _logger = logger;
     }
 
-    public Task Handle(UserDeleted @event, Dictionary<string, object> eventHeaders)
+    public Task Handle(UserDeleted @event)
     {
         _logger.LogInformation("EventId ({EventId}): {UserName} user is deleted, the User id is {UserId}", @event.EventId,
             @event.UserName, @event.UserId);

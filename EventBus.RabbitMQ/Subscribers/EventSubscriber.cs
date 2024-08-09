@@ -8,4 +8,6 @@ public abstract class EventSubscriber : IEventSubscriber
     public Guid EventId { get; } = Guid.NewGuid();
 
     public DateTime CreatedAt { get; } = DateTime.Now;
+    
+    public Dictionary<string, object> Headers { get; } = new ();
 }

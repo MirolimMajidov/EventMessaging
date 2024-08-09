@@ -12,7 +12,7 @@ public class UserUpdatedHandler : IEventSubscriberHandler<UserUpdated>
         _logger = logger;
     }
 
-    public Task Handle(UserUpdated @event, Dictionary<string, object> eventHeaders)
+    public Task Handle(UserUpdated @event)
     {
         _logger.LogInformation("EventId ({EventId}): User which has {UserId} id, renamed from {OldName} to {NewName}", @event.EventId,
             @event.UserId, @event.OldUserName, @event.NewUserName);

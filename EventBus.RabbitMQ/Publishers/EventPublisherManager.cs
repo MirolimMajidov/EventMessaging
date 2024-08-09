@@ -161,7 +161,7 @@ internal class EventPublisherManager : IEventPublisherManager
             var properties = channel.CreateBasicProperties();
             properties.MessageId = @event.EventId.ToString();
             properties.Type = eventSettings.EventTypeName;
-            properties.Headers = @event.GetHeaders();
+            properties.Headers = @event.Headers;
             
             var jsonSerializerSetting = eventSettings.GetJsonSerializer();
             var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event, jsonSerializerSetting));

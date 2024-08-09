@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EventBus.RabbitMQ.Publishers;
 
 /// <summary>
@@ -14,4 +16,10 @@ public interface IBaseEvent
     /// Created time of event
     /// </summary>
     public DateTime CreatedAt { get; }
+    
+    /// <summary>
+    /// Gets or sets the header data of the event.
+    /// </summary>
+    [JsonIgnore]
+    public Dictionary<string, object> Headers { get; }
 }

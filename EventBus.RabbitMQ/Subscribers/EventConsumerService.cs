@@ -98,10 +98,10 @@ internal class EventConsumerService : IEventConsumerService
                 var eventSubscriber =
                     JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as IEventSubscriber;
                 var eventHandlerSubscriber = scope.ServiceProvider.GetRequiredService(info.eventHandlerType);
-                Dictionary<string, object> eventHeaders = GetEventHeaders();
+                LoadEventHeaders(eventSubscriber);
 
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
-                await (Task)handleMethod.Invoke(eventHandlerSubscriber, [eventSubscriber, eventHeaders]);
+                await (Task)handleMethod.Invoke(eventHandlerSubscriber, [eventSubscriber]);
 
                 _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
             }
@@ -119,20 +119,16 @@ internal class EventConsumerService : IEventConsumerService
                 eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
         }
 
-        Dictionary<string, object> GetEventHeaders()
+        void LoadEventHeaders(IEventSubscriber eventSubscriber)
         {
-            Dictionary<string, object> eventHeaders = null;
             if (eventArgs.BasicProperties.Headers is not null)
             {
-                eventHeaders = new();
                 foreach (var header in eventArgs.BasicProperties.Headers)
                 {
                     var headerValue = Encoding.UTF8.GetString((byte[])header.Value);
-                    eventHeaders.Add(header.Key, headerValue);
+                    eventSubscriber.Headers.Add(header.Key, headerValue);
                 }
             }
-
-            return eventHeaders;
         }
     }
 }

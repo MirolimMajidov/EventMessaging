@@ -12,6 +12,7 @@ Resource.designer.cs
 *.suo
 *.user
 *.sln.docstates
+appsettings.Development.json
 
 # Build results
 [Dd]ebug/

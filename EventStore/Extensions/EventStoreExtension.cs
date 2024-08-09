@@ -1,8 +1,11 @@
 using System.Reflection;
 using EventStore.Inbox.Configurations;
+using EventStore.Models.Outbox;
+using EventStore.Outbox;
 using EventStore.Repositories.Outbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EventStore.Extensions;
 
@@ -20,21 +23,28 @@ public static class EventStoreExtension
         Action<InboxAndOutboxOptions> options = null)
     {
         var settings = GetDefaultSettings();
-        var inboxAndOutboxOptions = new InboxAndOutboxOptions(settings);
-        options?.Invoke(inboxAndOutboxOptions);
+        if (!settings.Inbox.IsEnabled && !settings.Outbox.IsEnabled)
+            return;
+        
+        if (settings.Inbox.TableName == settings.Outbox.TableName)
+            throw new ArgumentNullException("The table name for the index and outbox events cannot be the same.");
+        
         services.AddSingleton(settings);
-
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        
         if (settings.Outbox.IsEnabled)
         {
-            services.AddSingleton<IOutboxRepository>(serviceProvider =>
+            services.AddScoped<IEventSender, EventSender>();
+            services.AddScoped<IOutboxRepository>(serviceProvider =>
             {
                 var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
-                var _reporitory = new OutboxRepository(_defaultSettings.Outbox);
-
+                var _logger = serviceProvider.GetRequiredService<ILogger<OutboxRepository>>();
+                var _reporitory = new OutboxRepository(_defaultSettings.Outbox, _logger);
+                _reporitory.CreateTableIfNotExists();
+                
                 return _reporitory;
             });
         }
-
 
         InboxAndOutboxSettings GetDefaultSettings()
         {
@@ -50,6 +60,17 @@ public static class EventStoreExtension
                 defaultSettings.Outbox = new();
                 defaultSettings.Outbox.TableName = nameof(defaultSettings.Outbox);
             }
+            
+            var inboxAndOutboxOptions = new InboxAndOutboxOptions(defaultSettings);
+            options?.Invoke(inboxAndOutboxOptions);
+
+            if (defaultSettings.Inbox.IsEnabled && string.IsNullOrEmpty(defaultSettings.Inbox.TableName))
+                throw new ArgumentNullException("If the inbox is enabled, the table name cannot be empty");
+
+            if (defaultSettings.Outbox.IsEnabled && string.IsNullOrEmpty(defaultSettings.Outbox.TableName))
+                throw new ArgumentNullException("If the outbox is enabled, the table name cannot be empty");
+            
+            
 
             return defaultSettings;
         }

@@ -76,7 +76,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
                 _connection.CallbackException += OnCallbackException;
                 _connection.ConnectionBlocked += OnConnectionBlocked;
 
-                _logger.LogInformation(_connectTitle);
+                _logger.LogDebug(_connectTitle);
 
                 return true;
             }

@@ -1,4 +1,7 @@
 using EventBus.RabbitMQ.Publishers;
+using EventStore.Models;
+using EventStore.Models.Outbox;
+using EventStore.Outbox;
 using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events;
 using UsersService.Models;
@@ -10,14 +13,16 @@ namespace UsersService.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IEventPublisherManager _eventPublisher;
+    private readonly IEventSender _eventSender;
 
     private readonly ILogger<UserController> _logger;
     private static readonly Dictionary<Guid, User> Items = new();
 
-    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher)
+    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher, IEventSender eventSender)
     {
         _logger = logger;
         _eventPublisher = eventPublisher;
+        _eventSender = eventSender;
     }
 
     [HttpGet]
@@ -41,8 +46,8 @@ public class UserController : ControllerBase
         Items.Add(item.Id, item);
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
-        userCreated.TryAddHeader("TraceId", HttpContext.TraceIdentifier);
-        
+        userCreated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
+        _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
         _eventPublisher.Publish(userCreated);
         return Ok();
     }
