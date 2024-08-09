@@ -90,12 +90,12 @@ internal class EventConsumerService : IEventConsumerService
             {
                 _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType,
                     eventArgs.BasicProperties.MessageId);
-
+                using var scope = _serviceProvider.CreateScope();
                 var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var eventSubscriber =
                     JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as IEventSubscriber;
-                var eventHandlerSubscriber = _serviceProvider.GetRequiredService(info.eventHandlerType);
+                var eventHandlerSubscriber = scope.ServiceProvider.GetRequiredService(info.eventHandlerType);
                 Dictionary<string, object> eventHeaders = GetEventHeaders();
 
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);

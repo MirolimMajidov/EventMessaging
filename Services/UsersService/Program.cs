@@ -2,6 +2,8 @@ using EventBus.RabbitMQ.Extensions;
 using EventStore.Extensions;
 using UsersService.Messaging.Events;
 using UsersService.Messaging.Handlers;
+using UsersService.Repositories;
+using UsersService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,8 @@ builder.Services.AddEventStore(builder.Configuration,
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IUserService, UserService>();
 
 var app = builder.Build();
 

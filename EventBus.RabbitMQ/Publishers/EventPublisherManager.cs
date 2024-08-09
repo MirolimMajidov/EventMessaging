@@ -14,7 +14,7 @@ internal class EventPublisherManager : IEventPublisherManager
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventPublisherManager> _logger;
     private readonly Dictionary<string, EventPublisherOptions> _publishers;
-    private Dictionary<string, IRabbitMQConnection> _openedRabbitMQConnections;
+    private readonly Dictionary<string, IRabbitMQConnection> _openedRabbitMQConnections;
 
     public EventPublisherManager(IServiceProvider serviceProvider)
     {
