@@ -1,4 +1,4 @@
-namespace EventStore;
+namespace EventStore.Models;
 
 public struct StoredEventType
 {

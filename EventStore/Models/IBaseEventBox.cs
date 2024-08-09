@@ -1,4 +1,4 @@
-namespace EventStore;
+namespace EventStore.Models;
 
 /// <summary>
 /// Represents an event type for storing and reading.

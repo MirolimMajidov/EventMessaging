@@ -1,3 +1,6 @@
+using EventStore.Models;
+using EventStore.Models.Outbox;
+
 namespace EventStore.Outbox;
 
 public interface IEventSender

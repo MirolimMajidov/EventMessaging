@@ -1,4 +1,4 @@
-namespace EventStore;
+namespace EventStore.Models;
 
 /// <summary>
 /// Provider type of event
