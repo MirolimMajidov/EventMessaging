@@ -33,8 +33,8 @@ builder.Services.AddEventStore(builder.Configuration,
     assemblies: [typeof(Program).Assembly]
     , options =>
     {
-        options.EnableOutbox();
-        options.ChangeOutboxTableName("SentEvents");
+        options.Outbox.IsEnabled = true;
+        options.Outbox.TableName = "SentEvents";
     });
 
 builder.Services.AddControllers();
