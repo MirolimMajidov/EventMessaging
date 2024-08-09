@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
-    assemblies: typeof(Program).Assembly);
+    assemblies: [typeof(Program).Assembly]);
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();

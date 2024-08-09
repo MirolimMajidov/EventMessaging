@@ -16,9 +16,9 @@ Make sure you have installed and runned [RabbitMQ](https://www.rabbitmq.com/docs
 Install-Package Mirolim.EventBus.RabbitMQ
 ```
 
-Register the nuget package's necessory services to the services of DI in the Program.cs and pass the assemblies to find and load the publishers and subscribers automatically:
+Register the nuget package's necessary services to the services of DI in the Program.cs and pass the assemblies to find and load the publishers and subscribers automatically:
 ```
-builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: typeof(Program).Assembly);
+builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: [typeof(Program).Assembly]);
 ```
 
 ## Create and publish an event
@@ -54,7 +54,7 @@ public class UserController : ControllerBase
 
 ## Create a subscriber with the handler and subscribe to the event
 
-If you want to subscribe to necessory event, first you need to create your own an event structure to subscribe. Your subscriber class must implement the `IEventSubscriber` interface or inherit from the `EventSubscriber` class. Example: 
+If you want to subscribe to necessary event, first you need to create your own an event structure to subscribe. Your subscriber class must implement the `IEventSubscriber` interface or inherit from the `EventSubscriber` class. Example: 
 ```
 public class UserCreated : EventSubscriber
 {
@@ -131,13 +131,14 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
 A section may have the following subsections: <br/>
 `DefaultSettings` - to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;  The default settings has optional parameter named `QueueArguments` to pass the arguments to the queue. <br/>
 `Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
-`Subscribers` - set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
+`Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
 
-## Advanced configuration of publishers and subscribers while registring to the DI services.
+## Advanced configuration of publishers and subscribers while registering to the DI services.
 
-Since the library is designed to work with multiple a virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registring to the DI services.
+Since the library is designed to work with multiple a virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registering to the DI services.
 ```
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
+    assemblies: [typeof(Program).Assembly],
     defaultOptions: options =>
     {
         options.HostName = "localhost";
@@ -153,14 +154,13 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
         {
             op.VirtualHost = "users/test";
         });
-    },
-    assemblies: typeof(Program).Assembly
+    }
 );
 ```
 
-`defaultOptions` - it is alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
-`eventPublisherManagerOptions` - it is alternative way of overwriting `Publishers` settings, to registir and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
-`eventSubscriberManagerOptions` - it is alternative way of overwriting `Subscribers` settings, to registir and set custom settings for the subscibers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
+`defaultOptions` - it is an alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbintMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`eventPublisherManagerOptions` - it is an alternative way of overwriting `Publishers` settings, to register and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
+`eventSubscriberManagerOptions` - it is an alternative way of overwriting `Subscribers` settings, to register and set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
 
 ## Adding property to the publishing event's headers
@@ -190,7 +190,7 @@ public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
 
 ## Changing a naming police for serializing and deserializing properties of Event
 
-By default while serializing and deserializing properties of event, it will uses the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers or you can use it only for publisher or subscriber event. Example: 
+By default, while serializing and deserializing properties of event, it will uses the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for publisher or subscriber event. Example: 
 ```
 "RabbitMQSettings": {
     "DefaultSettings": {

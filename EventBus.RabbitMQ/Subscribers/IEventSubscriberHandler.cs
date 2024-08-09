@@ -11,5 +11,5 @@ public interface IEventSubscriberHandler<TEventSubscriber>
     /// </summary>
     /// <param name="event">Received event by event bus</param>
     /// <param name="eventHeaders">Headers collection of received event</param>
-    Task Handle(TEventSubscriber @event, Dictionary<string, object>? eventHeaders);
+    Task Handle(TEventSubscriber @event, Dictionary<string, object> eventHeaders);
 }

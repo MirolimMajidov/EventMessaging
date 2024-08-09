@@ -19,7 +19,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
     private readonly IConnectionFactory _connectionFactory;
     private readonly BaseEventOptions _connectionOptions;
     private readonly ILogger<RabbitMQConnection> _logger;
-    private IConnection? _connection;
+    private IConnection _connection;
     private static string _connectTitle;
 
     public RabbitMQConnection(BaseEventOptions connectionOptions, IServiceProvider serviceProvider)

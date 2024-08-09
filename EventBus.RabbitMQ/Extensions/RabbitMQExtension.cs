@@ -18,10 +18,10 @@ public static class RabbitMQExtension
     /// <param name="eventPublisherManagerOptions">Options to register publisher with the settings. It will overwrite existing publisher setting if exists</param>
     /// <param name="assemblies">Assemblies to find and load publisher and subscribers</param>
     public static void AddRabbitMQEventBus(this IServiceCollection services, IConfiguration configuration,
-        Action<RabbitMQOptions>? defaultOptions = null,
-        Action<EventPublisherManagerOptions>? eventPublisherManagerOptions = null,
-        Action<EventSubscriberManagerOptions>? eventSubscriberManagerOptions = null,
-        params Assembly[] assemblies)
+        Assembly[] assemblies,
+        Action<RabbitMQOptions> defaultOptions = null,
+        Action<EventPublisherManagerOptions> eventPublisherManagerOptions = null,
+        Action<EventSubscriberManagerOptions> eventSubscriberManagerOptions = null)
     {
         var settings = configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>();
         var defaultSettings = GetDefaultRabbitMQOptions(settings);
@@ -67,7 +67,7 @@ public static class RabbitMQExtension
 
     #region Publishers
 
-    private static Type[] GetPublisherTypes(Assembly[]? assemblies)
+    private static Type[] GetPublisherTypes(Assembly[] assemblies)
     {
         var publisherType = typeof(IEventPublisher);
         if (assemblies is not null)
@@ -91,7 +91,7 @@ public static class RabbitMQExtension
         }
     }
 
-    private static RabbitMQOptions GetDefaultRabbitMQOptions(RabbitMQSettings? settings)
+    private static RabbitMQOptions GetDefaultRabbitMQOptions(RabbitMQSettings settings)
     {
         var defaultSettings = RabbitMQOptionsConstant.CreateDefaultRabbitMQOptions();
         defaultSettings.OverwriteSettings(settings?.DefaultSettings);
@@ -124,7 +124,7 @@ public static class RabbitMQExtension
             services.AddTransient(handlerType);
     }
 
-    private static List<(Type eventType, Type handlerType)> GetSubscriberHandlerTypes(Assembly[]? assemblies)
+    private static List<(Type eventType, Type handlerType)> GetSubscriberHandlerTypes(Assembly[] assemblies)
     {
         List<(Type eventType, Type handlerType)> subscriberHandlerTypes = new();
         var publisherType = typeof(IEventSubscriberHandler<>);

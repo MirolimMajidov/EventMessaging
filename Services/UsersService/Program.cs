@@ -1,4 +1,5 @@
 using EventBus.RabbitMQ.Extensions;
+using EventStore.Extensions;
 using UsersService.Messaging.Events;
 using UsersService.Messaging.Handlers;
 
@@ -6,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
+    assemblies: [typeof(Program).Assembly],
     defaultOptions: options =>
     {
         options.HostName = "localhost";
@@ -22,9 +24,16 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
         {
             op.VirtualHost = "users/test";
         });
-    },
-    assemblies: typeof(Program).Assembly
+    }
 );
+
+builder.Services.AddEventStore(builder.Configuration,
+    assemblies: [typeof(Program).Assembly]
+    , options =>
+    {
+        options.EnableOutbox();
+        options.ChangeOutboxTableName("SentEvents");
+    });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

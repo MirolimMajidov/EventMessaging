@@ -16,7 +16,7 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
     /// </summary>
     private readonly Dictionary<string, IEventConsumerService> _eventConsumers = new();
 
-    public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions>? options = null)
+    public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions> options = null)
         where TEvent : class, IEventSubscriber
         where TEventHandler : class, IEventSubscriberHandler<TEvent>
     {

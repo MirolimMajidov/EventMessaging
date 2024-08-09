@@ -19,7 +19,7 @@ public class EventSubscriberOptions : BaseEventOptions, IHasQueueArguments
     /// </summary>
     public Dictionary<string, object> QueueArguments { get; set; } = new(); 
     
-    internal override void OverwriteSettings(BaseEventOptions? settings)
+    internal override void OverwriteSettings(BaseEventOptions settings)
     {
         if (settings is not null)
         {
