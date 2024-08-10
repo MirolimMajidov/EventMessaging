@@ -17,6 +17,7 @@ Install-Package Mirolim.EventBus.RabbitMQ
 ```
 
 Register the nuget package's necessary services to the services of DI in the Program.cs and pass the assemblies to find and load the publishers and subscribers automatically:
+
 ```
 builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: [typeof(Program).Assembly]);
 ```
@@ -24,6 +25,7 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: [typeof(
 ## Create and publish an event
 
 Start creating an event to publish. Your class must implement the `IEventPublisher` interface or inherit from the `EventPublisher` class. Example: 
+
 ```
 public class UserDeleted : EventPublisher
 {
@@ -32,7 +34,9 @@ public class UserDeleted : EventPublisher
     public string UserName { get; set; }
 }
 ```
+
 In publish your event, you must first inject the `IEventPublisherManager` interface from the DI and pass your event object to the `Publish` method. Then, your event will be published.
+
 ```
 public class UserController : ControllerBase
 {
@@ -60,6 +64,7 @@ public class UserController : ControllerBase
 ## Create a subscriber with the handler and subscribe to the event
 
 If you want to subscribe to necessary event, first you need to create your own an event structure to subscribe. Your subscriber class must implement the `IEventSubscriber` interface or inherit from the `EventSubscriber` class. Example: 
+
 ```
 public class UserDeleted : EventSubscriber
 {
@@ -68,7 +73,9 @@ public class UserDeleted : EventSubscriber
     public string UserName { get; set; }
 }
 ```
+
 Then you need to create a subscriber handler to receive the event. Your subscriber handler class must implement the `IEventSubscriberHandler<>` interface and impmenet your subsciber class. Example: 
+
 ```
 public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
 {
@@ -88,6 +95,7 @@ public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
     }
 }
 ```
+
 Depend on your business logic, you need to add your logic to the `Handle` method of handler to do something based on your received event.
 
 ## Advanced configuration of publishers and subscribers from configuration file.
@@ -102,7 +110,7 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
       "VirtualHost": "users/pro",
       "UserName": "admin",
       "Password": "admin123",
-      "ExchangeName": "users_exchange_name",
+      "ExchangeName": "users_exchange",
       "ExchangeType": "topic",
       "QueueName": "users_queue",
       "RoutingKey": "users.created",
@@ -121,7 +129,7 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
     },
     "Subscribers": {
       "PaymentCreated": {
-        "ExchangeName": "payments_exchange_name",
+        "ExchangeName": "payments_exchange",
         "VirtualHost": "users/test",
         "RoutingKey": "payments.created",
         "QueueArguments": {
@@ -174,7 +182,7 @@ Before publishing an event, you can attach properties to event headers by passin
 ```
 var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
 userUpdated.Headers = new();
-userUpdated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
+userUpdated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
 _eventPublisher.Publish(userUpdated);
 ```
 
@@ -184,15 +192,13 @@ The `Handle` method of the subscriber handler has a collection parameter named `
 ```
 public Task Handle(UserUpdated @event)
 {
-   if (@event.Headers?.TryGetValue("TraceId", out object traceId) == true)
+   if (@event.Headers?.TryGetValue("TraceId", out string traceId) == true)
    {
    }
 
    return Task.CompletedTask;
 }
 ```
-
-
 
 ## Changing a naming police for serializing and deserializing properties of Event
 

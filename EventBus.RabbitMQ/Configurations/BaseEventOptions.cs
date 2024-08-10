@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace EventBus.RabbitMQ.Configurations;
 
@@ -96,7 +97,7 @@ public abstract class BaseEventOptions
     /// <returns></returns>
     public JsonSerializerOptions GetJsonSerializer()
     {
-        var settings = new JsonSerializerOptions();
+        var settings = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         switch (PropertyNamingPolicy)
         {
             case nameof(JsonNamingPolicy.CamelCase):

@@ -123,6 +123,7 @@ internal class EventConsumerService : IEventConsumerService
         {
             if (eventArgs.BasicProperties.Headers is not null)
             {
+                eventSubscriber.Headers ??= new();
                 foreach (var header in eventArgs.BasicProperties.Headers)
                 {
                     var headerValue = Encoding.UTF8.GetString((byte[])header.Value);

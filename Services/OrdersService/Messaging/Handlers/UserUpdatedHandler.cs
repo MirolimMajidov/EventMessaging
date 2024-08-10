@@ -14,7 +14,7 @@ public class UserUpdatedHandler : IEventSubscriberHandler<UserUpdated>
 
     public Task Handle(UserUpdated @event)
     {
-        if (@event.Headers?.TryGetValue("TraceId", out object traceId) == true)
+        if (@event.Headers?.TryGetValue("TraceId", out string traceId) == true)
         {
         }
         

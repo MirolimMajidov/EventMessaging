@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EventBus.RabbitMQ.Publishers;
 
 /// <summary>
@@ -8,11 +10,13 @@ public abstract class EventPublisher : IEventPublisher
     public EventPublisher(Guid? id = null)
     {
         EventId = id ?? Guid.NewGuid();
+        CreatedAt = DateTime.Now;
     }
 
     public Guid EventId { get; }
 
-    public DateTime CreatedAt { get; } = DateTime.Now;
+    public DateTime CreatedAt { get; }
 
-    public Dictionary<string, object> Headers { get; set; }
+    [JsonIgnore]
+    public Dictionary<string, string> Headers { get; set; }
 }

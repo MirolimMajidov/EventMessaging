@@ -19,7 +19,7 @@ public class PaymentCreatedHandler : IEventSubscriberHandler<PaymentCreated>
 
     public Task Handle(PaymentCreated @event)
     {
-        _logger.LogInformation("EventId ({EventId}): Payment has been created for {UserId} id with the {PaymentId} payment id, for {Amount} amount.", @event.EventId,
+        _logger.LogInformation("EventId ({EventId}): Payment has been created for {UserId} user id with the {PaymentId} payment id, for {Amount} amount.", @event.EventId,
             @event.UserId, @event.PaymentId, @event.Amount);
 
         return Task.CompletedTask;

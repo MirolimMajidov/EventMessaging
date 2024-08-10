@@ -21,5 +21,5 @@ public interface IBaseEvent
     /// Gets or sets the header data of the event.
     /// </summary>
     [JsonIgnore]
-    public Dictionary<string, object> Headers { get; }
+    public Dictionary<string, string> Headers { get; set; }
 }

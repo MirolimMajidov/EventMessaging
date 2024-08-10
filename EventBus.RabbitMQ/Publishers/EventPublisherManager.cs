@@ -150,6 +150,7 @@ internal class EventPublisherManager : IEventPublisherManager
     }
 
     private const string NameOfEventType = nameof(EventPublisherOptions.EventTypeName);
+
     public void Publish<TEventPublisher>(TEventPublisher @event) where TEventPublisher : IEventPublisher
     {
         try
@@ -157,12 +158,18 @@ internal class EventPublisherManager : IEventPublisherManager
             var publisherName = @event.GetType().Name;
             var eventSettings = GetPublisherSettings(publisherName);
             using var channel = CreateRabbitMQChannel(eventSettings);
-            
+
             var properties = channel.CreateBasicProperties();
             properties.MessageId = @event.EventId.ToString();
             properties.Type = eventSettings.EventTypeName;
-            properties.Headers = @event.Headers;
-            
+            if (@event.Headers?.Any() == true)
+            {
+                var _headers = new Dictionary<string, object>();
+                foreach (var item in  @event.Headers)
+                    _headers.Add(item.Key, item.Value);
+                properties.Headers =_headers;
+            }
+
             var jsonSerializerSetting = eventSettings.GetJsonSerializer();
             var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event, jsonSerializerSetting));
             channel.BasicPublish(eventSettings.ExchangeName, eventSettings.RoutingKey, properties, messageBody);

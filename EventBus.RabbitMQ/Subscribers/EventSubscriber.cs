@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EventBus.RabbitMQ.Subscribers;
 
 /// <summary>
@@ -5,9 +7,10 @@ namespace EventBus.RabbitMQ.Subscribers;
 /// </summary>
 public abstract class EventSubscriber : IEventSubscriber
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; }
 
-    public DateTime CreatedAt { get; } = DateTime.Now;
+    public DateTime CreatedAt { get; }
     
-    public Dictionary<string, object> Headers { get; } = new ();
+    [JsonIgnore]
+    public Dictionary<string, string> Headers { get; set; }
 }

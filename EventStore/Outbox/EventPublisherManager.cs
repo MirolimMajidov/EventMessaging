@@ -101,11 +101,11 @@ public class EventPublisherManager : IEventPublisherManager
                     var eventToPublish = JsonSerializer.Deserialize(@event.Payload, info.eventType) as ISendEvent;
                     if (info.hasHeaders && @event.Headers is not null)
                         ((IHasHeaders)eventToPublish).Headers =
-                            JsonSerializer.Deserialize<Dictionary<string, object>>(@event.Headers);
+                            JsonSerializer.Deserialize<Dictionary<string, string>>(@event.Headers);
 
                     if (info.hasAdditionalData && @event.AdditionalData is not null)
                         ((IHasAdditionalData)eventToPublish).AdditionalData =
-                            JsonSerializer.Deserialize<Dictionary<string, object>>(@event!.AdditionalData);
+                            JsonSerializer.Deserialize<Dictionary<string, string>>(@event!.AdditionalData);
 
                     var eventHandlerSubscriber = serviceScope.ServiceProvider.GetRequiredService(info.eventHandlerType);
 

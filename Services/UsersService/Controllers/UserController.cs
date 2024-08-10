@@ -50,8 +50,9 @@ public class UserController : ControllerBase
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
         userCreated.Headers = new();
-        userCreated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
+        userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
+        //_eventPublisher.Publish(userCreated);
         _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
         return Ok();
     }
