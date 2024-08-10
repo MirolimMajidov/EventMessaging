@@ -12,11 +12,9 @@ internal class OutboxEvent : IOutboxEvent
     public DateTime CreatedAt { get; } = DateTime.Now;
     public int TryCount { get; set; }
     public DateTime TryAfterAt { get; set; } = DateTime.Now;
-    public DateTime ProcessedAt { get; set; }
-    public bool Processed { get; set; }
+    public DateTime? ProcessedAt { get; set; }
     public void Process()
     {
-        Processed = true;
         ProcessedAt = DateTime.Now;
     }
 }

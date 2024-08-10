@@ -58,12 +58,7 @@ public interface IBaseEventBox
     /// <summary>
     /// Gets the processed time of the event.
     /// </summary>
-    DateTime ProcessedAt { get; internal set; }
-
-    /// <summary>
-    /// Gets or sets the status of the event. When 0, the event is not sent/handled; when 1, the event is sent/handled.
-    /// </summary>
-    bool Processed { get; set; }
+    DateTime? ProcessedAt { get; internal set; }
 
     /// <summary>
     /// For processing the event

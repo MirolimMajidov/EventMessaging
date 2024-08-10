@@ -1,9 +1,7 @@
-using System.Data;
 using Dapper;
 using EventStore.Inbox.Configurations;
 using EventStore.Models;
 using EventStore.Models.Exceptions;
-using EventStore.Models.Outbox;
 using Npgsql;
 
 namespace EventStore.Repositories;
@@ -11,21 +9,22 @@ namespace EventStore.Repositories;
 internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
 {
     private readonly string _tableName;
-
-    private readonly IDbConnection _dbConnection;
+    private readonly string _connectionString;
 
     public EventRepository(InboxOrOutboxStructure settings)
     {
         _tableName = settings.TableName;
-        _dbConnection = new NpgsqlConnection(settings.ConnectionString);
+        _connectionString = settings.ConnectionString;
     }
 
     public void CreateTableIfNotExists()
     {
-        try
+        using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
-            _dbConnection.Open();
-            var sql = $@"create table if not exists ""{_tableName}""
+            try
+            {
+                dbConnection.Open();
+                var sql = $@"CREATE TABLE IF NOT EXISTS ""{_tableName}""
                 (
                     ""Id"" UUID NOT NULL PRIMARY KEY,
                     ""Provider"" VARCHAR(50) NOT NULL,
@@ -34,200 +33,158 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     ""Payload"" TEXT,
                     ""Headers"" TEXT,
                     ""AdditionalData"" TEXT,
-                    ""CreatedAt"" timestamp(0) NOT NULL,
-                    ""TryCount"" smallint default '0'::smallint not null,
-                    ""TryAfterAt"" timestamp(0) NOT NULL,
-                    ""ProcessedAt"" timestamp(0),
-                    ""Processed"" BOOLEAN NOT NULL
+                    ""CreatedAt"" TIMESTAMP(0) NOT NULL,
+                    ""TryCount"" SMALLINT DEFAULT '0'::SMALLINT NOT NULL,
+                    ""TryAfterAt"" TIMESTAMP(0) NOT NULL,
+                    ""ProcessedAt"" TIMESTAMP(0) DEFAULT NULL
                 );
 
-                alter table public.""{_tableName}""
-                    owner to admin;
+                ALTER TABLE public.""{_tableName}""
+                    OWNER TO admin;
 
-                create index if not exists idx_processed_createdat
-                    on public.""{_tableName}"" (""Processed"", ""CreatedAt"");
+                CREATE INDEX IF NOT EXISTS idx_for_get_unprocessed_events
+                    ON public.""{_tableName}"" (""Provider"", ""ProcessedAt"", ""TryAfterAt"");
 
-                create index if not exists idx_unprocessed_provider_eventtype
-                    on public.""{_tableName}"" (""Processed"", ""CreatedAt"", ""TryAfterAt"");";
+                CREATE INDEX IF NOT EXISTS idx_for_delete_processed_events
+                    ON public.""{_tableName}"" (""ProcessedAt"");";
 
-            _dbConnection.Execute(sql);
-        }
-        catch (Exception e)
-        {
-            throw new EventStoreException(e, $"Error while checking/creating {_tableName} table.");
-        }
-        finally
-        {
-            _dbConnection.Close();
+                dbConnection.Execute(sql);
+            }
+            catch (Exception e)
+            {
+                throw new EventStoreException(e, $"Error while checking/creating {_tableName} table.");
+            }
         }
     }
 
     public void InsertEvent(TBaseEvent @event)
     {
-        try
+        using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
-            _dbConnection.Open();
+            try
+            {
+                dbConnection.Open();
+                string sql = $@"
+                INSERT INTO ""{_tableName}"" (
+                    ""Id"", ""Provider"", ""EventName"", ""EventPath"", ""Payload"", ""Headers"", 
+                    ""AdditionalData"", ""CreatedAt"", ""TryCount"", ""TryAfterAt""
+                ) VALUES (
+                    @Id, @Provider, @EventName, @EventPath, @Payload, @Headers, 
+                    @AdditionalData, @CreatedAt, @TryCount, @TryAfterAt
+                )";
 
-            string sql = $@"
-            INSERT INTO ""{_tableName}"" (
-                ""Id"", ""Provider"", ""EventName"", ""EventPath"", ""Payload"", ""Headers"", 
-                ""AdditionalData"", ""CreatedAt"", ""TryCount"", ""TryAfterAt"", ""ProcessedAt"", ""Processed""
-            ) VALUES (
-                @Id, @Provider, @EventName, @EventPath, @Payload, @Headers, 
-                @AdditionalData, @CreatedAt, @TryCount, @TryAfterAt, @ProcessedAt, @Processed
-            )";
-
-            _dbConnection.Execute(sql, @event);
-        }
-        catch (Exception e)
-        {
-            throw new EventStoreException(e,
-                $"Error while inserting a new event to the {_tableName} table with the {@event.Id} id.");
-        }
-        finally
-        {
-            _dbConnection.Close();
+                dbConnection.Execute(sql, @event);
+            }
+            catch (Exception e)
+            {
+                throw new EventStoreException(e,
+                    $"Error while inserting a new event to the {_tableName} table with the {@event.Id} id.");
+            }
         }
     }
 
-    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider,
-        DateTime currentTime)
+    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider)
     {
-        try
+        using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
-            _dbConnection.Open();
+            try
+            {
+                await dbConnection.OpenAsync();
 
-            string sql = $@"
-            SELECT * FROM ""{_tableName}""
-            WHERE 
-                ""Provider"" = @Provider 
-                AND ""Processed"" = false
-                AND ""TryAfterAt"" <= @CurrentTime
-            ORDER BY ""CreatedAt"" ASC";
+                string sql = $@"
+                SELECT * FROM ""{_tableName}""
+                WHERE 
+                    ""Provider"" = @Provider 
+                    AND ""ProcessedAt"" IS NULL
+                    AND ""TryAfterAt"" <= @CurrentTime
+                ORDER BY ""CreatedAt"" ASC";
 
-            var unprocessedEvents = await _dbConnection.QueryAsync<TBaseEvent>(sql, new 
-            { 
-                Provider = provider.ToString(), 
-                CurrentTime = currentTime 
-            });
-            
-            return unprocessedEvents;
-        }
-        catch (Exception e)
-        {
-            throw new EventStoreException(e, $"Error while retrieving unprocessed events from the {_tableName} table.");
-        }
-        finally
-        {
-            _dbConnection.Close();
+                var unprocessedEvents = await dbConnection.QueryAsync<TBaseEvent>(sql, new 
+                { 
+                    Provider = provider.ToString(), 
+                    CurrentTime = DateTime.Now 
+                });
+
+                return unprocessedEvents;
+            }
+            catch (Exception e)
+            {
+                throw new EventStoreException(e, $"Error while retrieving unprocessed events from the {_tableName} table.");
+            }
         }
     }
 
     public async Task<bool> UpdateEventAsync(TBaseEvent @event)
     {
-        try
+        using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
-            _dbConnection.Open();
+            try
+            {
+                await dbConnection.OpenAsync();
 
-            string sql = $@"
-            UPDATE ""{_tableName}""
-            SET 
-                ""TryCount"" = @TryCount,
-                ""TryAfterAt"" = @TryAfterAt,,
-                ""ProcessedAt"" = @ProcessedAt
-                ""Processed"" = @Processed
-            WHERE ""Id"" = @Id";
+                string sql = $@"
+                UPDATE ""{_tableName}""
+                SET 
+                    ""TryCount"" = @TryCount,
+                    ""TryAfterAt"" = @TryAfterAt,
+                    ""ProcessedAt"" = @ProcessedAt
+                WHERE ""Id"" = @Id";
 
-            var affectedRows = await _dbConnection.ExecuteAsync(sql, @event);
-            return affectedRows > 0;
-        }
-        catch (Exception e)
-        {
-            throw new EventStoreException(e, $"Error while updating the event in the {_tableName} table with the {@event.Id} id.");
-        }
-        finally
-        {
-            _dbConnection.Close();
+                var affectedRows = await dbConnection.ExecuteAsync(sql, @event);
+                return affectedRows > 0;
+            }
+            catch (Exception e)
+            {
+                throw new EventStoreException(e, $"Error while updating the event in the {_tableName} table with the {@event.Id} id.");
+            }
         }
     }
 
-    public async Task<bool> UpdateEventsAsync(TBaseEvent[] events)
+    public async Task<bool> UpdateEventsAsync(IEnumerable<TBaseEvent> events)
     {
-        try
+        using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
-            _dbConnection.Open();
+            try
+            {
+                await dbConnection.OpenAsync();
 
-            string sql = $@"
-            UPDATE ""{_tableName}""
-            SET 
-                ""TryCount"" = @TryCount,
-                ""TryAfterAt"" = @TryAfterAt,
-                ""ProcessedAt"" = @ProcessedAt,
-                ""Processed"" = @Processed
-            WHERE ""Id"" = @Id";
+                string sql = $@"
+                UPDATE ""{_tableName}""
+                SET 
+                    ""TryCount"" = @TryCount,
+                    ""TryAfterAt"" = @TryAfterAt,
+                    ""ProcessedAt"" = @ProcessedAt
+                WHERE ""Id"" = @Id";
 
-            var affectedRows = await _dbConnection.ExecuteAsync(sql, events);
-            return affectedRows > 0;
-        }
-        catch (Exception e)
-        {
-            throw new EventStoreException(e, $"Error while updating events of the {_tableName} table.");
-        }
-        finally
-        {
-            _dbConnection.Close();
+                var affectedRows = await dbConnection.ExecuteAsync(sql, events);
+                return affectedRows > 0;
+            }
+            catch (Exception e)
+            {
+                throw new EventStoreException(e, $"Error while updating events of the {_tableName} table.");
+            }
         }
     }
 
-    public async Task<bool> DeleteProcessedEventsAsync(DateTime createdAt)
+    public async Task<bool> DeleteProcessedEventsAsync(DateTime processedAt)
     {
-        try
+        using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
-            _dbConnection.Open();
+            try
+            {
+                await dbConnection.OpenAsync();
 
-            string sql = $@"
-            DELETE FROM ""{_tableName}""
-            WHERE ""Processed"" = true 
-            AND ""CreatedAt"" < @CreatedAt";
+                string sql = $@"
+                DELETE FROM ""{_tableName}""
+                WHERE ""ProcessedAt"" < @ProcessedAt";
 
-            int deletedRows = await _dbConnection.ExecuteAsync(sql, new { CreatedAt = createdAt });
-            return deletedRows > 0;
-        }
-        catch (Exception e)
-        {
-            throw new EventStoreException(e, $"Error while deleting processed events from the {_tableName} table.");
-        }
-        finally
-        {
-            _dbConnection.Close();
+                int deletedRows = await dbConnection.ExecuteAsync(sql, new { ProcessedAt = processedAt });
+                return deletedRows > 0;
+            }
+            catch (Exception e)
+            {
+                throw new EventStoreException(e, $"Error while deleting processed events from the {_tableName} table.");
+            }
         }
     }
-
-
-    #region Dispose
-
-    private bool _disposed = false;
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-                _dbConnection?.Dispose();
-            _disposed = true;
-        }
-    }
-
-    ~EventRepository()
-    {
-        Dispose(false);
-    }
-
-    #endregion
 }

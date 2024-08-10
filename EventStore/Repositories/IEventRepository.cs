@@ -2,7 +2,7 @@ using EventStore.Models;
 
 namespace EventStore.Repositories;
 
-internal interface IEventRepository<TBaseEvent> : IDisposable where TBaseEvent : IBaseEventBox
+internal interface IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
 {
     /// <summary>
     /// Creates the table if it does not exist.
@@ -19,9 +19,8 @@ internal interface IEventRepository<TBaseEvent> : IDisposable where TBaseEvent :
     /// Retrieves all unprocessed events based on Provider, and TryAfterAt.
     /// </summary>
     /// <param name="provider">The Provider to filter by.</param>
-    /// <param name="currentTime">The current DateTime to filter TryAfterAt.</param>
     /// <returns>A list of unprocessed events that match the criteria.</returns>
-    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider, DateTime currentTime);
+    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider);
 
     /// <summary>
     /// Updates the specified Event properties.
@@ -35,12 +34,12 @@ internal interface IEventRepository<TBaseEvent> : IDisposable where TBaseEvent :
     /// </summary>
     /// <param name="events">Events to update.</param>
     /// <returns>Returns true if there are any affected rows.</returns>
-    Task<bool> UpdateEventsAsync(TBaseEvent[] events);
+    Task<bool> UpdateEventsAsync(IEnumerable<TBaseEvent> events);
 
     /// <summary>
-    /// Deletes all processed events created before the specified date.
+    /// Deletes all processed events which processed before the specified date.
     /// </summary>
-    /// <param name="createdAt">The created date to filter records.</param>
+    /// <param name="processedAt">The processed date to filter records.</param>
     /// <returns>Returns true if there are any affected rows.</returns>
-    Task<bool> DeleteProcessedEventsAsync(DateTime createdAt);
+    Task<bool> DeleteProcessedEventsAsync(DateTime processedAt);
 }

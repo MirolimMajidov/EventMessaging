@@ -17,9 +17,6 @@ internal class EventSender : IEventSender
 
     public void Send<TSendEvent>(TSendEvent @event, EventProviderType eventProvider, string eventPath) where TSendEvent : ISendEvent
     {
-        var events = _repository.GetUnprocessedEventsAsync(eventProvider, DateTime.Now).GetAwaiter().GetResult();
-        _repository.DeleteProcessedEventsAsync(DateTime.Now.AddHours(-1));
-        
         var _event = new OutboxEvent()
         {   
             Provider = eventProvider.ToString(),
