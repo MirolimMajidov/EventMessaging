@@ -38,8 +38,7 @@ public static class EventStoreExtension
             services.AddScoped<IOutboxRepository>(serviceProvider =>
             {
                 var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
-                var _logger = serviceProvider.GetRequiredService<ILogger<OutboxRepository>>();
-                var _reporitory = new OutboxRepository(_defaultSettings.Outbox, _logger);
+                var _reporitory = new OutboxRepository(_defaultSettings.Outbox);
                 _reporitory.CreateTableIfNotExists();
                 
                 return _reporitory;

@@ -13,27 +13,37 @@ public interface IBaseEventBox
     /// <summary>
     /// Gets provider of the event. It can be RabbitMQ, SMS, Webhook, Email, Unknown
     /// </summary>
-    public EventProviderType Provider { get; }
+    string Provider { get; }
 
     /// <summary>
-    /// Gets or sets the path of the event. It can be event name or pouting key, or URL.
+    /// Gets or sets the name of the event.
     /// </summary>
-    string EventPath { get; init; }
+    string EventName { get; }
+
+    /// <summary>
+    /// Gets or sets the path of the event. It can be pouting key, URL, or different value depend on provider type.
+    /// </summary>
+    string EventPath { get; }
 
     /// <summary>
     /// Gets or sets the payload of the event in JSON format.
     /// </summary>
-    string Payload { get; init; }
+    string Payload { get; }
 
     /// <summary>
-    /// Gets or sets the metadata of the event in JSON format. It may have headers and additional data.
+    /// Gets or sets the headers of the event in JSON format.
     /// </summary>
-    string Metadata { get; init; }
+    string Headers { get; }
+
+    /// <summary>
+    /// Gets or sets the additional data of the event in JSON format.
+    /// </summary>
+    string AdditionalData { get; }
 
     /// <summary>
     /// Gets the creation time of the event.
     /// </summary>
-    DateTimeOffset CreatedAt { get; }
+    DateTime CreatedAt { get; }
 
     /// <summary>
     /// Gets the count of attempts to process the event.
@@ -43,10 +53,20 @@ public interface IBaseEventBox
     /// <summary>
     /// Gets the count of attempts to process the event.
     /// </summary>
-    public DateTimeOffset TryAfterAt { get; set; }
+    public DateTime TryAfterAt { get; set; }
+
+    /// <summary>
+    /// Gets the processed time of the event.
+    /// </summary>
+    DateTime ProcessedAt { get; internal set; }
 
     /// <summary>
     /// Gets or sets the status of the event. When 0, the event is not sent/handled; when 1, the event is sent/handled.
     /// </summary>
     bool Processed { get; set; }
+
+    /// <summary>
+    /// For processing the event
+    /// </summary>
+    void Process();
 }

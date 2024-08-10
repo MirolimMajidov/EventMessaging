@@ -4,9 +4,11 @@ using EventStore.Models.Outbox;
 
 namespace UsersService.Messaging.Events;
 
-public class UserCreated : EventPublisher, ISendEvent, IHasHeaders
+public class UserCreated : EventPublisher, ISendEvent, IHasHeaders, IHasAdditionalData
 {
     public Guid UserId { get; init; }
     
     public string UserName { get; init; }
+    
+    public Dictionary<string, object> AdditionalData { get; set; }
 }

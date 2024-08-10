@@ -1,11 +1,11 @@
 using EventStore.Inbox.Configurations;
-using Microsoft.Extensions.Logging;
+using EventStore.Models.Outbox;
 
 namespace EventStore.Repositories.Outbox;
 
-internal class OutboxRepository : EventRepository, IOutboxRepository
+internal class OutboxRepository : EventRepository<OutboxEvent>, IOutboxRepository
 {
-    public OutboxRepository(InboxOrOutboxStructure settings, ILogger<OutboxRepository> logger) : base(settings, logger)
+    public OutboxRepository(InboxOrOutboxStructure settings) : base(settings)
     {
     }
 }

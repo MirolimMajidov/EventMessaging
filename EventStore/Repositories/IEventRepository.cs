@@ -2,7 +2,7 @@ using EventStore.Models;
 
 namespace EventStore.Repositories;
 
-internal interface IEventRepository: IDisposable
+internal interface IEventRepository<TBaseEvent> : IDisposable where TBaseEvent : IBaseEventBox
 {
     /// <summary>
     /// Creates the table if it does not exist.
@@ -13,34 +13,34 @@ internal interface IEventRepository: IDisposable
     /// Inserts a new event into the database.
     /// </summary>
     /// <param name="event">The event to insert.</param>
-    void InsertEvent(IBaseEventBox @event);
-
-    /// <summary>
-    /// Retrieves an event by its Id.
-    /// </summary>
-    /// <param name="id">The Id of the event.</param>
-    /// <returns>The event with the specified Id.</returns>
-    Task<IBaseEventBox> GetEventByIdAsync(Guid id);
+    void InsertEvent(TBaseEvent @event);
 
     /// <summary>
     /// Retrieves all unprocessed events based on Provider, and TryAfterAt.
     /// </summary>
     /// <param name="provider">The Provider to filter by.</param>
-    /// <param name="currentTime">The current DateTimeOffset to filter TryAfterAt.</param>
+    /// <param name="currentTime">The current DateTime to filter TryAfterAt.</param>
     /// <returns>A list of unprocessed events that match the criteria.</returns>
-    Task<IEnumerable<IBaseEventBox>> GetUnprocessedEventsAsync(EventProviderType provider, DateTimeOffset currentTime);
+    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider, DateTime currentTime);
 
     /// <summary>
     /// Updates the specified Event properties.
     /// </summary>
     /// <param name="event">The event to update.</param>
-    /// <returns>The number of rows affected.</returns>
-    Task<int> UpdateEventAsync(IBaseEventBox @event);
+    /// <returns>Returns true if there are any affected rows.</returns>
+    Task<bool> UpdateEventAsync(TBaseEvent @event);
+
+    /// <summary>
+    /// Updates the specified events' properties.
+    /// </summary>
+    /// <param name="events">Events to update.</param>
+    /// <returns>Returns true if there are any affected rows.</returns>
+    Task<bool> UpdateEventsAsync(TBaseEvent[] events);
 
     /// <summary>
     /// Deletes all processed events created before the specified date.
     /// </summary>
-    /// <param name="createdAt">The cutoff date to filter records.</param>
-    /// <returns>The number of rows affected.</returns>
-    Task<int> DeleteProcessedEventsAsync(DateTimeOffset createdAt);
+    /// <param name="createdAt">The created date to filter records.</param>
+    /// <returns>Returns true if there are any affected rows.</returns>
+    Task<bool> DeleteProcessedEventsAsync(DateTime createdAt);
 }

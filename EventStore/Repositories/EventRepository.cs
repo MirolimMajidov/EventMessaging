@@ -2,21 +2,20 @@ using System.Data;
 using Dapper;
 using EventStore.Inbox.Configurations;
 using EventStore.Models;
-using Microsoft.Extensions.Logging;
+using EventStore.Models.Exceptions;
+using EventStore.Models.Outbox;
 using Npgsql;
 
 namespace EventStore.Repositories;
 
-internal abstract class EventRepository : IEventRepository
+internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
 {
-    private readonly ILogger _logger;
     private readonly string _tableName;
 
     private readonly IDbConnection _dbConnection;
 
-    public EventRepository(InboxOrOutboxStructure settings, ILogger logger)
+    public EventRepository(InboxOrOutboxStructure settings)
     {
-        _logger = logger;
         _tableName = settings.TableName;
         _dbConnection = new NpgsqlConnection(settings.ConnectionString);
     }
@@ -29,13 +28,16 @@ internal abstract class EventRepository : IEventRepository
             var sql = $@"create table if not exists ""{_tableName}""
                 (
                     ""Id"" UUID NOT NULL PRIMARY KEY,
-                    ""Provider"" INTEGER NOT NULL,
+                    ""Provider"" VARCHAR(50) NOT NULL,
+                    ""EventName"" VARCHAR(100) NOT NULL,
                     ""EventPath"" VARCHAR(255),
                     ""Payload"" TEXT,
-                    ""Metadata"" TEXT,
-                    ""CreatedAt"" TIMESTAMPTZ NOT NULL,
-                    ""TryCount"" INTEGER NOT NULL,
-                    ""TryAfterAt"" TIMESTAMPTZ NOT NULL,
+                    ""Headers"" TEXT,
+                    ""AdditionalData"" TEXT,
+                    ""CreatedAt"" timestamp(0) NOT NULL,
+                    ""TryCount"" smallint default '0'::smallint not null,
+                    ""TryAfterAt"" timestamp(0) NOT NULL,
+                    ""ProcessedAt"" timestamp(0),
                     ""Processed"" BOOLEAN NOT NULL
                 );
 
@@ -52,8 +54,7 @@ internal abstract class EventRepository : IEventRepository
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while checking/creating {TableName} table.", _tableName);
-            throw;
+            throw new EventStoreException(e, $"Error while checking/creating {_tableName} table.");
         }
         finally
         {
@@ -61,7 +62,7 @@ internal abstract class EventRepository : IEventRepository
         }
     }
 
-    public void InsertEvent(IBaseEventBox @event)
+    public void InsertEvent(TBaseEvent @event)
     {
         try
         {
@@ -69,31 +70,19 @@ internal abstract class EventRepository : IEventRepository
 
             string sql = $@"
             INSERT INTO ""{_tableName}"" (
-                ""Id"", ""Provider"", ""EventPath"", ""Payload"", ""Metadata"", 
-                ""CreatedAt"", ""TryCount"", ""TryAfterAt"", ""Processed""
+                ""Id"", ""Provider"", ""EventName"", ""EventPath"", ""Payload"", ""Headers"", 
+                ""AdditionalData"", ""CreatedAt"", ""TryCount"", ""TryAfterAt"", ""ProcessedAt"", ""Processed""
             ) VALUES (
-                @Id, @Provider, @EventPath, @Payload, @Metadata, 
-                @CreatedAt, @TryCount, @TryAfterAt, @Processed
+                @Id, @Provider, @EventName, @EventPath, @Payload, @Headers, 
+                @AdditionalData, @CreatedAt, @TryCount, @TryAfterAt, @ProcessedAt, @Processed
             )";
 
-            _dbConnection.Execute(sql, new
-            {
-                @TableName = _tableName,
-                @Id = @event.Id,
-                @Provider = (int)@event.Provider,
-                @EventPath = @event.EventPath,
-                @Payload = @event.Payload,
-                @Metadata = @event.Metadata,
-                @CreatedAt = @event.CreatedAt,
-                @TryCount = @event.TryCount,
-                @TryAfterAt = @event.TryAfterAt,
-                @Processed = @event.Processed
-            });
+            _dbConnection.Execute(sql, @event);
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while inserting a new event to the {TableName} table with the {id} id.", _tableName, @event.Id);
-            throw;
+            throw new EventStoreException(e,
+                $"Error while inserting a new event to the {_tableName} table with the {@event.Id} id.");
         }
         finally
         {
@@ -101,31 +90,124 @@ internal abstract class EventRepository : IEventRepository
         }
     }
 
-    public Task<IBaseEventBox> GetEventByIdAsync(Guid id)
+    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider,
+        DateTime currentTime)
     {
-        throw new NotImplementedException();
+        try
+        {
+            _dbConnection.Open();
+
+            string sql = $@"
+            SELECT * FROM ""{_tableName}""
+            WHERE 
+                ""Provider"" = @Provider 
+                AND ""Processed"" = false
+                AND ""TryAfterAt"" <= @CurrentTime
+            ORDER BY ""CreatedAt"" ASC";
+
+            var unprocessedEvents = await _dbConnection.QueryAsync<TBaseEvent>(sql, new 
+            { 
+                Provider = provider.ToString(), 
+                CurrentTime = currentTime 
+            });
+            
+            return unprocessedEvents;
+        }
+        catch (Exception e)
+        {
+            throw new EventStoreException(e, $"Error while retrieving unprocessed events from the {_tableName} table.");
+        }
+        finally
+        {
+            _dbConnection.Close();
+        }
     }
 
-    public Task<IEnumerable<IBaseEventBox>> GetUnprocessedEventsAsync(EventProviderType provider, DateTimeOffset currentTime)
+    public async Task<bool> UpdateEventAsync(TBaseEvent @event)
     {
-        throw new NotImplementedException();
+        try
+        {
+            _dbConnection.Open();
+
+            string sql = $@"
+            UPDATE ""{_tableName}""
+            SET 
+                ""TryCount"" = @TryCount,
+                ""TryAfterAt"" = @TryAfterAt,,
+                ""ProcessedAt"" = @ProcessedAt
+                ""Processed"" = @Processed
+            WHERE ""Id"" = @Id";
+
+            var affectedRows = await _dbConnection.ExecuteAsync(sql, @event);
+            return affectedRows > 0;
+        }
+        catch (Exception e)
+        {
+            throw new EventStoreException(e, $"Error while updating the event in the {_tableName} table with the {@event.Id} id.");
+        }
+        finally
+        {
+            _dbConnection.Close();
+        }
     }
 
-    public Task<int> UpdateEventAsync(IBaseEventBox @event)
+    public async Task<bool> UpdateEventsAsync(TBaseEvent[] events)
     {
-        throw new NotImplementedException();
+        try
+        {
+            _dbConnection.Open();
+
+            string sql = $@"
+            UPDATE ""{_tableName}""
+            SET 
+                ""TryCount"" = @TryCount,
+                ""TryAfterAt"" = @TryAfterAt,
+                ""ProcessedAt"" = @ProcessedAt,
+                ""Processed"" = @Processed
+            WHERE ""Id"" = @Id";
+
+            var affectedRows = await _dbConnection.ExecuteAsync(sql, events);
+            return affectedRows > 0;
+        }
+        catch (Exception e)
+        {
+            throw new EventStoreException(e, $"Error while updating events of the {_tableName} table.");
+        }
+        finally
+        {
+            _dbConnection.Close();
+        }
     }
 
-    public Task<int> DeleteProcessedEventsAsync(DateTimeOffset createdAt)
+    public async Task<bool> DeleteProcessedEventsAsync(DateTime createdAt)
     {
-        throw new NotImplementedException();
+        try
+        {
+            _dbConnection.Open();
+
+            string sql = $@"
+            DELETE FROM ""{_tableName}""
+            WHERE ""Processed"" = true 
+            AND ""CreatedAt"" < @CreatedAt";
+
+            int deletedRows = await _dbConnection.ExecuteAsync(sql, new { CreatedAt = createdAt });
+            return deletedRows > 0;
+        }
+        catch (Exception e)
+        {
+            throw new EventStoreException(e, $"Error while deleting processed events from the {_tableName} table.");
+        }
+        finally
+        {
+            _dbConnection.Close();
+        }
     }
 
 
     #region Dispose
 
     private bool _disposed = false;
-    
+
     public void Dispose()
     {
         Dispose(true);

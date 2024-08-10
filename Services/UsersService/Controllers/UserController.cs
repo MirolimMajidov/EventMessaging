@@ -18,7 +18,8 @@ public class UserController : ControllerBase
     private readonly ILogger<UserController> _logger;
     private static readonly Dictionary<Guid, User> Items = new();
 
-    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher, IEventSender eventSender)
+    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher,
+        IEventSender eventSender)
     {
         _logger = logger;
         _eventPublisher = eventPublisher;
@@ -46,7 +47,11 @@ public class UserController : ControllerBase
         Items.Add(item.Id, item);
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        userCreated.Headers = new();
+        userCreated.AdditionalData = new();
         userCreated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
+        userCreated.Headers.TryAdd("TraceId2", HttpContext.TraceIdentifier);
+        userCreated.AdditionalData.TryAdd("TraceId", HttpContext.TraceIdentifier);
         _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
         _eventPublisher.Publish(userCreated);
         return Ok();
@@ -58,11 +63,11 @@ public class UserController : ControllerBase
         if (!Items.TryGetValue(id, out User item))
             return NotFound();
 
-        var message = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName};
+        var message = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
         item.Name = newName;
-        
+
         _eventPublisher.Publish(message);
-        
+
         return Ok(item);
     }
 
@@ -71,10 +76,10 @@ public class UserController : ControllerBase
     {
         if (!Items.TryGetValue(id, out User item))
             return NotFound();
-        
+
         _eventPublisher.Publish(new UserDeleted { UserId = item.Id, UserName = item.Name });
         Items.Remove(id);
-        
+
         return Ok(item);
     }
 }

@@ -9,5 +9,5 @@ public abstract class EventPublisher : IEventPublisher
 
     public DateTime CreatedAt { get; } = DateTime.Now;
     
-    public Dictionary<string, object> Headers { get; } = new();
+    public Dictionary<string, object> Headers { get; set; }
 }
