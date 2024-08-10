@@ -1,7 +1,9 @@
 using System.Text.Json;
+using EventStore.Inbox.Configurations;
 using EventStore.Models;
 using EventStore.Models.Outbox;
 using EventStore.Models.Outbox.Providers;
+using EventStore.Repositories.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -12,19 +14,26 @@ namespace EventStore.Outbox;
 /// </summary>
 public class EventPublisherManager : IEventPublisherManager
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventPublisherManager> _logger;
+    private readonly InboxOrOutboxStructure _settings;
 
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
         hasHeaders, bool hasAdditionalData)> _publishers;
 
-    public EventPublisherManager(ILogger<EventPublisherManager> logger)
+    private const string PublisherMethodName = nameof(IPublishEvent<ISendEvent>.Publish);
+    private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
+    
+    private static readonly Type hasHeadersType = typeof(IHasHeaders);
+    private static readonly Type hasAdditionalDataType = typeof(IHasAdditionalData);
+    
+    public EventPublisherManager(IServiceProvider serviceProvider)
     {
-        _logger = logger;
+        _serviceProvider = serviceProvider;
+        _logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
+        _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
         _publishers = new();
     }
-
-    static Type hasHeadersType = typeof(IHasHeaders);
-    static Type hasAdditionalDataType = typeof(IHasAdditionalData);
 
     /// <summary>
     /// Registers a subscriber 
@@ -45,8 +54,36 @@ public class EventPublisherManager : IEventPublisherManager
         }
     }
 
-    private const string PublisherMethodName = nameof(IPublishEvent<ISendEvent>.Publish);
-    private static int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
+    public async Task PublisherUnprocessedEvents(CancellationToken stoppingToken)
+    {
+        var semaphore = new SemaphoreSlim(_settings.MaxConcurrency);
+        using var scope = _serviceProvider.CreateScope();
+        var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
+        var eventsToPublish = await outboxRepository.GetUnprocessedEventsAsync();
+
+        stoppingToken.ThrowIfCancellationRequested();
+        var tasks = eventsToPublish.Select(async eventToPublish =>
+        {
+            await semaphore.WaitAsync(stoppingToken);
+            try
+            {
+                stoppingToken.ThrowIfCancellationRequested();
+                await ExecuteEventPublisher(eventToPublish, scope);
+            }
+            catch
+            {
+                eventToPublish.Failed(_settings.TryCount, _settings.TryAfterMinutes);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
+
+        await Task.WhenAll(tasks);
+
+        await outboxRepository.UpdateEventsAsync(eventsToPublish);
+    }
 
     public async Task<bool> ExecuteEventPublisher(IOutboxEvent @event, IServiceScope serviceScope)
     {
@@ -79,7 +116,7 @@ public class EventPublisherManager : IEventPublisherManager
                         @event.Processed();
                     else
                         @event.IncreaseTryCount();
-                
+
                     return executedSuccessfully;
                 }
                 else
@@ -102,6 +139,7 @@ public class EventPublisherManager : IEventPublisherManager
         }
         catch (Exception e)
         {
+            @event.Failed(_settings.TryCount, _settings.TryAfterMinutes);
             _logger.LogError(e, "Error while publishing event with ID: {EventId}", @event.Id);
             throw;
         }

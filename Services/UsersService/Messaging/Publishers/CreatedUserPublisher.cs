@@ -15,7 +15,8 @@ public class CreatedUserPublisher : IPublishEvent<UserCreated>
     
     public async Task<bool> Publish(UserCreated @event, string eventPath)
     {
-        //Add your logic
+        _eventPublisher.Publish(@event);
+        
         return await Task.FromResult(true);
     }
 }

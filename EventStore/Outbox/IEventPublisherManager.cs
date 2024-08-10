@@ -1,6 +1,3 @@
-using EventStore.Models.Outbox;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace EventStore.Outbox;
 
 /// <summary>
@@ -9,10 +6,7 @@ namespace EventStore.Outbox;
 public interface IEventPublisherManager
 {
     /// <summary>
-    /// For executing a publisher of event
+    /// For publishing unprocessed events
     /// </summary>
-    /// <param name="event">Event to publish</param>
-    /// <param name="serviceScope">Service scope to create publisher of event</param>
-    /// <returns>Return true if it executes successfully</returns>
-    Task<bool> ExecuteEventPublisher(IOutboxEvent @event, IServiceScope serviceScope);
+    Task PublisherUnprocessedEvents(CancellationToken stoppingToken);
 }

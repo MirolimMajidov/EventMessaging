@@ -47,8 +47,7 @@ public static class EventStoreExtension
             RegisterAllEventsOfOutboxToDI(services, assemblies);
             services.AddSingleton<IEventPublisherManager>(serviceProvider =>
             {
-                var logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
-                var _publisherManager = new EventPublisherManager(logger);
+                var _publisherManager = new EventPublisherManager(serviceProvider);
                 RegisterAllEventsOfOutbox(_publisherManager, assemblies);
                     
                 return _publisherManager;

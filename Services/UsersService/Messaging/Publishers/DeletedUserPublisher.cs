@@ -13,9 +13,9 @@ public class DeletedUserPublisher : IPublishWebHookEvent<UserDeleted>
         _webHookProvider = webHookProvider;
     }
 
-    public Task<bool> Publish(UserDeleted @event, string eventPath)
+    public async Task<bool> Publish(UserDeleted @event, string eventPath)
     {
         //Add your logic
-        throw new NotImplementedException();
+        return await Task.FromResult(false);
     }
 }

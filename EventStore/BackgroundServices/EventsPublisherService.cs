@@ -12,7 +12,7 @@ internal class EventsPublisherService : BackgroundService
     private readonly IServiceProvider _services;
     private readonly IEventPublisherManager _eventPublisherManager;
     private readonly ILogger<EventsPublisherService> _logger;
-    private readonly InboxOrOutboxStructure _outboxSettings;
+    private readonly TimeSpan _timeToDelay;
 
     public EventsPublisherService(IServiceProvider services, IEventPublisherManager eventPublisherManager,
         InboxAndOutboxSettings settings, ILogger<EventsPublisherService> logger)
@@ -20,7 +20,7 @@ internal class EventsPublisherService : BackgroundService
         _services = services;
         _eventPublisherManager = eventPublisherManager;
         _logger = logger;
-        _outboxSettings = settings.Outbox;
+        _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelay);
     }
 
     public override Task StartAsync(CancellationToken cancellationToken)
@@ -34,35 +34,11 @@ internal class EventsPublisherService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var semaphore = new SemaphoreSlim(_outboxSettings.MaxConcurrency);
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _services.CreateScope();
             try
             {
-                var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-                var eventsToPublish = await outboxRepository.GetUnprocessedEventsAsync();
-
-                var tasks = eventsToPublish.Select(async eventToPublish =>
-                {
-                    await semaphore.WaitAsync(stoppingToken);
-                    try
-                    {
-                        await _eventPublisherManager.ExecuteEventPublisher(eventToPublish, scope);
-                    }
-                    catch
-                    {
-                        eventToPublish.Failed(_outboxSettings.TryCount, _outboxSettings.TryAfterMinutes);
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }).ToList();
-
-                await Task.WhenAll(tasks);
-
-                await outboxRepository.UpdateEventsAsync(eventsToPublish);
+                await _eventPublisherManager.PublisherUnprocessedEvents(stoppingToken);
             }
             catch (Exception e)
             {
@@ -71,7 +47,7 @@ internal class EventsPublisherService : BackgroundService
             }
             finally
             {
-                await Task.Delay(TimeSpan.FromSeconds(_outboxSettings.SecondsToDelay), stoppingToken);
+                await Task.Delay(_timeToDelay, stoppingToken);
             }
         }
     }
