@@ -48,14 +48,9 @@ internal class EventsPublisherService : BackgroundService
                     await semaphore.WaitAsync(stoppingToken);
                     try
                     {
-                        var executedSuccessfully =
-                            await _eventPublisherManager.ExecuteEventPublisher(eventToPublish, eventToPublish.Provider, scope);
-                        if (executedSuccessfully)
-                            eventToPublish.Processed();
-                        else
-                            eventToPublish.IncreaseTryCount();
+                        await _eventPublisherManager.ExecuteEventPublisher(eventToPublish, scope);
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         eventToPublish.Failed(_outboxSettings.TryCount, _outboxSettings.TryAfterMinutes);
                     }
@@ -76,7 +71,7 @@ internal class EventsPublisherService : BackgroundService
             }
             finally
             {
-                await Task.Delay(10000, stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(_outboxSettings.SecondsToDelay), stoppingToken);
             }
         }
     }

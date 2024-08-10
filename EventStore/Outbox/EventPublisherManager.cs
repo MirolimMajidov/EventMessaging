@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using EventStore.Models;
 using EventStore.Models.Outbox;
@@ -47,8 +46,9 @@ public class EventPublisherManager : IEventPublisherManager
     }
 
     private const string PublisherMethodName = nameof(IPublishEvent<ISendEvent>.Publish);
+    private static int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
 
-    public async Task<bool> ExecuteEventPublisher(IOutboxEvent @event, string providerType, IServiceScope serviceScope)
+    public async Task<bool> ExecuteEventPublisher(IOutboxEvent @event, IServiceScope serviceScope)
     {
         try
         {
@@ -56,44 +56,54 @@ public class EventPublisherManager : IEventPublisherManager
                     out (Type eventType, Type eventHandlerType, string providerType, bool hasHeaders, bool
                     hasAdditionalData) info))
             {
-                if (@event.Provider == providerType)
+                if (@event.Provider == info.providerType)
+                {
                     _logger.LogTrace("Executing the {EventType} outbox event with ID {EventId} to publish.",
                         @event.EventName, @event.Id);
+
+                    var eventToPublish = JsonSerializer.Deserialize(@event.Payload, info.eventType) as ISendEvent;
+                    if (info.hasHeaders && @event.Headers is not null)
+                        ((IHasHeaders)eventToPublish).Headers =
+                            JsonSerializer.Deserialize<Dictionary<string, object>>(@event.Headers);
+
+                    if (info.hasAdditionalData && @event.AdditionalData is not null)
+                        ((IHasAdditionalData)eventToPublish).AdditionalData =
+                            JsonSerializer.Deserialize<Dictionary<string, object>>(@event!.AdditionalData);
+
+                    var eventHandlerSubscriber = serviceScope.ServiceProvider.GetRequiredService(info.eventHandlerType);
+
+                    var publisherMethod = info.eventHandlerType.GetMethod(PublisherMethodName);
+                    var executedSuccessfully = await (Task<bool>)publisherMethod.Invoke(eventHandlerSubscriber,
+                        [eventToPublish, @event.EventPath]);
+                    if (executedSuccessfully)
+                        @event.Processed();
+                    else
+                        @event.IncreaseTryCount();
+                
+                    return executedSuccessfully;
+                }
                 else
+                {
+                    @event.Failed(0, TryAfterMinutes);
                     _logger.LogError(
                         "The {EventType} outbox event with ID {EventId} requested to publish with {ProviderType} provider, but that is configured to publish with the {ConfiguredProviderType} provider.",
-                        @event.EventName, @event.Id, @event.Provider, providerType);
-
-                var eventToPublish = JsonSerializer.Deserialize(@event.Payload, info.eventType) as ISendEvent;
-                if (info.hasHeaders && @event.Headers is not null)
-                    ((IHasHeaders)eventToPublish).Headers =
-                        JsonSerializer.Deserialize<Dictionary<string, object>>(@event.Headers);
-
-                if (info.hasAdditionalData && @event.AdditionalData is not null)
-                    ((IHasAdditionalData)eventToPublish).AdditionalData =
-                        JsonSerializer.Deserialize<Dictionary<string, object>>(@event!.AdditionalData);
-
-                var eventHandlerSubscriber = serviceScope.ServiceProvider.GetRequiredService(info.eventHandlerType);
-
-                var publisherMethod = info.eventHandlerType.GetMethod(PublisherMethodName);
-                var result =
-                    await (Task<bool>)publisherMethod.Invoke(eventHandlerSubscriber,
-                        [eventToPublish, @event.EventPath]);
-                return result;
+                        @event.EventName, @event.Id, @event.Provider, info.providerType);
+                }
             }
             else
             {
+                @event.Failed(0, TryAfterMinutes);
                 _logger.LogWarning(
                     "No publish provider configured for the {EventType} outbox event with ID: {EventId}.",
                     @event.EventName, @event.Id);
             }
+
+            return false;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error while publishing event with ID: {EventId}", @event.Id);
             throw;
         }
-
-        return false;
     }
 }

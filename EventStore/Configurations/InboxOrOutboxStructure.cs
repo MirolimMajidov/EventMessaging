@@ -28,6 +28,11 @@ public record InboxOrOutboxStructure
     public int TryAfterMinutes { get; set; } = 5;
 
     /// <summary>
+    /// Seconds to delay before publishing/receiving events. Default value is "1".
+    /// </summary>
+    public int SecondsToDelay { get; set; } = 1;
+
+    /// <summary>
     /// The database connection string of Inbox/Outbox for storing or reading all received/sending events.
     /// </summary>
     public string ConnectionString { get; set; }
