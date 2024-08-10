@@ -67,9 +67,9 @@ public static class RabbitMQExtension
 
     #region Publishers
 
+    static readonly Type publisherType = typeof(IEventPublisher);
     private static Type[] GetPublisherTypes(Assembly[] assemblies)
     {
-        var publisherType = typeof(IEventPublisher);
         if (assemblies is not null)
         {
             return assemblies.SelectMany(a => a.GetTypes())
@@ -120,14 +120,14 @@ public static class RabbitMQExtension
     private static void RegisterAllSubscriberHandlersToDI(IServiceCollection services, Assembly[] assemblies)
     {
         var subscriberHandlerTypes = GetSubscriberHandlerTypes(assemblies);
-        foreach (var (eventType, handlerType) in subscriberHandlerTypes)
+        foreach (var (_, handlerType) in subscriberHandlerTypes)
             services.AddTransient(handlerType);
     }
 
+    static Type publisherHandlerType = typeof(IEventSubscriberHandler<>);
     private static List<(Type eventType, Type handlerType)> GetSubscriberHandlerTypes(Assembly[] assemblies)
     {
         List<(Type eventType, Type handlerType)> subscriberHandlerTypes = new();
-        var publisherType = typeof(IEventSubscriberHandler<>);
         if (assemblies is not null)
         {
             var allTypes = assemblies
@@ -138,11 +138,10 @@ public static class RabbitMQExtension
                 foreach (var implementedInterface in type.GetInterfaces())
                 {
                     if (implementedInterface.IsGenericType &&
-                        implementedInterface.GetGenericTypeDefinition() == publisherType)
+                        implementedInterface.GetGenericTypeDefinition() == publisherHandlerType)
                     {
                         var eventType = implementedInterface.GetGenericArguments().Single();
                         subscriberHandlerTypes.Add((eventType, type));
-
                         break;
                     }
                 }

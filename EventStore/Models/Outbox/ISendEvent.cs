@@ -5,4 +5,8 @@ namespace EventStore.Models.Outbox;
 /// </summary>
 public interface ISendEvent
 {
+    /// <summary>
+    /// Id of event
+    /// </summary>
+    public Guid EventId { get; }
 }

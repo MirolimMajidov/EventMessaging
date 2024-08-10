@@ -13,6 +13,21 @@ public record InboxOrOutboxStructure
     public string TableName { get; set; }
 
     /// <summary>
+    /// Maximum concurrency tasks to execute received/publishing events. Default value is "10".
+    /// </summary>
+    public int MaxConcurrency { get; set; } = 10;
+
+    /// <summary>
+    /// For increasing the TryAfterAt when the TryCount is higher than the value. Default value is "10".
+    /// </summary>
+    public int TryCount { get; set; } = 10;
+
+    /// <summary>
+    /// For increasing the TryAfterAt to amount of minutes if the event fails. Default value is "5".
+    /// </summary>
+    public int TryAfterMinutes { get; set; } = 5;
+
+    /// <summary>
     /// The database connection string of Inbox/Outbox for storing or reading all received/sending events.
     /// </summary>
     public string ConnectionString { get; set; }

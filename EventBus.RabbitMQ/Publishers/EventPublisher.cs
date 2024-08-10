@@ -5,9 +5,14 @@ namespace EventBus.RabbitMQ.Publishers;
 /// </summary>
 public abstract class EventPublisher : IEventPublisher
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public EventPublisher(Guid? id = null)
+    {
+        EventId = id ?? Guid.NewGuid();
+    }
+
+    public Guid EventId { get; }
 
     public DateTime CreatedAt { get; } = DateTime.Now;
-    
+
     public Dictionary<string, object> Headers { get; set; }
 }

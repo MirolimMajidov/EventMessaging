@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
+using IEventPublisherManager = EventBus.RabbitMQ.Publishers.IEventPublisherManager;
 
 namespace UsersService.Controllers;
 
@@ -52,7 +53,6 @@ public class UserController : ControllerBase
         userCreated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
         
         _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
-        _eventPublisher.Publish(userCreated);
         return Ok();
     }
 
@@ -77,9 +77,10 @@ public class UserController : ControllerBase
         if (!Items.TryGetValue(id, out User item))
             return NotFound();
 
-        _eventPublisher.Publish(new UserDeleted { UserId = item.Id, UserName = item.Name });
+        var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
+        _eventSender.Send(userDeleted, EventProviderType.SMS, userDeleted.GetType().Name);
+        
         Items.Remove(id);
-
         return Ok(item);
     }
 }

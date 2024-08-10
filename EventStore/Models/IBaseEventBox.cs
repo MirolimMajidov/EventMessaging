@@ -61,7 +61,14 @@ public interface IBaseEventBox
     DateTime? ProcessedAt { get; internal set; }
 
     /// <summary>
-    /// For processing the event
+    /// To increase the TryCount and TryAfterAt when it is failed
     /// </summary>
-    void Process();
+    void Failed(int maxTryCount, int tryAfterMinutes);
+
+    void IncreaseTryCount();
+
+    /// <summary>
+    /// For marking the event is processed
+    /// </summary>
+    void Processed();
 }

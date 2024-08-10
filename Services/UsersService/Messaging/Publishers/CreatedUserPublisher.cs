@@ -1,5 +1,5 @@
 using EventBus.RabbitMQ.Publishers;
-using EventStore.Models.Outbox;
+using EventStore.Models.Outbox.Providers;
 using UsersService.Messaging.Events.Publishers;
 
 namespace UsersService.Messaging.Publishers;
@@ -13,7 +13,7 @@ public class CreatedUserPublisher : IPublishEvent<UserCreated>
         _eventPublisher = eventPublisher;
     }
     
-    public Task Publish(UserCreated @event)
+    public Task Publish(UserCreated @event, string eventPath)
     {
         throw new NotImplementedException();
     }

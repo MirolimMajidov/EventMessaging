@@ -19,6 +19,7 @@ internal class EventSender : IEventSender
     {
         var _event = new OutboxEvent()
         {   
+            Id = @event.EventId,
             Provider = eventProvider.ToString(),
             EventName = @event.GetType().Name,
             EventPath = eventPath,

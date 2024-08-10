@@ -83,7 +83,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
         }
     }
 
-    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync()
+    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(int limit)
     {
         using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
@@ -96,11 +96,13 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                 WHERE 
                     ""ProcessedAt"" IS NULL
                     AND ""TryAfterAt"" <= @CurrentTime
-                ORDER BY ""CreatedAt"" ASC";
+                ORDER BY ""CreatedAt"" ASC
+                LIMIT @Limit";
 
                 var unprocessedEvents = await dbConnection.QueryAsync<TBaseEvent>(sql, new 
                 { 
-                    CurrentTime = DateTime.Now 
+                    CurrentTime = DateTime.Now,
+                    Limit = limit
                 });
 
                 return unprocessedEvents;
