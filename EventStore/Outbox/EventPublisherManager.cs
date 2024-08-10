@@ -12,7 +12,7 @@ namespace EventStore.Outbox;
 /// <summary>
 /// Manager of events publisher
 /// </summary>
-public class EventPublisherManager : IEventPublisherManager
+internal class EventPublisherManager : IEventPublisherManager
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventPublisherManager> _logger;
