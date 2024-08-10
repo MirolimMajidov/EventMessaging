@@ -14,9 +14,10 @@ public class UserUpdatedHandler : IEventSubscriberHandler<UserUpdated>
 
     public Task Handle(UserUpdated @event)
     {
-        _logger.LogInformation("EventId ({EventId}): User which has {UserId} id, renamed from {OldName} to {NewName}", @event.EventId,
-            @event.UserId, @event.OldUserName, @event.NewUserName);
-
+        if (@event.Headers?.TryGetValue("TraceId", out object traceId) == true)
+        {
+        }
+        
         return Task.CompletedTask;
     }
 }

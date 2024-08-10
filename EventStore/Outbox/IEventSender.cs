@@ -1,4 +1,3 @@
-using System.Text.Json;
 using EventStore.Models;
 using EventStore.Models.Outbox;
 

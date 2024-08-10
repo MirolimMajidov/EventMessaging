@@ -1,6 +1,6 @@
 using EventBus.RabbitMQ.Publishers;
 
-namespace UsersService.Messaging.Events;
+namespace UsersService.Messaging.Events.Publishers;
 
 public class UserDeleted : EventPublisher
 {

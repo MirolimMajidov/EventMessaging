@@ -41,11 +41,11 @@ internal class EventSender : IEventSender
         _repository.InsertEvent(_event);
     }
 
-    private static readonly JsonSerializerOptions serializerSettings = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _serializerSettings = new JsonSerializerOptions
         { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     static string SerializeData<TValue>(TValue data)
     {
-        return JsonSerializer.Serialize(data, serializerSettings);
+        return JsonSerializer.Serialize(data, _serializerSettings);
     }
 }

@@ -2,6 +2,8 @@ using EventBus.RabbitMQ.Extensions;
 using EventStore.Extensions;
 using EventStore.Models.Outbox;
 using UsersService.Messaging.Events;
+using UsersService.Messaging.Events.Publishers;
+using UsersService.Messaging.Events.Subscribers;
 using UsersService.Messaging.Handlers;
 using UsersService.Repositories;
 using UsersService.Services;

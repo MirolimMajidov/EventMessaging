@@ -1,6 +1,6 @@
 using EventBus.RabbitMQ.Subscribers;
 
-namespace PaymentsService.Messaging.Events;
+namespace PaymentsService.Messaging.Events.Subscibers;
 
 public class UserCreated : EventSubscriber
 {

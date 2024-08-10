@@ -5,9 +5,6 @@ using EventBus.RabbitMQ.Publishers;
 using EventBus.RabbitMQ.Subscribers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace EventBus.RabbitMQ;
 

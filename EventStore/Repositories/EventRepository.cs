@@ -43,7 +43,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     OWNER TO admin;
 
                 CREATE INDEX IF NOT EXISTS idx_for_get_unprocessed_events
-                    ON public.""{_tableName}"" (""Provider"", ""ProcessedAt"", ""TryAfterAt"");
+                    ON public.""{_tableName}"" (""ProcessedAt"", ""TryAfterAt"");
 
                 CREATE INDEX IF NOT EXISTS idx_for_delete_processed_events
                     ON public.""{_tableName}"" (""ProcessedAt"");";
@@ -83,7 +83,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
         }
     }
 
-    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider)
+    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync()
     {
         using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
@@ -94,14 +94,12 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                 string sql = $@"
                 SELECT * FROM ""{_tableName}""
                 WHERE 
-                    ""Provider"" = @Provider 
-                    AND ""ProcessedAt"" IS NULL
+                    ""ProcessedAt"" IS NULL
                     AND ""TryAfterAt"" <= @CurrentTime
                 ORDER BY ""CreatedAt"" ASC";
 
                 var unprocessedEvents = await dbConnection.QueryAsync<TBaseEvent>(sql, new 
                 { 
-                    Provider = provider.ToString(), 
                     CurrentTime = DateTime.Now 
                 });
 

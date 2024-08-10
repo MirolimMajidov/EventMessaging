@@ -1,7 +1,7 @@
 using EventBus.RabbitMQ.Subscribers;
-using PaymentsService.Messaging.Events;
+using PaymentsService.Messaging.Events.Subscibers;
 
-namespace Payments.Service.Messaging.Handlers;
+namespace PaymentsService.Messaging.Handlers;
 
 public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
 {

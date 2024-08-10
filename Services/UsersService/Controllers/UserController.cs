@@ -4,6 +4,7 @@ using EventStore.Models.Outbox;
 using EventStore.Outbox;
 using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events;
+using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
 
 namespace UsersService.Controllers;
@@ -48,10 +49,8 @@ public class UserController : ControllerBase
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
         userCreated.Headers = new();
-        userCreated.AdditionalData = new();
         userCreated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
-        userCreated.Headers.TryAdd("TraceId2", HttpContext.TraceIdentifier);
-        userCreated.AdditionalData.TryAdd("TraceId", HttpContext.TraceIdentifier);
+        
         _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
         _eventPublisher.Publish(userCreated);
         return Ok();
@@ -63,11 +62,12 @@ public class UserController : ControllerBase
         if (!Items.TryGetValue(id, out User item))
             return NotFound();
 
-        var message = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
+        var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
+        userUpdated.Headers = new();
+        userUpdated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
+        _eventPublisher.Publish(userUpdated);
+
         item.Name = newName;
-
-        _eventPublisher.Publish(message);
-
         return Ok(item);
     }
 

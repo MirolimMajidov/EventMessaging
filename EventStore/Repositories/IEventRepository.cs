@@ -18,9 +18,8 @@ internal interface IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
     /// <summary>
     /// Retrieves all unprocessed events based on Provider, and TryAfterAt.
     /// </summary>
-    /// <param name="provider">The Provider to filter by.</param>
     /// <returns>A list of unprocessed events that match the criteria.</returns>
-    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(EventProviderType provider);
+    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync();
 
     /// <summary>
     /// Updates the specified Event properties.

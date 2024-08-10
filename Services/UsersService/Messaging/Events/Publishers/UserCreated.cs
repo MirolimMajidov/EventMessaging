@@ -2,7 +2,7 @@ using EventBus.RabbitMQ.Publishers;
 using EventStore.Models;
 using EventStore.Models.Outbox;
 
-namespace UsersService.Messaging.Events;
+namespace UsersService.Messaging.Events.Publishers;
 
 public class UserCreated : EventPublisher, ISendEvent, IHasHeaders, IHasAdditionalData
 {

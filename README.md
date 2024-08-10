@@ -43,11 +43,16 @@ public class UserController : ControllerBase
         _eventPublisherManager = eventPublisherManager;
     }
     
-    [HttpPost]
-    public IActionResult Create([FromBody] User item)
+    [HttpDelete("{id:guid}")]
+    public IActionResult Delete(Guid id)
     {
-        _eventPublisherManager.Publish(new UserCreated { UserId = item.Id, UserName = item.Name });
-        return Ok();
+        if (!Items.TryGetValue(id, out User item))
+            return NotFound();
+
+        _eventPublisher.Publish(new UserDeleted { UserId = item.Id, UserName = item.Name });
+        
+        Items.Remove(id);
+        return Ok(item);
     }
 }
 ```
@@ -56,7 +61,7 @@ public class UserController : ControllerBase
 
 If you want to subscribe to necessary event, first you need to create your own an event structure to subscribe. Your subscriber class must implement the `IEventSubscriber` interface or inherit from the `EventSubscriber` class. Example: 
 ```
-public class UserCreated : EventSubscriber
+public class UserDeleted : EventSubscriber
 {
     public Guid UserId { get; set; }
 
@@ -65,18 +70,18 @@ public class UserCreated : EventSubscriber
 ```
 Then you need to create a subscriber handler to receive the event. Your subscriber handler class must implement the `IEventSubscriberHandler<>` interface and impmenet your subsciber class. Example: 
 ```
-public class UserCreatedHandler : IEventSubscriberHandler<UserCreated>
+public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
 {
-    private readonly ILogger<UserCreatedHandler> _logger;
+    private readonly ILogger<UserDeletedHandler> _logger;
 
-    public UserCreatedHandler(ILogger<UserCreatedHandler> logger)
+    public UserDeletedHandler(ILogger<UserDeletedHandler> logger)
     {
         _logger = logger;
     }
 
-    public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
+    public Task Handle(UserDeleted @event)
     {
-        _logger.LogInformation("EventId ({EventId}): {UserName} user is created with the {UserId} id", @event.EventId,
+        _logger.LogInformation("EventId ({EventId}): {UserName} user is deleted, the User id is {UserId}", @event.EventId,
             @event.UserName, @event.UserId);
 
         return Task.CompletedTask;
@@ -167,18 +172,19 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 
 Before publishing an event, you can attach properties to event headers by passing the header name and value to the `TryAddHeader` method. Keep in mind, the header name must be unique, otherwise it will be ignored. Example: 
 ```
-var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
-userCreated.TryAddHeader("TraceId", HttpContext.TraceIdentifier);
-_eventPublisher.Publish(userCreated);
+var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
+userUpdated.Headers = new();
+userUpdated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
+_eventPublisher.Publish(userUpdated);
 ```
 
 ## Reading property from the subscribed event's headers
 
 The `Handle` method of the subscriber handler has a collection parameter named `eventHeaders`. From this you can read the property value from the event's headers. Example: 
 ```
-public Task Handle(UserCreated @event, Dictionary<string, object>? eventHeaders)
+public Task Handle(UserUpdated @event)
 {
-   if (eventHeaders?.TryGetValue("TraceId", out object traceId) == true)
+   if (@event.Headers?.TryGetValue("TraceId", out object traceId) == true)
    {
    }
 

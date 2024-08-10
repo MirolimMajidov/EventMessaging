@@ -1,6 +1,6 @@
 using EventBus.RabbitMQ.Publishers;
 
-namespace PaymentsService.Messaging.Events;
+namespace PaymentsService.Messaging.Events.Publishers;
 
 public class PaymentCreated : EventPublisher
 {
