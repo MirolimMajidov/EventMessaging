@@ -11,5 +11,6 @@ public interface IPublishEvent<TSendEvent>
     /// </summary>
     /// <param name="event">Publishing an event</param>
     /// <param name="eventPath">Event path of publishing an event. It can be pouting key, URL, or different value depend on provider type.</param>
-    Task Publish(TSendEvent @event, string eventPath);
+    /// <returns>Return true if it executes successfully</returns>
+    Task<bool> Publish(TSendEvent @event, string eventPath);
 }

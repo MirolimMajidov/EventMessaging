@@ -7,6 +7,7 @@ using EventStore.Outbox;
 using EventStore.Repositories.Outbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EventStore.Extensions;
 
@@ -46,7 +47,8 @@ public static class EventStoreExtension
             RegisterAllEventsOfOutboxToDI(services, assemblies);
             services.AddSingleton<IEventPublisherManager>(serviceProvider =>
             {
-                var _publisherManager = new EventPublisherManager(serviceProvider);
+                var logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
+                var _publisherManager = new EventPublisherManager(logger);
                 RegisterAllEventsOfOutbox(_publisherManager, assemblies);
                     
                 return _publisherManager;

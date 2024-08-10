@@ -15,10 +15,11 @@ internal class EventSender : IEventSender
         _repository = repository;
     }
 
-    public void Send<TSendEvent>(TSendEvent @event, EventProviderType eventProvider, string eventPath) where TSendEvent : ISendEvent
+    public void Send<TSendEvent>(TSendEvent @event, EventProviderType eventProvider, string eventPath)
+        where TSendEvent : ISendEvent
     {
         var _event = new OutboxEvent()
-        {   
+        {
             Id = @event.EventId,
             Provider = eventProvider.ToString(),
             EventName = @event.GetType().Name,
@@ -27,18 +28,20 @@ internal class EventSender : IEventSender
 
         if (@event is IHasHeaders hasHeaders)
         {
-            _event.Headers = SerializeData(hasHeaders.Headers);
+            if (hasHeaders.Headers?.Any() == true)
+                _event.Headers = SerializeData(hasHeaders.Headers);
             hasHeaders.Headers = null;
         }
-        
+
         if (@event is IHasAdditionalData hasAdditionalData)
         {
-            _event.AdditionalData = SerializeData(hasAdditionalData.AdditionalData);
+            if (hasAdditionalData.AdditionalData?.Any() == true)
+                _event.AdditionalData = SerializeData(hasAdditionalData.AdditionalData);
             hasAdditionalData.AdditionalData = null;
         }
 
         _event.Payload = SerializeData(@event);
-        
+
         _repository.InsertEvent(_event);
     }
 

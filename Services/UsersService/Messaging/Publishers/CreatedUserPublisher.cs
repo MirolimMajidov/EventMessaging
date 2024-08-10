@@ -13,8 +13,9 @@ public class CreatedUserPublisher : IPublishEvent<UserCreated>
         _eventPublisher = eventPublisher;
     }
     
-    public Task Publish(UserCreated @event, string eventPath)
+    public async Task<bool> Publish(UserCreated @event, string eventPath)
     {
-        throw new NotImplementedException();
+        //Add your logic
+        return await Task.FromResult(true);
     }
 }

@@ -12,9 +12,10 @@ public class DeletedUserPublisher : IPublishWebHookEvent<UserDeleted>
     {
         _webHookProvider = webHookProvider;
     }
-    
-    public Task Publish(UserDeleted @event, string eventPath)
+
+    public Task<bool> Publish(UserDeleted @event, string eventPath)
     {
+        //Add your logic
         throw new NotImplementedException();
     }
 }

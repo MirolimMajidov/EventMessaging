@@ -49,7 +49,7 @@ internal class EventsPublisherService : BackgroundService
                     try
                     {
                         var executedSuccessfully =
-                            await _eventPublisherManager.ExecuteEventPublisher(eventToPublish, eventToPublish.Provider);
+                            await _eventPublisherManager.ExecuteEventPublisher(eventToPublish, eventToPublish.Provider, scope);
                         if (executedSuccessfully)
                             eventToPublish.Processed();
                         else
@@ -58,7 +58,6 @@ internal class EventsPublisherService : BackgroundService
                     catch (Exception ex)
                     {
                         eventToPublish.Failed(_outboxSettings.TryCount, _outboxSettings.TryAfterMinutes);
-                        _logger.LogError(ex, "Error while publishing event with ID: {EventId}", eventToPublish.Id);
                     }
                     finally
                     {
