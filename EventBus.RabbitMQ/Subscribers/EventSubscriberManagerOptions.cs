@@ -1,4 +1,5 @@
 using EventBus.RabbitMQ.Configurations;
+using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace EventBus.RabbitMQ.Subscribers;
 
@@ -19,7 +20,7 @@ public class EventSubscriberManagerOptions
     /// <typeparam name="TEventHandler">Handler class of the event which we want to receive event</typeparam>
     public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions> options = null)
         where TEvent : class, IEventSubscriber
-        where TEventHandler : class, IEventSubscriberHandler<TEvent>
+        where TEventHandler : class, IEventSubscriberReceiver<TEvent>
     {
         _subscriberManager.AddSubscriber<TEvent, TEventHandler>(options);
     }

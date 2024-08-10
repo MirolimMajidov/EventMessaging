@@ -1,4 +1,4 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 

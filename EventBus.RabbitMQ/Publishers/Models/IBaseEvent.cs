@@ -1,13 +1,11 @@
-using System.Text.Json.Serialization;
 using EventStore.Models;
-using EventStore.Models.Outbox;
 
-namespace EventBus.RabbitMQ.Publishers;
+namespace EventBus.RabbitMQ.Publishers.Models;
 
 /// <summary>
 /// Base interface for all publisher and subscriber interface
 /// </summary>
-public interface IBaseEvent : ISendEvent, IHasHeaders
+public interface IBaseEvent : IHasHeaders
 {
     /// <summary>
     /// Created time of event

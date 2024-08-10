@@ -7,15 +7,15 @@ using EventStore.Repositories.Outbox;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace EventStore.Outbox;
+namespace EventStore.Inbox;
 
 /// <summary>
 /// Manager of events publisher
 /// </summary>
-internal class EventPublisherManager : IEventPublisherManager
+internal class EventReceiverManager : IEventReceiverManager
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<EventPublisherManager> _logger;
+    private readonly ILogger<EventReceiverManager> _logger;
     private readonly InboxOrOutboxStructure _settings;
 
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
@@ -27,10 +27,10 @@ internal class EventPublisherManager : IEventPublisherManager
     private static readonly Type hasHeadersType = typeof(IHasHeaders);
     private static readonly Type hasAdditionalDataType = typeof(IHasAdditionalData);
     
-    public EventPublisherManager(IServiceProvider serviceProvider)
+    public EventReceiverManager(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
+        _logger = serviceProvider.GetRequiredService<ILogger<EventReceiverManager>>();
         _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
         _publishers = new();
     }

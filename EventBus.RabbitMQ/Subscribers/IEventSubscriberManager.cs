@@ -1,3 +1,5 @@
+using EventBus.RabbitMQ.Subscribers.Models;
+
 namespace EventBus.RabbitMQ.Subscribers;
 
 internal interface IEventSubscriberManager
@@ -10,7 +12,7 @@ internal interface IEventSubscriberManager
     /// <typeparam name="TEventHandler">Handler class of the event which we want to receive event</typeparam>
     public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions> options = null)
         where TEvent : class, IEventSubscriber
-        where TEventHandler : class, IEventSubscriberHandler<TEvent>;
+        where TEventHandler : class, IEventSubscriberReceiver<TEvent>;
 
     /// <summary>
     /// Creating and register each unique a queue for different virtual host and start receiving events

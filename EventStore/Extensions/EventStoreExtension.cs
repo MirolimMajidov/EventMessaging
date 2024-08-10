@@ -1,13 +1,15 @@
 using System.Reflection;
 using EventStore.BackgroundServices;
+using EventStore.Inbox;
 using EventStore.Inbox.Configurations;
 using EventStore.Models;
+using EventStore.Models.Inbox.Providers;
 using EventStore.Models.Outbox.Providers;
 using EventStore.Outbox;
+using EventStore.Repositories.Inbox;
 using EventStore.Repositories.Outbox;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EventStore.Extensions;
 
@@ -56,6 +58,29 @@ public static class EventStoreExtension
             services.AddHostedService<EventsPublisherService>();
         }
 
+        if (settings.Inbox.IsEnabled)
+        {
+            services.AddScoped<IEventReceiver, EventReceiver>();
+            services.AddScoped<IInboxRepository>(serviceProvider =>
+            {
+                var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
+                var _reporitory = new InboxRepository(_defaultSettings.Inbox);
+                
+                return _reporitory;
+            });
+            
+            RegisterAllEventsOfInboxToDI(services, assemblies);
+            services.AddSingleton<IEventReceiverManager>(serviceProvider =>
+            {
+                var _receiverManager = new EventReceiverManager(serviceProvider);
+                RegisterAllEventsOfInbox(_receiverManager, assemblies);
+                    
+                return _receiverManager;
+            });
+            
+            services.AddHostedService<EventsReceiverService>();
+        }
+
         InboxAndOutboxSettings GetDefaultSettings()
         {
             var defaultSettings = configuration.GetSection("InboxAndOutbox").Get<InboxAndOutboxSettings>() ?? new();
@@ -86,17 +111,17 @@ public static class EventStoreExtension
 
     #region Publisher
 
-    private static void RegisterAllEventsOfOutbox(EventPublisherManager subscriberManager, Assembly[] assemblies)
+    private static void RegisterAllEventsOfOutbox(EventPublisherManager publisherManager, Assembly[] assemblies)
     {
-        var outboxEventTypes = GetSubscriberHandlerTypes(assemblies);
+        var outboxEventTypes = GetPublisherHandlerTypes(assemblies);
 
         foreach (var (eventType, publisherType, provider) in outboxEventTypes)
-            subscriberManager.AddPublisher(eventType, publisherType, provider);
+            publisherManager.AddPublisher(eventType, publisherType, provider);
     }
 
     private static void RegisterAllEventsOfOutboxToDI(IServiceCollection services, Assembly[] assemblies)
     {
-        var outboxEventTypes = GetSubscriberHandlerTypes(assemblies);
+        var outboxEventTypes = GetPublisherHandlerTypes(assemblies);
         foreach (var (_, publisherType, _) in outboxEventTypes)
             services.AddTransient(publisherType);
     }
@@ -106,7 +131,7 @@ public static class EventStoreExtension
     static Type emailEventType = typeof(IPublishEmailEvent<>);
     static Type smsEventType = typeof(IPublishSMSEvent<>);
     static Type webHookEventType = typeof(IPublishWebHookEvent<>);
-    private static List<(Type eventType, Type publisherType, EventProviderType provider)> GetSubscriberHandlerTypes(Assembly[] assemblies)
+    private static List<(Type eventType, Type publisherType, EventProviderType provider)> GetPublisherHandlerTypes(Assembly[] assemblies)
     {
         List<(Type eventType, Type publisherType, EventProviderType provider)> subscriberHandlerTypes = new();
         if (assemblies is not null)
@@ -146,6 +171,74 @@ public static class EventStoreExtension
         }
 
         return subscriberHandlerTypes;
+    }
+
+    #endregion
+    
+    #region Receiver
+
+    private static void RegisterAllEventsOfInbox(EventReceiverManager receiverManager, Assembly[] assemblies)
+    {
+        var inboxEventTypes = GetReceiverHandlerTypes(assemblies);
+
+        foreach (var (eventType, receiverType, provider) in inboxEventTypes)
+            receiverManager.AddPublisher(eventType, receiverType, provider);
+    }
+
+    private static void RegisterAllEventsOfInboxToDI(IServiceCollection services, Assembly[] assemblies)
+    {
+        var inboxEventTypes = GetReceiverHandlerTypes(assemblies);
+        foreach (var (_, receiverType, _) in inboxEventTypes)
+            services.AddTransient(receiverType);
+    }
+    
+    static Type eventReceiveType = typeof(IReceiveEvent<>);
+    static Type rabbitMQReceiveEventType = typeof(IReceiveRabbitMQEvent<>);
+    static Type emailReceiveEventType = typeof(IReceiveEmailEvent<>);
+    static Type smsReceiveEventType = typeof(IReceiveSMSEvent<>);
+    static Type webHookReceiveEventType = typeof(IReceiveWebHookEvent<>);
+    private static List<(Type eventType, Type receiverType, EventProviderType provider)> GetReceiverHandlerTypes(Assembly[] assemblies)
+    {
+        List<(Type eventType, Type receiverType, EventProviderType provider)> receiverHandlerTypes = new();
+        if (assemblies is not null)
+        {
+            var allTypes = assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t is { IsClass: true, IsAbstract: false });
+            foreach (var publisherType in allTypes)
+            {
+                foreach (var implementedInterface in publisherType.GetInterfaces())
+                {
+                    if (implementedInterface.IsGenericType)
+                    {
+                        //TODO: It not able to load subscribers
+                        
+                        EventProviderType? provider = null;
+                        var genericType = implementedInterface.GetGenericTypeDefinition();
+                        if (genericType == eventReceiveType)
+                            provider = EventProviderType.Unknown;
+                        else if (genericType == rabbitMQReceiveEventType)
+                            provider = EventProviderType.RabbitMQ;
+                        else if (genericType == emailReceiveEventType)
+                            provider = EventProviderType.Email;
+                        else if (genericType == smsReceiveEventType)
+                            provider = EventProviderType.Email;
+                        else if (genericType == webHookReceiveEventType)
+                            provider = EventProviderType.WebHook;
+                        
+                        if(provider is null)
+                            break;
+                        
+                        var eventType = implementedInterface.GetGenericArguments().Single();
+                        receiverHandlerTypes.Add((eventType, publisherType, (EventProviderType)provider));
+                        
+                        break;
+                    }
+                }
+            }
+        }
+
+        return receiverHandlerTypes;
     }
 
     #endregion

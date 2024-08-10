@@ -1,6 +1,6 @@
-using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Models;
 
-namespace PaymentsService.Messaging.Events.Subscibers;
+namespace PaymentsService.Messaging.Events.Subscribers;
 
 public class UserDeleted : EventSubscriber
 {

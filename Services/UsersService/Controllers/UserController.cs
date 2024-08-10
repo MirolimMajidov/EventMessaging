@@ -1,9 +1,6 @@
-using EventBus.RabbitMQ.Publishers;
 using EventStore.Models;
-using EventStore.Models.Outbox;
 using EventStore.Outbox;
 using Microsoft.AspNetCore.Mvc;
-using UsersService.Messaging.Events;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
 using IEventPublisherManager = EventBus.RabbitMQ.Publishers.IEventPublisherManager;

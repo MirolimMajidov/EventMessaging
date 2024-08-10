@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using EventBus.RabbitMQ.Connections;
+using EventBus.RabbitMQ.Subscribers.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -77,7 +78,7 @@ internal class EventConsumerService : IEventConsumerService
         return channel;
     }
 
-    private const string HandlerMethodName = nameof(IEventSubscriberHandler<IEventSubscriber>.Handle);
+    private const string HandlerMethodName = nameof(IEventSubscriberReceiver<IEventSubscriber>.Receive);
 
     /// <summary>
     /// An event to receive all sent events

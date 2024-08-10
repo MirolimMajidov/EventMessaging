@@ -1,3 +1,5 @@
+using EventBus.RabbitMQ.Publishers.Models;
+
 namespace EventBus.RabbitMQ.Publishers;
 
 public interface IEventPublisherManager

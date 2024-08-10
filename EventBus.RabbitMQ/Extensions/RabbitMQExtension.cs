@@ -1,7 +1,9 @@
 using System.Reflection;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Models;
 using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -124,7 +126,7 @@ public static class RabbitMQExtension
             services.AddTransient(handlerType);
     }
 
-    static Type publisherHandlerType = typeof(IEventSubscriberHandler<>);
+    static Type publisherHandlerType = typeof(IEventSubscriberReceiver<>);
     private static List<(Type eventType, Type handlerType)> GetSubscriberHandlerTypes(Assembly[] assemblies)
     {
         List<(Type eventType, Type handlerType)> subscriberHandlerTypes = new();

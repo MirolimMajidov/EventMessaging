@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Connections;
+using EventBus.RabbitMQ.Publishers.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;

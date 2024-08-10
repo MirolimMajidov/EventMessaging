@@ -1,11 +1,10 @@
 using System.Text.Json.Serialization;
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Models;
 using EventStore.Models;
-using EventStore.Models.Outbox;
 
 namespace UsersService.Messaging.Events.Publishers;
 
-public class UserCreated : EventPublisher, ISendEvent, IHasHeaders, IHasAdditionalData
+public class UserCreated : EventPublisher, IHasAdditionalData
 {
     public Guid UserId { get; init; }
     

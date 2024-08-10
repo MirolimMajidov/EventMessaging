@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EventBus.RabbitMQ.Publishers;
+namespace EventBus.RabbitMQ.Publishers.Models;
 
 /// <summary>
 /// Base class for all publisher classes

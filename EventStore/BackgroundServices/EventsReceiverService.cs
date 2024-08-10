@@ -1,6 +1,6 @@
+using EventStore.Inbox;
 using EventStore.Inbox.Configurations;
-using EventStore.Outbox;
-using EventStore.Repositories.Outbox;
+using EventStore.Repositories.Inbox;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,18 +8,18 @@ using Microsoft.Extensions.Logging;
 namespace EventStore.BackgroundServices;
 
 //TODO: I need to add another service to remove an old processed events
-internal class EventsPublisherService : BackgroundService
+internal class EventsReceiverService : BackgroundService
 {
     private readonly IServiceProvider _services;
-    private readonly IEventPublisherManager _eventPublisherManager;
-    private readonly ILogger<EventsPublisherService> _logger;
+    private readonly IEventReceiverManager _eventReceiverManager;
+    private readonly ILogger<EventsReceiverService> _logger;
     private readonly TimeSpan _timeToDelay;
 
-    public EventsPublisherService(IServiceProvider services, IEventPublisherManager eventPublisherManager,
-        InboxAndOutboxSettings settings, ILogger<EventsPublisherService> logger)
+    public EventsReceiverService(IServiceProvider services, IEventReceiverManager eventReceiverManager,
+        InboxAndOutboxSettings settings, ILogger<EventsReceiverService> logger)
     {
         _services = services;
-        _eventPublisherManager = eventPublisherManager;
+        _eventReceiverManager = eventReceiverManager;
         _logger = logger;
         _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelay);
     }
@@ -27,8 +27,8 @@ internal class EventsPublisherService : BackgroundService
     public override Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _services.CreateScope();
-        var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-        outboxRepository.CreateTableIfNotExists();
+        var inboxRepository = scope.ServiceProvider.GetRequiredService<IInboxRepository>();
+        inboxRepository.CreateTableIfNotExists();
 
         return base.StartAsync(cancellationToken);
     }
@@ -39,11 +39,11 @@ internal class EventsPublisherService : BackgroundService
         {
             try
             {
-                await _eventPublisherManager.ExecuteUnprocessedEvents(stoppingToken);
+                await _eventReceiverManager.ExecuteUnprocessedEvents(stoppingToken);
             }
             catch (Exception e)
             {
-                _logger.LogCritical(e, "Something is wrong while publishing/updating an outbox events. Happened at: {time}",
+                _logger.LogCritical(e, "Something is wrong while receiving/updating an inbox events. Happened at: {time}",
                     DateTimeOffset.Now);
             }
             finally

@@ -1,4 +1,5 @@
 using EventBus.RabbitMQ.Configurations;
+using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace EventBus.RabbitMQ.Subscribers;
 
@@ -18,7 +19,7 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
 
     public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions> options = null)
         where TEvent : class, IEventSubscriber
-        where TEventHandler : class, IEventSubscriberHandler<TEvent>
+        where TEventHandler : class, IEventSubscriberReceiver<TEvent>
     {
         var eventType = typeof(TEvent);
         if (_subscribers.TryGetValue(eventType.Name, out var info))

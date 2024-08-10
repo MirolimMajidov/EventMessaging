@@ -8,5 +8,5 @@ internal interface IEventPublisherManager
     /// <summary>
     /// For publishing unprocessed events
     /// </summary>
-    Task PublisherUnprocessedEvents(CancellationToken stoppingToken);
+    Task ExecuteUnprocessedEvents(CancellationToken stoppingToken);
 }

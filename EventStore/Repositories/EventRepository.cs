@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace EventStore.Repositories;
 
-internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
+internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEvent> where TBaseEvent : class,  IBaseEventBox
 {
     private readonly string _tableName;
     private readonly string _connectionString;

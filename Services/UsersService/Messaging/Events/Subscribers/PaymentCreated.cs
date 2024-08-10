@@ -1,4 +1,4 @@
-using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace UsersService.Messaging.Events.Subscribers;
 

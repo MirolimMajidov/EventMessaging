@@ -1,4 +1,5 @@
 using EventBus.RabbitMQ.Configurations;
+using EventBus.RabbitMQ.Publishers.Models;
 
 namespace EventBus.RabbitMQ.Publishers;
 

@@ -2,7 +2,7 @@ using EventStore.Models;
 
 namespace EventStore.Repositories;
 
-internal interface IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
+internal interface IEventRepository<TBaseEvent> where TBaseEvent :  class, IBaseEventBox
 {
     /// <summary>
     /// Creates the table if it does not exist.

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EventBus.RabbitMQ.Subscribers;
+namespace EventBus.RabbitMQ.Subscribers.Models;
 
 /// <summary>
 /// Base class for all subscriber classes

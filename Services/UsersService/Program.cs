@@ -4,7 +4,7 @@ using EventStore.Models.Outbox;
 using UsersService.Messaging.Events;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Messaging.Events.Subscribers;
-using UsersService.Messaging.Handlers;
+using UsersService.Messaging.Receivers;
 using UsersService.Repositories;
 using UsersService.Services;
 
@@ -25,7 +25,7 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     },
     eventSubscriberManagerOptions: subscriberManager =>
     {
-        subscriberManager.AddSubscriber<PaymentCreated, PaymentCreatedHandler>(op =>
+        subscriberManager.AddSubscriber<PaymentCreated, PaymentCreatedReceiver>(op =>
         {
             op.VirtualHost = "users/test";
         });

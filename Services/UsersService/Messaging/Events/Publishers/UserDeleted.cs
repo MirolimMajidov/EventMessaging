@@ -1,9 +1,8 @@
-using EventBus.RabbitMQ.Publishers;
-using EventStore.Models.Outbox;
+using EventBus.RabbitMQ.Publishers.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 
-public class UserDeleted : EventPublisher, ISendEvent
+public class UserDeleted : EventPublisher
 {
     public Guid UserId { get; init; }
     
