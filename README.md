@@ -433,7 +433,7 @@ builder.Services.AddEventStore(builder.Configuration,
 
 Based on the configuration the tables will be automatically created while starting the server, if not exists.
 
-### Create and send an event using Outbox pattern
+### Using the Outbox pattern while publishing event
 **Scenario 1:** _When user is deleted I need to notice the another service using the WebHook._<br/>
 
 Start creating a structure of event to send. Your record must implement the `ISendEvent` interface. Example:
@@ -570,20 +570,73 @@ public class UserController : ControllerBase
 }
 ```
 
-### Create and send an event using Outbox pattern
-**Scenario 1:** _When user is deleted I need to notice the another service using the WebHook._<br/>
+### Using the Inbox pattern while receiving event
 
-Start creating a structure of event to send. Your record must implement the `ISendEvent` interface. Example:
+Start creating a structure of event to receive. Your record must implement the `IReceiveEvent` interface. Example:
 
 ```
-public record UserDeleted : ISendEvent
+public record UserCreated : IReceiveEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid EventId { get; init; }
     
     public Guid UserId { get; init; }
     
     public string UserName { get; init; }
+    
+    public int Age { get; init; }
 }
 ```
+
+Next, add an event receiver to manage a publishing RabbitMQ event.
+
+```
+public class UserCreatedReceiver : IRabbitMqEventReceiver<UserCreated>
+{
+    private readonly ILogger<UserCreatedReceiver> _logger;
+
+    public UserCreatedReceiver(ILogger<UserCreatedReceiver> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<bool> Receive(UserCreated @event)
+    {
+        _logger.LogInformation("EventId ({EventId}): {UserName} user is created with the {UserId} id", @event.EventId,
+            @event.UserName, @event.UserId);
+        //Add your logic in here
+        
+        return await Task.FromResult(true);
+    }
+}
+```
+
+Now the `UserCreatedReceiver` receiver is ready to receive the event. To make it work, from your logic which you receive the event from the RabbitMQ, you need to inject the `IEventReceiverManager` interface and puss the received event to the `Received` method.
+
+```
+UserCreated receivedEvent = new UserCreated
+{
+    //Get created you data from the Consumer of RabbitMQ.
+};
+try
+{
+    IEventReceiverManager eventReceiverManager = scope.ServiceProvider.GetService<IEventReceiverManager>();
+    if (eventReceiverManager is not null)
+    {
+        var succussfullyReceived = eventReceiverManager.Received(receivedEvent, eventArgs.RoutingKey, EventProviderType.RabbitMq);
+        if(succussfullyReceived){
+            //If the event received twice, it will return false. You need to add your logic to manage this use case.
+        }
+    }else{
+        //the IEventReceiverManager will not be injected if the Inbox pattern is not enabled. You need to add your logic to manage this use case.
+    }
+}
+catch (Exception ex)
+{
+    //You need to add logic to handle some unexpected use cases.
+}
+```
+
+That's all. As we mentioned in above, the event provider support a few types: `RabbitMq`-for RabbitMQ message, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages.
+Depend on the event provider, the event receiver must implement the necessary receiver interface: `IRabbitMqEventReceiver`, `ISmsEventReceiver`, `IWebHookEventReceiver`, `IEmailEventReceiver` and `IEventReceiver`- for `Unknown` provider type.
 
 ### Options of Inbox and Outbox sections
