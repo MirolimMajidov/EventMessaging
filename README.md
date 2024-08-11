@@ -279,6 +279,32 @@ As you know, the Outbox pattern for storing all outgoing events or messages of a
 ```
 The `InboxAndOutbox` is the main section for setting of the Outbox and Inbox functionalities. The `Outbox` and `Inbox` subsections offer numerous options. For a detailed explanation on using these options, go to the [options of Inbox and Outbox sections](#options-of-inbox-and-outbox-sections) of the EventStorage documentation.     
 
+Your application is now ready to use the Outbox feature. Simply inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to first store the event in the database and then publish it.
+
+```
+public class UserController : ControllerBase
+{
+    private readonly IEventSenderManager _eventSenderManager;
+
+    public UserController(IEventSenderManager eventSenderManager)
+    {
+        _eventSenderManager = eventSenderManager;
+    }
+    
+    [HttpPost]
+    public IActionResult Create([FromBody] User item)
+    {
+        Items.Add(item.Id, item);
+
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        //_eventPublisherManager.Publish(userCreated);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
+        
+        return Ok(item);
+    }
+}
+```
+
 
 ## EventStorage
 

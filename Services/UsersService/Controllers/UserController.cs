@@ -50,6 +50,7 @@ public class UserController : ControllerBase
         userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
         //_eventPublisherManager.Publish(userCreated);
+       
         var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
         return Ok();
     }
