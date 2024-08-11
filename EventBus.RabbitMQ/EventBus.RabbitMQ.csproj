@@ -13,7 +13,7 @@
         <Company>Alif Bank</Company>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Mirolim.EventBus.RabbitMQ</AssemblyName>
-        <Version>1.0.1</Version>
+        <Version>1.5.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
