@@ -28,7 +28,7 @@ internal class EventReceiverManager : IEventReceiverManager
             {
                 Id = @event.EventId,
                 Provider = eventProvider.ToString(),
-                EventName = @event.GetType().Name,
+                EventName = eventName,
                 EventPath = eventPath,
             };
 

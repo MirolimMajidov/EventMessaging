@@ -3,6 +3,8 @@ using System.Text.Json;
 using EventBus.RabbitMQ.Connections;
 using EventBus.RabbitMQ.Subscribers.Models;
 using EventBus.RabbitMQ.Subscribers.Options;
+using EventStore.Inbox.Managers;
+using EventStore.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -12,6 +14,7 @@ namespace EventBus.RabbitMQ.Subscribers.Consumers;
 
 internal class EventConsumerService : IEventConsumerService
 {
+    private readonly bool _useInbox;
     private readonly EventSubscriberOptions _connectionOptions;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventConsumerService> _logger;
@@ -24,13 +27,15 @@ internal class EventConsumerService : IEventConsumerService
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings)>
         _subscribers = new();
 
-    public EventConsumerService(EventSubscriberOptions connectionOptions, IServiceProvider serviceProvider)
+    public EventConsumerService(EventSubscriberOptions connectionOptions, IServiceProvider serviceProvider,
+        bool useInbox)
     {
         _connectionOptions = connectionOptions;
         _serviceProvider = serviceProvider;
         _logger = _serviceProvider.GetRequiredService<ILogger<EventConsumerService>>();
 
         _connection = new RabbitMQConnection(_connectionOptions, serviceProvider);
+        _useInbox = useInbox;
     }
 
     public void AddSubscriber((Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) eventInfo)
@@ -94,18 +99,37 @@ internal class EventConsumerService : IEventConsumerService
             {
                 _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType,
                     eventArgs.BasicProperties.MessageId);
-                using var scope = _serviceProvider.CreateScope();
                 var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                var eventSubscriber =
+                var receivedEvent =
                     JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as ISubscribeEvent;
+                LoadEventHeaders(receivedEvent);
+
+                using var scope = _serviceProvider.CreateScope();
+                if (_useInbox)
+                {
+                    IEventReceiverManager eventReceiverManager =
+                        scope.ServiceProvider.GetService<IEventReceiverManager>();
+                    if (eventReceiverManager is not null)
+                    {
+                        //TODO: Do we need to do something if it is not succussfully entered?
+                        var succussfullyReceived = eventReceiverManager.Received(receivedEvent,
+                            EventProviderType.RabbitMq, eventArgs.RoutingKey);
+                        MarkEventIsDelivered();
+
+                        return;
+                    }
+
+                    _logger.LogWarning(
+                        "The RabbitMQ is configured to use the Inbox for received events, but the Inbox functionality of the EventStorage is not enabled. So, the {EventSubscriber} event subscriber of an event will be executed immediately for the event id: {EventId};",
+                        info.eventHandlerType.Name, receivedEvent.EventId);
+                }
+
                 var eventHandlerSubscriber = scope.ServiceProvider.GetRequiredService(info.eventHandlerType);
-                LoadEventHeaders(eventSubscriber);
-
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
-                await (Task)handleMethod!.Invoke(eventHandlerSubscriber, [eventSubscriber]);
+                await (Task)handleMethod!.Invoke(eventHandlerSubscriber, [receivedEvent]);
 
-                _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                MarkEventIsDelivered();
             }
             else
             {
@@ -119,6 +143,11 @@ internal class EventConsumerService : IEventConsumerService
             _logger.LogError(ex,
                 "----- ERROR on receiving {EventType} event type with the {RoutingKey} routing key and {EventId} event id.",
                 eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
+        }
+
+        void MarkEventIsDelivered()
+        {
+            _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
         }
 
         void LoadEventHeaders(ISubscribeEvent eventSubscriber)

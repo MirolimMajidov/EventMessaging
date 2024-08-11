@@ -6,6 +6,11 @@ public class RabbitMQOptions : BaseEventOptions, IHasQueueArguments
     /// The name of the queue to use in RabbitMQ. Default value is "DefaultQueue".
     /// </summary>
     public string QueueName { get; set; }
+    
+    /// <summary>
+    /// To enable using an inbox for storing all received events before handling. Default value is "false".
+    /// </summary>
+    public bool UseInbox { get; set; } = false;
 
     /// <summary>
     /// Optional queue arguments, also known as "x-arguments" because of their field name in the AMQP 0-9-1 protocol, is a map (dictionary) of arbitrary key/value pairs that can be provided by clients when a queue is declared.

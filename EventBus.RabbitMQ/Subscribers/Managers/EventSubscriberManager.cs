@@ -90,7 +90,7 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
             var consumerId = $"{eventInfo.eventSettings.VirtualHost}-{eventInfo.eventSettings.QueueName}";
             if (!_eventConsumers.TryGetValue(consumerId, value: out IEventConsumerService eventConsumer))
             {
-                eventConsumer = new EventConsumerService(eventInfo.eventSettings, serviceProvider);
+                eventConsumer = new EventConsumerService(eventInfo.eventSettings, serviceProvider, defaultSettings.UseInbox);
                 _eventConsumers.Add(consumerId, eventConsumer);
             }
 
