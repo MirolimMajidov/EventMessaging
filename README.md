@@ -332,6 +332,45 @@ When we use the `Send` method of the IEventSenderManager to send an event, the e
 
 If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](#options-of-inbox-and-outbox-sections).
 
+#### How to use the Inbox pattern in this library?
+
+As you know, the Inbox pattern for storing all incoming events or messages to the application in a database. To use this functionality, first you need to enable the `Inbox` feature by adding the following section to your AppSettings file.
+```
+"InboxAndOutbox": {
+    "Inbox": {
+      "IsEnabled": true,
+      "ConnectionString": "Connection string of the SQL database"
+      //...
+    },
+    "Outbox": {
+      //Your inbox settings
+    }
+  }
+```
+
+And then, set `true` to the `UseInbox` option of the `RabbitMQSettings.DefaultSettings`. Because by default it is disabled.
+
+```
+"RabbitMQSettings": {
+    "DefaultSettings": {
+        "UseInbox": true
+        //your settings
+    },
+    "Publishers": {
+        //your Subscribers
+    },
+    "Subscribers": {
+        //your Subscribers
+    }
+  }
+```
+
+That's all. Now all incoming events from RabbitMQ are stored in the `Inbox` table of the database and then execute the `Receive` method of your event subscriber. See the [document of creating event subscriber](#create-a-subscriber-to-the-event).
+
+
+
+
+
 ## EventStorage
 
 
