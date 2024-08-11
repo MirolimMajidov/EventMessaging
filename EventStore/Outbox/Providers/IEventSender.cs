@@ -5,7 +5,7 @@ namespace EventStore.Outbox.Providers;
 /// <summary>
 /// An interface for determine a publisher of events. It may use for Unknown type.
 /// </summary>
-public interface IPublishEvent<TSendEvent>
+public interface IEventSender<TSendEvent>
     where TSendEvent :  class, ISendEvent
 {
     /// <summary>

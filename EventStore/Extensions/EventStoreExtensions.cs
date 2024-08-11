@@ -39,7 +39,7 @@ public static class EventStoreExtensions
 
         if (settings.Outbox.IsEnabled)
         {
-            services.AddScoped<IEventSender, EventSender>();
+            services.AddScoped<IEventSenderManager, EventSenderManager>();
             services.AddScoped<IOutboxRepository>(serviceProvider =>
             {
                 var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
@@ -128,11 +128,11 @@ public static class EventStoreExtensions
             services.AddTransient(publisherType);
     }
 
-    static readonly Type PublishEventType = typeof(IPublishEvent<>);
-    static readonly Type RabbitMqEventType = typeof(IPublishRabbitMQEvent<>);
-    static readonly Type EmailEventType = typeof(IPublishEmailEvent<>);
-    static readonly Type SmsEventType = typeof(IPublishSMSEvent<>);
-    static readonly Type WebHookEventType = typeof(IPublishWebHookEvent<>);
+    static readonly Type PublishEventType = typeof(IEventSender<>);
+    static readonly Type RabbitMqEventType = typeof(IRabbitMqEventSender<>);
+    static readonly Type EmailEventType = typeof(IEmailEventSender<>);
+    static readonly Type SmsEventType = typeof(ISmsEventSender<>);
+    static readonly Type WebHookEventType = typeof(IWebHookEventSender<>);
 
     private static List<(Type eventType, Type publisherType, EventProviderType provider)> GetPublisherHandlerTypes(
         Assembly[] assemblies)
@@ -195,11 +195,11 @@ public static class EventStoreExtensions
             services.AddTransient(receiverType);
     }
 
-    static readonly Type EventReceiveType = typeof(IReceiveEvent<>);
-    static readonly Type RabbitMqReceiveEventType = typeof(IReceiveRabbitMQEvent<>);
-    static readonly Type EmailReceiveEventType = typeof(IReceiveEmailEvent<>);
-    static readonly Type SmsReceiveEventType = typeof(IReceiveSMSEvent<>);
-    static readonly Type WebHookReceiveEventType = typeof(IReceiveWebHookEvent<>);
+    static readonly Type EventReceiveType = typeof(IEventReceiver<>);
+    static readonly Type RabbitMqReceiveEventType = typeof(IRabbitMqEventReceiver<>);
+    static readonly Type EmailReceiveEventType = typeof(IEmailEventReceiver<>);
+    static readonly Type SmsReceiveEventType = typeof(ISmsEventReceiver<>);
+    static readonly Type WebHookReceiveEventType = typeof(IWebHookEventReceiver<>);
 
     private static List<(Type eventType, Type receiverType, EventProviderType provider)> GetReceiverHandlerTypes(
         Assembly[] assemblies)

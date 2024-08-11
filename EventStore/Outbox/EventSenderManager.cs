@@ -6,11 +6,11 @@ using EventStore.Outbox.Repositories;
 
 namespace EventStore.Outbox;
 
-internal class EventSender : IEventSender
+internal class EventSenderManager : IEventSenderManager
 {
     private readonly IOutboxRepository _repository;
 
-    public EventSender(IOutboxRepository repository)
+    public EventSenderManager(IOutboxRepository repository)
     {
         _repository = repository;
     }

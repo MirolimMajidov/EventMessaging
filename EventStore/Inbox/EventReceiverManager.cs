@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace EventStore.Inbox;
 
 /// <summary>
-/// Manager of events publisher
+/// Manager of events receiver
 /// </summary>
 internal class EventReceiverManager : IEventReceiverManager
 {
@@ -21,7 +21,7 @@ internal class EventReceiverManager : IEventReceiverManager
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
         hasHeaders, bool hasAdditionalData)> _publishers;
 
-    private const string PublisherMethodName = nameof(IPublishEvent<ISendEvent>.Publish);
+    private const string PublisherMethodName = nameof(IEventSender<ISendEvent>.Publish);
     private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
     
     private static readonly Type hasHeadersType = typeof(IHasHeaders);

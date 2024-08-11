@@ -12,17 +12,17 @@ namespace UsersService.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IEventPublisherManager _eventPublisher;
-    private readonly IEventSender _eventSender;
+    private readonly IEventSenderManager _eventSenderManager;
 
     private readonly ILogger<UserController> _logger;
     private static readonly Dictionary<Guid, User> Items = new();
 
     public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher,
-        IEventSender eventSender)
+        IEventSenderManager eventSenderManager)
     {
         _logger = logger;
         _eventPublisher = eventPublisher;
-        _eventSender = eventSender;
+        _eventSenderManager = eventSenderManager;
     }
 
     [HttpGet]
@@ -50,7 +50,7 @@ public class UserController : ControllerBase
         userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
         //_eventPublisher.Publish(userCreated);
-        _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
+        _eventSenderManager.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
         return Ok();
     }
 
@@ -76,7 +76,7 @@ public class UserController : ControllerBase
             return NotFound();
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
-        _eventSender.Send(userDeleted, EventProviderType.SMS, userDeleted.GetType().Name);
+        _eventSenderManager.Send(userDeleted, EventProviderType.SMS, userDeleted.GetType().Name);
         
         Items.Remove(id);
         return Ok(item);

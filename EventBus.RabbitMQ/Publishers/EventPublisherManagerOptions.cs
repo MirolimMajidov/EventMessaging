@@ -16,7 +16,7 @@ public class EventPublisherManagerOptions
     /// </summary>
     /// <param name="eventPublisherOptions">The eventPublisherOptions specific to the publisher, if any.</param>
     public void AddPublisher<TPublisher>(Action<EventPublisherOptions> eventPublisherOptions = null)
-        where TPublisher : class, IEventPublisher
+        where TPublisher : class, IPublishEvent
     {
         _publisherManager.AddPublisher<TPublisher>(eventPublisherOptions);
     }

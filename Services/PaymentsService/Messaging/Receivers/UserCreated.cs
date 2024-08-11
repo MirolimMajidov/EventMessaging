@@ -3,16 +3,16 @@ using PaymentsService.Messaging.Events.Subscribers;
 
 namespace PaymentsService.Messaging.Receivers;
 
-public class UserCreatedReceiver : IEventSubscriberReceiver<UserCreated>
+public class UserCreated : IEventSubscriber<Events.Subscribers.UserCreated>
 {
-    private readonly ILogger<UserCreatedReceiver> _logger;
+    private readonly ILogger<UserCreated> _logger;
 
-    public UserCreatedReceiver(ILogger<UserCreatedReceiver> logger)
+    public UserCreated(ILogger<UserCreated> logger)
     {
         _logger = logger;
     }
 
-    public async Task<bool> Receive(UserCreated @event)
+    public async Task<bool> Receive(Events.Subscribers.UserCreated @event)
     {
         if (@event.Headers?.TryGetValue("TraceId", out var traceId) == true)
         {

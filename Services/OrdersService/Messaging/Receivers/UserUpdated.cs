@@ -3,16 +3,16 @@ using OrdersService.Messaging.Events;
 
 namespace OrdersService.Messaging.Receivers;
 
-public class UserUpdatedReceiver : IEventSubscriberReceiver<UserUpdated>
+public class UserUpdated : IEventSubscriber<Events.UserUpdated>
 {
-    private readonly ILogger<UserUpdatedReceiver> _logger;
+    private readonly ILogger<UserUpdated> _logger;
 
-    public UserUpdatedReceiver(ILogger<UserUpdatedReceiver> logger)
+    public UserUpdated(ILogger<UserUpdated> logger)
     {
         _logger = logger;
     }
 
-    public async Task<bool> Receive(UserUpdated @event)
+    public async Task<bool> Receive(Events.UserUpdated @event)
     {
         if (@event.Headers?.TryGetValue("TraceId", out string traceId) == true)
         {

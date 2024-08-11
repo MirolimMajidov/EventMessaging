@@ -70,7 +70,7 @@ public static class RabbitMQExtensions
 
     #region Publishers
 
-    static readonly Type PublisherType = typeof(IEventPublisher);
+    static readonly Type PublisherType = typeof(IPublishEvent);
     private static Type[] GetPublisherTypes(Assembly[] assemblies)
     {
         if (assemblies is not null)
@@ -127,7 +127,7 @@ public static class RabbitMQExtensions
             services.AddTransient(handlerType);
     }
 
-    static readonly Type PublisherReceiverType = typeof(IEventSubscriberReceiver<>);
+    static readonly Type PublisherReceiverType = typeof(IEventSubscriber<>);
     private static List<(Type eventType, Type receiverType)> GetSubscriberReceiverTypes(Assembly[] assemblies)
     {
         List<(Type eventType, Type receiverType)> subscriberHandlerTypes = new();

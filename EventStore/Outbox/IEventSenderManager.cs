@@ -3,7 +3,7 @@ using EventStore.Outbox.Models;
 
 namespace EventStore.Outbox;
 
-public interface IEventSender
+public interface IEventSenderManager
 {
     /// <summary>
     /// To store sending an event to the database

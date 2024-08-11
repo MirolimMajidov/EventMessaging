@@ -18,8 +18,8 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
     private readonly Dictionary<string, IEventConsumerService> _eventConsumers = new();
 
     public void AddSubscriber<TEvent, TEventHandler>(Action<EventSubscriberOptions> options = null)
-        where TEvent : class, IEventSubscriber
-        where TEventHandler : class, IEventSubscriberReceiver<TEvent>
+        where TEvent : class, ISubscribeEvent
+        where TEventHandler : class, IEventSubscriber<TEvent>
     {
         var eventType = typeof(TEvent);
         if (_subscribers.TryGetValue(eventType.Name, out var info))

@@ -5,7 +5,7 @@ namespace EventStore.Inbox.Providers;
 /// <summary>
 /// An interface to define an event receiver of type Email
 /// </summary>
-public interface IReceiveEmailEvent<TReceiveEvent> : IReceiveEvent<TReceiveEvent>
+public interface IEmailEventReceiver<TReceiveEvent> : IEventReceiver<TReceiveEvent>
     where TReceiveEvent : class, IReceiveEvent
 {
 }

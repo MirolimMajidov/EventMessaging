@@ -1,12 +1,10 @@
+using EventStore.Models;
+
 namespace EventStore.Outbox.Models;
 
 /// <summary>
 /// An interface for determine events to send
 /// </summary>
-public interface ISendEvent
+public interface ISendEvent : IEvent
 {
-    /// <summary>
-    /// Id of event
-    /// </summary>
-    public Guid EventId { get; }
 }

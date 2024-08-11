@@ -21,7 +21,7 @@ internal class EventPublisherManager : IEventPublisherManager
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
         hasHeaders, bool hasAdditionalData)> _publishers;
 
-    private const string PublisherMethodName = nameof(IPublishEvent<ISendEvent>.Publish);
+    private const string PublisherMethodName = nameof(IEventSender<ISendEvent>.Publish);
     private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
     
     private static readonly Type hasHeadersType = typeof(IHasHeaders);

@@ -4,7 +4,7 @@ using EventStore.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 
-public class UserCreated : EventPublisher, IHasAdditionalData
+public class UserCreated : PublishEvent, IHasAdditionalData
 {
     public Guid UserId { get; init; }
     

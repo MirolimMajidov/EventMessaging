@@ -78,7 +78,7 @@ internal class EventConsumerService : IEventConsumerService
         return channel;
     }
 
-    private const string HandlerMethodName = nameof(IEventSubscriberReceiver<IEventSubscriber>.Receive);
+    private const string HandlerMethodName = nameof(IEventSubscriber<ISubscribeEvent>.Receive);
 
     /// <summary>
     /// An event to receive all sent events
@@ -97,7 +97,7 @@ internal class EventConsumerService : IEventConsumerService
                 var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var eventSubscriber =
-                    JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as IEventSubscriber;
+                    JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as ISubscribeEvent;
                 var eventHandlerSubscriber = scope.ServiceProvider.GetRequiredService(info.eventHandlerType);
                 LoadEventHeaders(eventSubscriber);
 
@@ -120,7 +120,7 @@ internal class EventConsumerService : IEventConsumerService
                 eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
         }
 
-        void LoadEventHeaders(IEventSubscriber eventSubscriber)
+        void LoadEventHeaders(ISubscribeEvent eventSubscriber)
         {
             if (eventArgs.BasicProperties.Headers is not null)
             {

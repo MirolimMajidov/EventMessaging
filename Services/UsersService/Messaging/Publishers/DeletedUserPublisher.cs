@@ -4,7 +4,7 @@ using UsersService.Services;
 
 namespace UsersService.Messaging.Publishers;
 
-public class DeletedUserPublisher : IPublishWebHookEvent<UserDeleted>
+public class DeletedUserPublisher : IWebHookEventSender<UserDeleted>
 {
     private readonly IWebHookProvider _webHookProvider;
 

@@ -5,7 +5,7 @@ namespace EventStore.Inbox.Providers;
 /// <summary>
 /// An interface for determine a receiver of events. It may use for Unknown type.
 /// </summary>
-public interface IReceiveEvent<TReceiveEvent>
+public interface IEventReceiver<TReceiveEvent>
     where TReceiveEvent : class, IReceiveEvent
 {
     /// <summary>

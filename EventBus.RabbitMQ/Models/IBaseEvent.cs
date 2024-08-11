@@ -1,11 +1,11 @@
 using EventStore.Models;
 
-namespace EventBus.RabbitMQ.Publishers.Models;
+namespace EventBus.RabbitMQ.Models;
 
 /// <summary>
 /// Base interface for all publisher and subscriber interface
 /// </summary>
-public interface IBaseEvent : IHasHeaders
+public interface IBaseEvent : IEvent, IHasHeaders
 {
     /// <summary>
     /// Created time of event

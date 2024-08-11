@@ -31,7 +31,7 @@ internal class EventPublisherManager : IEventPublisherManager
     /// </summary>
     /// <param name="options">The options specific to the publisher, if any.</param>
     public void AddPublisher<TPublisher>(Action<EventPublisherOptions> options = null)
-        where TPublisher : class, IEventPublisher
+        where TPublisher : class, IPublishEvent
     {
         var publisherName = typeof(TPublisher).Name;
         if (_publishers.TryGetValue(publisherName, out var _settings))
@@ -152,7 +152,7 @@ internal class EventPublisherManager : IEventPublisherManager
 
     private const string NameOfEventType = nameof(EventPublisherOptions.EventTypeName);
 
-    public void Publish<TEventPublisher>(TEventPublisher @event) where TEventPublisher : IEventPublisher
+    public void Publish<TEventPublisher>(TEventPublisher @event) where TEventPublisher : IPublishEvent
     {
         try
         {

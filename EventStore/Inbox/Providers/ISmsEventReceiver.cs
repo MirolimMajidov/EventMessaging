@@ -3,9 +3,9 @@ using EventStore.Inbox.Models;
 namespace EventStore.Inbox.Providers;
 
 /// <summary>
-/// An interface to define an event receiver of type RabbitMQ
+/// An interface to define an event receiver of type SMS
 /// </summary>
-public interface IReceiveRabbitMQEvent<TReceiveEvent> : IReceiveEvent<TReceiveEvent>
+public interface ISmsEventReceiver<TReceiveEvent> : IEventReceiver<TReceiveEvent>
     where TReceiveEvent : class, IReceiveEvent
 {
     

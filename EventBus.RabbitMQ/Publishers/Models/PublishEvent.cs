@@ -5,9 +5,9 @@ namespace EventBus.RabbitMQ.Publishers.Models;
 /// <summary>
 /// Base class for all publisher classes
 /// </summary>
-public abstract class EventPublisher : IEventPublisher
+public abstract class PublishEvent : IPublishEvent
 {
-    public EventPublisher(Guid? id = null)
+    public PublishEvent(Guid? id = null)
     {
         EventId = id ?? Guid.NewGuid();
         CreatedAt = DateTime.Now;

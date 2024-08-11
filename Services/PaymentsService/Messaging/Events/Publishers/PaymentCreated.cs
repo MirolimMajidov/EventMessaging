@@ -2,7 +2,7 @@ using EventBus.RabbitMQ.Publishers.Models;
 
 namespace PaymentsService.Messaging.Events.Publishers;
 
-public class PaymentCreated : EventPublisher
+public class PaymentCreated : PublishEvent
 {
     public Guid PaymentId { get; set; }
 
