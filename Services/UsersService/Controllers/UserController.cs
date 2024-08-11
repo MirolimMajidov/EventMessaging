@@ -46,12 +46,11 @@ public class UserController : ControllerBase
         Items.Add(item.Id, item);
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
-        userCreated.Headers = new();
-        userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
-        
         //_eventPublisherManager.Publish(userCreated);
-       
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
+        
+        var eventPath = userCreated.GetType().Name;
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
+        
         return Ok();
     }
 

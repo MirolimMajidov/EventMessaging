@@ -279,7 +279,7 @@ As you know, the Outbox pattern for storing all outgoing events or messages of a
 ```
 The `InboxAndOutbox` is the main section for setting of the Outbox and Inbox functionalities. The `Outbox` and `Inbox` subsections offer numerous options. For a detailed explanation on using these options, go to the [options of Inbox and Outbox sections](#options-of-inbox-and-outbox-sections) of the EventStorage documentation.     
 
-Your application is now ready to use the Outbox feature. Simply inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to first store the event in the database and then publish it.
+Your application is now ready to use the Outbox feature. Simply inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your event.
 
 ```
 public class UserController : ControllerBase
@@ -298,13 +298,39 @@ public class UserController : ControllerBase
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
         //_eventPublisherManager.Publish(userCreated);
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
+        
+        var eventPath = userCreated.GetType().Name;
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
         
         return Ok(item);
     }
 }
 ```
 
+Next, add an event publisher to manage a publishing event. Since the event storage functionality is designed as a separate library, it doesn't know about the actual sending of events. Therefore, we'll need to create an event publisher specific to the type of event we want to publish.
+
+```
+public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
+{
+    private readonly IEventPublisherManager _eventPublisher;
+
+    public CreatedUserPublisher(IEventPublisherManager eventPublisher)
+    {
+        _eventPublisher = eventPublisher;
+    }
+    
+    public async Task<bool> Publish(UserCreated @event, string eventPath)
+    {
+        _eventPublisher.Publish(@event);
+        
+        return await Task.FromResult(true);
+    }
+}
+```
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event we want to publish. And, inject the `IEventPublisherManager` interface to publish the publishing event to the `RabbitMQ`.
+When we use the `Send` method of the IEventSenderManager to send an event, the event is first stored in the database. Based on our configuration (_by default, after one second_), the event will then be automatically execute the `Publish` method of created event publisher.
+
+If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](#options-of-inbox-and-outbox-sections).
 
 ## EventStorage
 
