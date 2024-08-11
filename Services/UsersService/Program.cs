@@ -29,13 +29,13 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     }
 );
 
-builder.Services.AddEventStore(builder.Configuration,
-    assemblies: [typeof(Program).Assembly]
-    , options =>
-    {
-        options.Outbox.IsEnabled = false;
-        options.Outbox.TableName = "SentEvents";
-    });
+// builder.Services.AddEventStore(builder.Configuration,
+//     assemblies: [typeof(Program).Assembly]
+//     , options =>
+//     {
+//         options.Outbox.IsEnabled = true;
+//         options.Outbox.TableName = "SentEvents";
+//     });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

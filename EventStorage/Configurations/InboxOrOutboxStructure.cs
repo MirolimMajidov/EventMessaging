@@ -3,9 +3,9 @@ namespace EventStorage.Configurations;
 public record InboxOrOutboxStructure
 {
     /// <summary>
-    /// To enable using an inbox/outbox for storing all received/sending events. Default value is "true".
+    /// To enable using an inbox/outbox for storing all received/sending events. Default value is "false".
     /// </summary>
-    public bool IsEnabled { get; set; } = true;
+    public bool IsEnabled { get; set; } = false;
 
     /// <summary>
     /// The table name of Inbox/Outbox for storing all received/sending events. Default value is "Inbox" if it is for Inbox, otherwise "Outbox".

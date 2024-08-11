@@ -1,14 +1,15 @@
 # Getting Started
 
-## List of libraries
+### List of libraries
 
-#### [EventBus.RabbitMQ: Event messaging library](#eventbus.rabbitmq)
+1. #### [EventBus.RabbitMQ: Event messaging library](#eventbus.rabbitmq)
 
-#### [EventStorage: A library for implementing the Inbox and Outbox patterns](#eventstorage)
+1. #### [EventStorage: A library for implementing the Inbox and Outbox patterns](#eventstorage)
 
 ## EventBus.RabbitMQ
-EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multiple a virtual hosts of RabbitMQ. 
+EventBus.RabbitMQ is a messaging library designed to simplify the implementation of communication using RabbitMQ. It enables seamless publishing and receiving of events between microservices or other types of applications. The library is easy to set up and is compatible with all recent .NET platforms. Additionally, it supports working with multiple virtual hosts in RabbitMQ.
 
+With this library, you can easily implement the [Inbox and outbox patterns](https://en.wikipedia.org/wiki/Inbox_and_outbox_pattern) in your application. It allows you to persist all incoming and outgoing event messages in a PostgreSQL database for reliable handling.
 
 ### NuGet package
 [![Version](https://img.shields.io/nuget/vpre/Mirolim.EventBus.RabbitMQ?label=Downloads:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
