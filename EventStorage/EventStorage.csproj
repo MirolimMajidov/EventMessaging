@@ -3,6 +3,17 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Title>EventStorage</Title>
+        <Authors>MirolimMajidov</Authors>
+        <Description>EventStorage is a library designed to simplify the implementation of the Inbox and Outbox patterns.</Description>
+        <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
+        <RepositoryType>public</RepositoryType>
+        <PackageTags>EventBus.RabbitMQ, RabbitMQ, EventBus, EventStorage, Inbox, Otbox</PackageTags>
+        <Company>Alif Bank</Company>
+        <NeutralLanguage>en</NeutralLanguage>
+        <AssemblyName>Mirolim.EventStorage</AssemblyName>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
