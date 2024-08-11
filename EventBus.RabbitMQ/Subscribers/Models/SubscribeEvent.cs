@@ -11,5 +11,6 @@ public abstract class SubscribeEvent : ISubscribeEvent
 
     public DateTime CreatedAt { get; init; }
 
-    [JsonIgnore] public Dictionary<string, string> Headers { get; set; }
+    [JsonIgnore] 
+    public Dictionary<string, string> Headers { get; set; }
 }

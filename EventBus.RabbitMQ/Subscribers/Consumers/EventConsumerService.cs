@@ -103,7 +103,7 @@ internal class EventConsumerService : IEventConsumerService
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var receivedEvent =
                     JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as ISubscribeEvent;
-                LoadEventHeaders(receivedEvent);
+                var headers = GetEventHeaders();
 
                 using var scope = _serviceProvider.CreateScope();
                 if (_useInbox)
@@ -112,9 +112,11 @@ internal class EventConsumerService : IEventConsumerService
                         scope.ServiceProvider.GetService<IEventReceiverManager>();
                     if (eventReceiverManager is not null)
                     {
+                        string _headers = headers is null ? null : SerializeData(headers);
+                        var succussfullyReceived = eventReceiverManager.Received(receivedEvent, eventArgs.RoutingKey,
+                            EventProviderType.RabbitMq, _headers);
+
                         //TODO: Do we need to do something if it is not succussfully entered?
-                        var succussfullyReceived = eventReceiverManager.Received(receivedEvent,
-                            EventProviderType.RabbitMq, eventArgs.RoutingKey);
                         MarkEventIsDelivered();
 
                         return;
@@ -125,6 +127,7 @@ internal class EventConsumerService : IEventConsumerService
                         info.eventHandlerType.Name, receivedEvent.EventId);
                 }
 
+                receivedEvent.Headers = headers;
                 var eventHandlerSubscriber = scope.ServiceProvider.GetRequiredService(info.eventHandlerType);
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
                 await (Task)handleMethod!.Invoke(eventHandlerSubscriber, [receivedEvent]);
@@ -150,17 +153,26 @@ internal class EventConsumerService : IEventConsumerService
             _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
         }
 
-        void LoadEventHeaders(ISubscribeEvent eventSubscriber)
+        static string SerializeData<TValue>(TValue data)
+        {
+            return JsonSerializer.Serialize(data, data.GetType());
+        }
+
+        Dictionary<string, string> GetEventHeaders()
         {
             if (eventArgs.BasicProperties.Headers is not null)
             {
-                eventSubscriber.Headers ??= new();
+                var headers = new Dictionary<string, string>();
                 foreach (var header in eventArgs.BasicProperties.Headers)
                 {
                     var headerValue = Encoding.UTF8.GetString((byte[])header.Value);
-                    eventSubscriber.Headers.Add(header.Key, headerValue);
+                    headers.Add(header.Key, headerValue);
                 }
+
+                return headers;
             }
+
+            return null;
         }
     }
 }

@@ -8,5 +8,5 @@ public class PaymentCreated : SubscribeEvent
 
     public Guid UserId { get; init; }
 
-    public double Amount { get; init; }
+    public double Amount { get; set; }
 }
