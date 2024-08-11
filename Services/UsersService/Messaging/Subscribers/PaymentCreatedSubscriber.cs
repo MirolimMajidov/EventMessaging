@@ -1,4 +1,6 @@
 using EventBus.RabbitMQ.Subscribers.Models;
+using EventStore.Inbox.Managers;
+using EventStore.Models;
 using UsersService.Messaging.Events.Subscribers;
 using UsersService.Services;
 
@@ -8,15 +10,18 @@ public class PaymentCreatedSubscriber : IEventSubscriber<PaymentCreated>
 {
     private readonly ILogger<PaymentCreatedSubscriber> _logger;
     private readonly IUserService _service;
+    private readonly IEventReceiverManager _eventReceiverManager;
 
-    public PaymentCreatedSubscriber(ILogger<PaymentCreatedSubscriber> logger, IUserService service)
+    public PaymentCreatedSubscriber(ILogger<PaymentCreatedSubscriber> logger, IUserService service, IEventReceiverManager eventReceiverManager)
     {
         _logger = logger;
         _service = service;
+        _eventReceiverManager = eventReceiverManager;
     }
 
     public async Task<bool> Receive(PaymentCreated @event)
     {
+        _eventReceiverManager.Received(@event, EventProviderType.RabbitMq, @event.GetType().Name);
         _logger.LogInformation("EventId ({EventId}): Payment has been created for {UserId} user id with the {PaymentId} payment id, for {Amount} amount.", @event.EventId,
             @event.UserId, @event.PaymentId, @event.Amount);
 
