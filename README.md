@@ -170,8 +170,8 @@ While publishing or subscribing an event by default it uses the Name of event st
   }
 ```
 
-### What if I want to subscribe event of another system which is not publishing event name?
-While publishing event or receiving event by default
+### What if I want to subscribe to an event from another system that doesn't publish an event type?
+When RabbitMQ receives an event from a 'Consumer', it tries to read the event type from the received event, if it can't find it, it uses the 'routing key' instead to find the event subscriber.
 
 ## Advanced configuration of publishers and subscribers while registering to the DI services.
 
