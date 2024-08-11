@@ -120,9 +120,12 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
     },
     "Publishers": {
       "UserDeleted": {
-        "VirtualHost": "users/test"
+        "VirtualHost": "users/test",
+        "RoutingKey": "users.deleted",
+        "PropertyNamingPolicy": "KebabCaseLower"
       },
       "UserUpdated": {
+        "RoutingKey": "users.updated",
         "EventTypeName": "UserUpdatedEvent"
       }
     },
@@ -137,12 +140,38 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
         }
       }
     }
+  },
 ```
 
 A section may have the following subsections: <br/>
 `DefaultSettings` - to set the default configuration/settings for connecting to the RabbitMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ;  The default settings has optional parameter named `QueueArguments` to pass the arguments to the queue. <br/>
 `Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
+
+### Customizing the event type of publishing/subscribing event
+While publishing or subscribing an event by default it uses the Name of event structure. For example, if you add an event named `UserUpdated`, while publishing or subscribing/receiving that `UserUpdated` name as event type will be used. But if you want you can overwrite the event type by added event type name to the config file: 
+```
+"RabbitMQSettings": {
+    "DefaultSettings": {
+      //your settings
+    },
+    "Publishers": {
+      "UserUpdated": {
+        "RoutingKey": "users.updated",
+        "EventTypeName": "UserUpdatedEvent"
+      }
+    },
+    "Subscribers": {
+      "UserDeleted": {
+        //your settings
+        "EventTypeName": "MyUserDeletedEvent"
+      }
+    }
+  }
+```
+
+### What if I want to subscribe event of another system which is not publishing event name?
+While publishing event or receiving event by default
 
 ## Advanced configuration of publishers and subscribers while registering to the DI services.
 
