@@ -5,7 +5,6 @@ using EventStore.Inbox.Providers;
 using EventStore.Inbox.Repositories;
 using EventStore.Models;
 using EventStore.Outbox.Models;
-using EventStore.Outbox.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

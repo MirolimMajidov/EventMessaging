@@ -57,7 +57,8 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
         }
     }
 
-    public void InsertEvent(TBaseEvent @event)
+    private const string UniqueKeyErrorId = "23505";
+    public bool InsertEvent(TBaseEvent @event)
     {
         using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
@@ -74,9 +75,14 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                 )";
 
                 dbConnection.Execute(sql, @event);
+
+                return true;
             }
             catch (Exception e)
             {
+                if (e is PostgresException px && px.SqlState == UniqueKeyErrorId)
+                    return false;
+                
                 throw new EventStoreException(e,
                     $"Error while inserting a new event to the {_tableName} table with the {@event.Id} id.");
             }

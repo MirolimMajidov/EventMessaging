@@ -39,8 +39,12 @@ public class PaymentController : ControllerBase
     public IActionResult Create([FromBody] Payment item)
     {
         Items.Add(item.Id, item);
-
-        _eventPublisherManager.Publish(new PaymentCreated { PaymentId = item.Id, UserId = item.UserId, Amount = item.Amount });
+        
+        var paymentCreated = new PaymentCreated { PaymentId = item.Id, UserId = item.UserId, Amount = item.Amount };
+        paymentCreated.Headers = new();
+        paymentCreated.Headers.Add("DayName", DateTime.Now.DayOfWeek.ToString());
+        
+        _eventPublisherManager.Publish(paymentCreated);
         return Ok();
     }
 }

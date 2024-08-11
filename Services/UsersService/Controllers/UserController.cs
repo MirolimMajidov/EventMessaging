@@ -50,7 +50,7 @@ public class UserController : ControllerBase
         userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
         //_eventPublisherManager.Publish(userCreated);
-        _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
         return Ok();
     }
 
@@ -76,7 +76,7 @@ public class UserController : ControllerBase
             return NotFound();
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
-        _eventSenderManager.Send(userDeleted, EventProviderType.Sms, userDeleted.GetType().Name);
+        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.Sms, userDeleted.GetType().Name);
         
         Items.Remove(id);
         return Ok(item);
