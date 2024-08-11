@@ -2,12 +2,14 @@ using System.Reflection;
 using EventStore.Configurations;
 using EventStore.Inbox;
 using EventStore.Inbox.BackgroundServices;
+using EventStore.Inbox.Managers;
 using EventStore.Inbox.Providers;
 using EventStore.Inbox.Repositories;
 using EventStore.Models;
 using EventStore.Models.Inbox.Providers;
 using EventStore.Outbox;
 using EventStore.Outbox.BackgroundServices;
+using EventStore.Outbox.Managers;
 using EventStore.Outbox.Providers;
 using EventStore.Outbox.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -49,9 +51,9 @@ public static class EventStoreExtensions
             });
 
             RegisterAllEventsOfOutboxToDI(services, assemblies);
-            services.AddSingleton<IEventPublisherManager>(serviceProvider =>
+            services.AddSingleton<IEventsPublisherManager>(serviceProvider =>
             {
-                var publisherManager = new EventPublisherManager(serviceProvider);
+                var publisherManager = new EventsPublisherManager(serviceProvider);
                 RegisterAllEventsOfOutbox(publisherManager, assemblies);
 
                 return publisherManager;
@@ -62,7 +64,7 @@ public static class EventStoreExtensions
 
         if (settings.Inbox.IsEnabled)
         {
-            services.AddScoped<IEventReceiver, EventReceiver>();
+            services.AddScoped<IEventReceiverManager, EventReceiverManager>();
             services.AddScoped<IInboxRepository>(serviceProvider =>
             {
                 var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
@@ -72,9 +74,9 @@ public static class EventStoreExtensions
             });
 
             RegisterAllEventsOfInboxToDI(services, assemblies);
-            services.AddSingleton<IEventReceiverManager>(serviceProvider =>
+            services.AddSingleton<IEventsReceiverManager>(serviceProvider =>
             {
-                var receiverManager = new EventReceiverManager(serviceProvider);
+                var receiverManager = new EventsReceiverManager(serviceProvider);
                 RegisterAllEventsOfInbox(receiverManager, assemblies);
 
                 return receiverManager;
@@ -113,7 +115,7 @@ public static class EventStoreExtensions
 
     #region Publisher
 
-    private static void RegisterAllEventsOfOutbox(EventPublisherManager publisherManager, Assembly[] assemblies)
+    private static void RegisterAllEventsOfOutbox(EventsPublisherManager publisherManager, Assembly[] assemblies)
     {
         var outboxEventTypes = GetPublisherHandlerTypes(assemblies);
 
@@ -128,11 +130,11 @@ public static class EventStoreExtensions
             services.AddTransient(publisherType);
     }
 
-    static readonly Type PublishEventType = typeof(IEventSender<>);
-    static readonly Type RabbitMqEventType = typeof(IRabbitMqEventSender<>);
-    static readonly Type EmailEventType = typeof(IEmailEventSender<>);
-    static readonly Type SmsEventType = typeof(ISmsEventSender<>);
-    static readonly Type WebHookEventType = typeof(IWebHookEventSender<>);
+    static readonly Type PublishEventType = typeof(IEventPublisher<>);
+    static readonly Type RabbitMqEventType = typeof(IRabbitMqEventPublisher<>);
+    static readonly Type EmailEventType = typeof(IEmailEventPublisher<>);
+    static readonly Type SmsEventType = typeof(ISmsEventPublisher<>);
+    static readonly Type WebHookEventType = typeof(IWebHookEventPublisher<>);
 
     private static List<(Type eventType, Type publisherType, EventProviderType provider)> GetPublisherHandlerTypes(
         Assembly[] assemblies)
@@ -180,7 +182,7 @@ public static class EventStoreExtensions
 
     #region Receiver
 
-    private static void RegisterAllEventsOfInbox(EventReceiverManager receiverManager, Assembly[] assemblies)
+    private static void RegisterAllEventsOfInbox(EventsReceiverManager receiverManager, Assembly[] assemblies)
     {
         var inboxEventTypes = GetReceiverHandlerTypes(assemblies);
 

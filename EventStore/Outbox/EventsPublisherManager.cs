@@ -12,25 +12,25 @@ namespace EventStore.Outbox;
 /// <summary>
 /// Manager of events publisher
 /// </summary>
-internal class EventPublisherManager : IEventPublisherManager
+internal class EventsPublisherManager : IEventsPublisherManager
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<EventPublisherManager> _logger;
+    private readonly ILogger<EventsPublisherManager> _logger;
     private readonly InboxOrOutboxStructure _settings;
 
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
         hasHeaders, bool hasAdditionalData)> _publishers;
 
-    private const string PublisherMethodName = nameof(IEventSender<ISendEvent>.Publish);
-    private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
+    private const string PublisherMethodName = nameof(IEventPublisher<ISendEvent>.Publish);
+    private static readonly int TryAfterOneDay = (int)TimeSpan.FromDays(1).TotalMinutes;
     
-    private static readonly Type hasHeadersType = typeof(IHasHeaders);
-    private static readonly Type hasAdditionalDataType = typeof(IHasAdditionalData);
+    private static readonly Type HasHeadersType = typeof(IHasHeaders);
+    private static readonly Type HasAdditionalDataType = typeof(IHasAdditionalData);
     
-    public EventPublisherManager(IServiceProvider serviceProvider)
+    public EventsPublisherManager(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
+        _logger = serviceProvider.GetRequiredService<ILogger<EventsPublisherManager>>();
         _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
         _publishers = new();
     }
@@ -46,8 +46,8 @@ internal class EventPublisherManager : IEventPublisherManager
         var eventName = typeOfEventSender.Name;
         if (!_publishers.ContainsKey(eventName))
         {
-            var hasHeaders = hasHeadersType.IsAssignableFrom(typeOfEventSender);
-            var hasAdditionalData = hasAdditionalDataType.IsAssignableFrom(typeOfEventSender);
+            var hasHeaders = HasHeadersType.IsAssignableFrom(typeOfEventSender);
+            var hasAdditionalData = HasAdditionalDataType.IsAssignableFrom(typeOfEventSender);
 
             _publishers.Add(eventName,
                 (typeOfEventSender, typeOfEventPublisher, providerType.ToString(), hasHeaders, hasAdditionalData));
@@ -121,7 +121,7 @@ internal class EventPublisherManager : IEventPublisherManager
                 }
                 else
                 {
-                    @event.Failed(0, TryAfterMinutes);
+                    @event.Failed(0, TryAfterOneDay);
                     _logger.LogError(
                         "The {EventType} outbox event with ID {EventId} requested to publish with {ProviderType} provider, but that is configured to publish with the {ConfiguredProviderType} provider.",
                         @event.EventName, @event.Id, @event.Provider, info.providerType);
@@ -129,7 +129,7 @@ internal class EventPublisherManager : IEventPublisherManager
             }
             else
             {
-                @event.Failed(0, TryAfterMinutes);
+                @event.Failed(0, TryAfterOneDay);
                 _logger.LogWarning(
                     "No publish provider configured for the {EventType} outbox event with ID: {EventId}.",
                     @event.EventName, @event.Id);

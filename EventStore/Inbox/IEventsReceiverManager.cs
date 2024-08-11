@@ -3,7 +3,7 @@ namespace EventStore.Inbox;
 /// <summary>
 /// Manager of event receiver
 /// </summary>
-internal interface IEventReceiverManager
+internal interface IEventsReceiverManager
 {
     /// <summary>
     /// For executing unprocessed events

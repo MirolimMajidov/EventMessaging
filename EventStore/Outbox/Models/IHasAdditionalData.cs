@@ -1,4 +1,4 @@
-namespace EventStore.Models;
+namespace EventStore.Outbox.Models;
 
 public interface IHasAdditionalData
 {

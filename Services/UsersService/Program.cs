@@ -1,11 +1,9 @@
 using EventBus.RabbitMQ.Extensions;
 using EventStore.Extensions;
 using UsersService.Messaging.Events.Publishers;
-using UsersService.Messaging.Events.Subscribers;
-using UsersService.Messaging.Receivers;
+using UsersService.Messaging.Subscribers;
 using UsersService.Repositories;
 using UsersService.Services;
-using PaymentCreated = UsersService.Messaging.Receivers.PaymentCreated;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +22,7 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     },
     eventSubscriberManagerOptions: subscriberManager =>
     {
-        subscriberManager.AddSubscriber<UsersService.Messaging.Events.Subscribers.PaymentCreated, PaymentCreated>(op =>
+        subscriberManager.AddSubscriber<UsersService.Messaging.Events.Subscribers.PaymentCreated, PaymentCreatedSubscriber>(op =>
         {
             op.VirtualHost = "users/test";
         });

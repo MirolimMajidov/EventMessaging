@@ -1,18 +1,18 @@
 using EventBus.RabbitMQ.Subscribers.Models;
 using PaymentsService.Messaging.Events.Subscribers;
 
-namespace PaymentsService.Messaging.Receivers;
+namespace PaymentsService.Messaging.Subscribers;
 
-public class UserCreated : IEventSubscriber<Events.Subscribers.UserCreated>
+public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
 {
-    private readonly ILogger<UserCreated> _logger;
+    private readonly ILogger<UserCreatedSubscriber> _logger;
 
-    public UserCreated(ILogger<UserCreated> logger)
+    public UserCreatedSubscriber(ILogger<UserCreatedSubscriber> logger)
     {
         _logger = logger;
     }
 
-    public async Task<bool> Receive(Events.Subscribers.UserCreated @event)
+    public async Task<bool> Receive(UserCreated @event)
     {
         if (@event.Headers?.TryGetValue("TraceId", out var traceId) == true)
         {

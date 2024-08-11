@@ -4,7 +4,7 @@ using EventStore.Models;
 using EventStore.Outbox.Models;
 using EventStore.Outbox.Repositories;
 
-namespace EventStore.Outbox;
+namespace EventStore.Outbox.Managers;
 
 internal class EventSenderManager : IEventSenderManager
 {

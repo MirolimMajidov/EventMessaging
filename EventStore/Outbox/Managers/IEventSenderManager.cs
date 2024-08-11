@@ -1,7 +1,7 @@
 using EventStore.Models;
 using EventStore.Outbox.Models;
 
-namespace EventStore.Outbox;
+namespace EventStore.Outbox.Managers;
 
 public interface IEventSenderManager
 {

@@ -12,25 +12,25 @@ namespace EventStore.Inbox;
 /// <summary>
 /// Manager of events receiver
 /// </summary>
-internal class EventReceiverManager : IEventReceiverManager
+internal class EventsReceiverManager : IEventsReceiverManager
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<EventReceiverManager> _logger;
+    private readonly ILogger<EventsReceiverManager> _logger;
     private readonly InboxOrOutboxStructure _settings;
 
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
         hasHeaders, bool hasAdditionalData)> _publishers;
 
-    private const string PublisherMethodName = nameof(IEventSender<ISendEvent>.Publish);
+    private const string PublisherMethodName = nameof(IEventPublisher<ISendEvent>.Publish);
     private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
     
-    private static readonly Type hasHeadersType = typeof(IHasHeaders);
-    private static readonly Type hasAdditionalDataType = typeof(IHasAdditionalData);
+    private static readonly Type HasHeadersType = typeof(IHasHeaders);
+    private static readonly Type HasAdditionalDataType = typeof(IHasAdditionalData);
     
-    public EventReceiverManager(IServiceProvider serviceProvider)
+    public EventsReceiverManager(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _logger = serviceProvider.GetRequiredService<ILogger<EventReceiverManager>>();
+        _logger = serviceProvider.GetRequiredService<ILogger<EventsReceiverManager>>();
         _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
         _publishers = new();
     }
@@ -46,8 +46,8 @@ internal class EventReceiverManager : IEventReceiverManager
         var eventName = typeOfEventSender.Name;
         if (!_publishers.ContainsKey(eventName))
         {
-            var hasHeaders = hasHeadersType.IsAssignableFrom(typeOfEventSender);
-            var hasAdditionalData = hasAdditionalDataType.IsAssignableFrom(typeOfEventSender);
+            var hasHeaders = HasHeadersType.IsAssignableFrom(typeOfEventSender);
+            var hasAdditionalData = HasAdditionalDataType.IsAssignableFrom(typeOfEventSender);
 
             _publishers.Add(eventName,
                 (typeOfEventSender, typeOfEventPublisher, providerType.ToString(), hasHeaders, hasAdditionalData));

@@ -9,15 +9,15 @@ namespace PaymentsService.Controllers;
 [Route("[controller]")]
 public class PaymentController : ControllerBase
 {
-    private readonly IEventPublisherManager _eventPublisher;
+    private readonly IEventPublisherManager _eventPublisherManager;
 
     private readonly ILogger<PaymentController> _logger;
     private static readonly Dictionary<Guid, Payment> Items = new();
 
-    public PaymentController(ILogger<PaymentController> logger, IEventPublisherManager eventPublisherManager)
+    public PaymentController(ILogger<PaymentController> logger, IEventPublisherManager eventPublisherManagerManager)
     {
         _logger = logger;
-        _eventPublisher = eventPublisherManager;
+        _eventPublisherManager = eventPublisherManagerManager;
     }
 
     [HttpGet]
@@ -40,7 +40,7 @@ public class PaymentController : ControllerBase
     {
         Items.Add(item.Id, item);
 
-        _eventPublisher.Publish(new PaymentCreated { PaymentId = item.Id, UserId = item.UserId, Amount = item.Amount });
+        _eventPublisherManager.Publish(new PaymentCreated { PaymentId = item.Id, UserId = item.UserId, Amount = item.Amount });
         return Ok();
     }
 }

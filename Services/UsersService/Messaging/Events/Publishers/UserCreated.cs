@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using EventBus.RabbitMQ.Publishers.Models;
-using EventStore.Models;
+using EventStore.Outbox.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 

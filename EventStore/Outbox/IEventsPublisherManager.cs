@@ -3,7 +3,7 @@ namespace EventStore.Outbox;
 /// <summary>
 /// Manager of event publisher
 /// </summary>
-internal interface IEventPublisherManager
+internal interface IEventsPublisherManager
 {
     /// <summary>
     /// For publishing unprocessed events

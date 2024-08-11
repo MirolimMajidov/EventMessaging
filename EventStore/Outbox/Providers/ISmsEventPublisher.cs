@@ -3,9 +3,10 @@ using EventStore.Outbox.Models;
 namespace EventStore.Outbox.Providers;
 
 /// <summary>
-/// An interface to define an event publisher of type WebHook
+/// An interface to define an event publisher of type SMS
 /// </summary>
-public interface IWebHookEventSender<TSendEvent> : IEventSender<TSendEvent>
+public interface ISmsEventPublisher<TSendEvent> : IEventPublisher<TSendEvent>
     where TSendEvent : class, ISendEvent
 {
+    
 }

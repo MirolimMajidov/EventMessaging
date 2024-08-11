@@ -1,5 +1,5 @@
 using EventStore.Models;
-using EventStore.Outbox;
+using EventStore.Outbox.Managers;
 using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
@@ -11,17 +11,17 @@ namespace UsersService.Controllers;
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly IEventPublisherManager _eventPublisher;
+    private readonly IEventPublisherManager _eventPublisherManager;
     private readonly IEventSenderManager _eventSenderManager;
 
     private readonly ILogger<UserController> _logger;
     private static readonly Dictionary<Guid, User> Items = new();
 
-    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher,
+    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisherManager,
         IEventSenderManager eventSenderManager)
     {
         _logger = logger;
-        _eventPublisher = eventPublisher;
+        _eventPublisherManager = eventPublisherManager;
         _eventSenderManager = eventSenderManager;
     }
 
@@ -49,7 +49,7 @@ public class UserController : ControllerBase
         userCreated.Headers = new();
         userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
-        //_eventPublisher.Publish(userCreated);
+        //_eventPublisherManager.Publish(userCreated);
         _eventSenderManager.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
         return Ok();
     }
@@ -63,7 +63,7 @@ public class UserController : ControllerBase
         var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
         userUpdated.Headers = new();
         userUpdated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
-        _eventPublisher.Publish(userUpdated);
+        _eventPublisherManager.Publish(userUpdated);
 
         item.Name = newName;
         return Ok(item);

@@ -4,18 +4,18 @@ using EventStore.Inbox.Models;
 using EventStore.Inbox.Repositories;
 using EventStore.Models;
 
-namespace EventStore.Inbox;
+namespace EventStore.Inbox.Managers;
 
-internal class EventReceiver : IEventReceiver
+internal class EventReceiverManager : IEventReceiverManager
 {
     private readonly IInboxRepository _repository;
 
-    public EventReceiver(IInboxRepository repository)
+    public EventReceiverManager(IInboxRepository repository)
     {
         _repository = repository;
     }
 
-    public void Receive<TReceiveEvent>(TReceiveEvent @event, EventProviderType eventProvider, string eventPath)
+    public void Received<TReceiveEvent>(TReceiveEvent @event, EventProviderType eventProvider, string eventPath)
         where TReceiveEvent : IReceiveEvent
     {
         var _event = new InboxEvent()
@@ -31,13 +31,6 @@ internal class EventReceiver : IEventReceiver
             if (hasHeaders.Headers?.Any() == true)
                 _event.Headers = SerializeData(hasHeaders.Headers);
             hasHeaders.Headers = null;
-        }
-
-        if (@event is IHasAdditionalData hasAdditionalData)
-        {
-            if (hasAdditionalData.AdditionalData?.Any() == true)
-                _event.AdditionalData = SerializeData(hasAdditionalData.AdditionalData);
-            hasAdditionalData.AdditionalData = null;
         }
 
         _event.Payload = SerializeData(@event);

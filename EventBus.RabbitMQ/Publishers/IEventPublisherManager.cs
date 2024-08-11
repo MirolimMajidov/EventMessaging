@@ -8,7 +8,7 @@ public interface IEventPublisherManager
     /// Publishing an event to event bus
     /// </summary>
     /// <param name="event">Event to publish</param>
-    /// <typeparam name="TEventPublisher">Event type that must implement from the IEventSender</typeparam>
+    /// <typeparam name="TEventPublisher">Event type that must implement from the IEventPublisher</typeparam>
     public void Publish<TEventPublisher>(TEventPublisher @event) where TEventPublisher : IPublishEvent;
 
     /// <summary>

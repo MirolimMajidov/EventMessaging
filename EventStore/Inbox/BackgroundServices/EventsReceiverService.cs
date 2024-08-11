@@ -10,15 +10,15 @@ namespace EventStore.Inbox.BackgroundServices;
 internal class EventsReceiverService : BackgroundService
 {
     private readonly IServiceProvider _services;
-    private readonly IEventReceiverManager _eventReceiverManager;
+    private readonly IEventsReceiverManager _eventsReceiverManager;
     private readonly ILogger<EventsReceiverService> _logger;
     private readonly TimeSpan _timeToDelay;
 
-    public EventsReceiverService(IServiceProvider services, IEventReceiverManager eventReceiverManager,
+    public EventsReceiverService(IServiceProvider services, IEventsReceiverManager eventsReceiverManager,
         InboxAndOutboxSettings settings, ILogger<EventsReceiverService> logger)
     {
         _services = services;
-        _eventReceiverManager = eventReceiverManager;
+        _eventsReceiverManager = eventsReceiverManager;
         _logger = logger;
         _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelay);
     }
@@ -38,7 +38,7 @@ internal class EventsReceiverService : BackgroundService
         {
             try
             {
-                await _eventReceiverManager.ExecuteUnprocessedEvents(stoppingToken);
+                await _eventsReceiverManager.ExecuteUnprocessedEvents(stoppingToken);
             }
             catch (Exception e)
             {

@@ -10,15 +10,15 @@ namespace EventStore.Outbox.BackgroundServices;
 internal class EventsPublisherService : BackgroundService
 {
     private readonly IServiceProvider _services;
-    private readonly IEventPublisherManager _eventPublisherManager;
+    private readonly IEventsPublisherManager _eventsPublisherManager;
     private readonly ILogger<EventsPublisherService> _logger;
     private readonly TimeSpan _timeToDelay;
 
-    public EventsPublisherService(IServiceProvider services, IEventPublisherManager eventPublisherManager,
+    public EventsPublisherService(IServiceProvider services, IEventsPublisherManager eventsPublisherManager,
         InboxAndOutboxSettings settings, ILogger<EventsPublisherService> logger)
     {
         _services = services;
-        _eventPublisherManager = eventPublisherManager;
+        _eventsPublisherManager = eventsPublisherManager;
         _logger = logger;
         _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelay);
     }
@@ -38,7 +38,7 @@ internal class EventsPublisherService : BackgroundService
         {
             try
             {
-                await _eventPublisherManager.ExecuteUnprocessedEvents(stoppingToken);
+                await _eventsPublisherManager.ExecuteUnprocessedEvents(stoppingToken);
             }
             catch (Exception e)
             {

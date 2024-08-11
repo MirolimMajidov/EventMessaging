@@ -1,18 +1,18 @@
 using EventBus.RabbitMQ.Subscribers.Models;
 using OrdersService.Messaging.Events;
 
-namespace OrdersService.Messaging.Receivers;
+namespace OrdersService.Messaging.Subscribers;
 
-public class UserCreated : IEventSubscriber<Events.UserCreated>
+public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
 {
-    private readonly ILogger<UserCreated> _logger;
+    private readonly ILogger<UserCreatedSubscriber> _logger;
 
-    public UserCreated(ILogger<UserCreated> logger)
+    public UserCreatedSubscriber(ILogger<UserCreatedSubscriber> logger)
     {
         _logger = logger;
     }
 
-    public async Task<bool> Receive(Events.UserCreated @event)
+    public async Task<bool> Receive(UserCreated @event)
     {
         _logger.LogInformation("EventId ({EventId}): {UserName} user is created with the {UserId} id", @event.EventId,
             @event.UserName, @event.UserId);

@@ -4,7 +4,7 @@ using UsersService.Messaging.Events.Publishers;
 
 namespace UsersService.Messaging.Publishers;
 
-public class CreatedUserPublisher : IRabbitMqEventSender<UserCreated>
+public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
 {
     private readonly IEventPublisherManager _eventPublisher;
 
