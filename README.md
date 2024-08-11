@@ -367,12 +367,38 @@ And then, set `true` to the `UseInbox` option of the `RabbitMQSettings.DefaultSe
 
 That's all. Now all incoming events from RabbitMQ are stored in the `Inbox` table of the database and then execute the `Receive` method of your event subscriber. See the [document of creating event subscriber](#create-a-subscriber-to-the-event).
 
+#### Advanced configuration of the Inbox and Outbox functionalities while registering to the DI services.
 
-
+Since the library is designed to  from multiple places, there is a way to configure the `Inbox` and `Outbox` functionalities from the configuration file or while registering to the DI services.
+```
+builder.Services.AddRabbitMQEventBus(builder.Configuration,
+    assemblies: [typeof(Program).Assembly],
+    defaultOptions: options =>
+    {
+        //Your settings
+    },
+    eventPublisherManagerOptions: publisherManager =>
+    {
+        //Your settings
+    },
+    eventSubscriberManagerOptions: subscriberManager =>
+    {
+        //Your settings
+    },
+    eventStoreOptions: options =>
+    {
+        options.Inbox.IsEnabled = true;
+        options.Inbox.TableName = "ReceivedEvents";
+        options.Outbox.IsEnabled = true;
+        options.Outbox.TableName = "SentEvents";
+    }
+);
+```
+`eventStoreOptions` - it is an alternative way of overwriting configurations of the `Inbox` and `Outbox` functionalities. If you don't pass them, it will use default settings from the `AppSettings`. About other configurations, you can get information from [here](#advanced-configuration-of-publishers-and-subscribers-while-registering-to-the-di-services).
 
 
 ## EventStorage
 
-
+Text Text
 
 ## Options of Inbox and Outbox sections

@@ -26,6 +26,13 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
         {
             op.VirtualHost = "users/test";
         });
+    },
+    eventStoreOptions: options =>
+    {
+        options.Inbox.IsEnabled = true;
+        options.Inbox.TableName = "ReceivedEvents";
+        options.Outbox.IsEnabled = true;
+        options.Outbox.TableName = "SentEvents";
     }
 );
 
