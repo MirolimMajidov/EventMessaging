@@ -640,3 +640,37 @@ That's all. As we mentioned in above, the event provider support a few types: `R
 Depend on the event provider, the event receiver must implement the necessary receiver interface: `IRabbitMqEventReceiver`, `ISmsEventReceiver`, `IWebHookEventReceiver`, `IEmailEventReceiver` and `IEventReceiver`- for `Unknown` provider type.
 
 ### Options of Inbox and Outbox sections
+
+The `InboxAndOutbox` is the main section for setting of the Outbox and Inbox functionalities. The `Outbox` and `Inbox` subsections offer numerous options.
+
+```
+"InboxAndOutbox": {
+    "Inbox": {
+      //Your inbox settings
+    },
+    "Outbox": {
+      "IsEnabled": false,
+      "TableName": "Outbox",
+      "MaxConcurrency": 10,
+      "TryCount": 5,
+      "TryAfterMinutes": 20,
+      "SecondsToDelayProcessEvents": 2,
+      "DaysToCleanUpEvents": 30,
+      "HoursToDelayCleanUpEvents": 2,
+      "ConnectionString": "Connection string of the SQL database"
+    }
+  }
+```
+**Description of options:** 
+
+`IsEnabled` - Enables or disables the use of Inbox/Outbox for storing received/sent events. Default value is false. <br/>
+`TableName` - Specifies the table name used for storing received/sent events. Default value is "Inbox" for Inbox, "Outbox" for Outbox.<br/>
+`MaxConcurrency` - Sets the maximum number of concurrent tasks for executing received/publishing events. Default value is 10.<br/>
+`TryCount` - Defines the number of attempts before increasing the delay for the next retry. Default value is 10.<br/>
+`TryAfterMinutes` - Specifies the number of minutes to wait before retrying if an event fails. Default value is 5.<br/>
+`SecondsToDelayProcessEvents` - The delay in seconds before processing events. Default value is 1.<br/>
+`DaysToCleanUpEvents` - Number of days after which processed events are cleaned up. Cleanup only occurs if this value is 1 or higher. Default value is 0.<br/>
+`HoursToDelayCleanUpEvents` - Specifies the delay in hours before cleaning up processed events. Default value is 1.<br/>
+`ConnectionString` - The connection string for the PostgreSQL database used to store or read received/sent events.<br/>
+
+All options of the Inbox and Outbox are optional, if we don't pass the value of them, it will use the default value of the option.
