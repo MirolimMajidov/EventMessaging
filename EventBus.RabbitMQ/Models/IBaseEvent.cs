@@ -1,4 +1,4 @@
-using EventStore.Models;
+using EventStorage.Models;
 
 namespace EventBus.RabbitMQ.Models;
 

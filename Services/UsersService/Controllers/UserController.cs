@@ -1,5 +1,5 @@
-using EventStore.Models;
-using EventStore.Outbox.Managers;
+using EventStorage.Models;
+using EventStorage.Outbox.Managers;
 using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;

@@ -1,5 +1,5 @@
 using EventBus.RabbitMQ.Publishers.Models;
-using EventStore.Outbox.Models;
+using EventStorage.Outbox.Models;
 
 namespace PaymentsService.Messaging.Events.Publishers;
 

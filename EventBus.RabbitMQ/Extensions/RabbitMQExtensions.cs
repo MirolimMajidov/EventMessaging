@@ -6,8 +6,8 @@ using EventBus.RabbitMQ.Publishers.Options;
 using EventBus.RabbitMQ.Subscribers.Managers;
 using EventBus.RabbitMQ.Subscribers.Models;
 using EventBus.RabbitMQ.Subscribers.Options;
-using EventStore.Configurations;
-using EventStore.Extensions;
+using EventStorage.Configurations;
+using EventStorage.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

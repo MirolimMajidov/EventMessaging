@@ -1,4 +1,4 @@
-using EventStore.Inbox.Providers;
+using EventStorage.Inbox.Providers;
 
 namespace EventBus.RabbitMQ.Subscribers.Models;
 
