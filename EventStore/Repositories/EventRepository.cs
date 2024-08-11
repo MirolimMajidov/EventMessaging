@@ -83,7 +83,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
         }
     }
 
-    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(int limit)
+    public async Task<TBaseEvent[]> GetUnprocessedEventsAsync(int limit)
     {
         using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
@@ -105,7 +105,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     Limit = limit
                 });
 
-                return unprocessedEvents;
+                return unprocessedEvents.ToArray();
             }
             catch (Exception e)
             {

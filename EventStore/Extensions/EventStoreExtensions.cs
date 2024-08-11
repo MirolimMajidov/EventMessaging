@@ -197,7 +197,7 @@ public static class EventStoreExtensions
         var inboxEventTypes = GetReceiverHandlerTypes(assemblies);
 
         foreach (var (eventType, receiverType, provider) in inboxEventTypes)
-            receiverManager.AddPublisher(eventType, receiverType, provider);
+            receiverManager.AddReceiver(eventType, receiverType, provider);
     }
 
     private static void RegisterAllEventsOfInboxToDI(IServiceCollection services, Assembly[] assemblies)

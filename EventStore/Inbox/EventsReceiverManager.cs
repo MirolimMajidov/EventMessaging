@@ -1,9 +1,11 @@
 using System.Text.Json;
 using EventStore.Configurations;
+using EventStore.Inbox.Models;
+using EventStore.Inbox.Providers;
+using EventStore.Inbox.Repositories;
 using EventStore.Models;
 using EventStore.Outbox.Models;
 using EventStore.Outbox.Providers;
-using EventStore.Outbox.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -18,10 +20,9 @@ internal class EventsReceiverManager : IEventsReceiverManager
     private readonly ILogger<EventsReceiverManager> _logger;
     private readonly InboxOrOutboxStructure _settings;
 
-    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
-        hasHeaders, bool hasAdditionalData)> _publishers;
+    private readonly Dictionary<string, (Type eventType, Type eventReceiverType, string providerType, bool hasHeaders, bool hasAdditionalData)> _receivers;
 
-    private const string PublisherMethodName = nameof(IEventPublisher<ISendEvent>.Publish);
+    private const string ReceiverMethodName = nameof(IEventReceiver<IReceiveEvent>.Receive);
     private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
     
     private static readonly Type HasHeadersType = typeof(IHasHeaders);
@@ -32,48 +33,47 @@ internal class EventsReceiverManager : IEventsReceiverManager
         _serviceProvider = serviceProvider;
         _logger = serviceProvider.GetRequiredService<ILogger<EventsReceiverManager>>();
         _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
-        _publishers = new();
+        _receivers = new();
     }
 
     /// <summary>
-    /// Registers a subscriber 
+    /// Registers a receiver 
     /// </summary>
-    /// <param name="typeOfEventSender">Event type which we want to use to send</param>
-    /// <param name="typeOfEventPublisher">Publisher type of the event which we want to publish event</param>
-    /// <param name="providerType">Provider type of event publisher</param>
-    public void AddPublisher(Type typeOfEventSender, Type typeOfEventPublisher, EventProviderType providerType)
+    /// <param name="typeOfReceiveEvent">Event type which we want to use to receive</param>
+    /// <param name="typeOfEventReceiver">Receiver type of the event which we want to receiver event</param>
+    /// <param name="providerType">Provider type of received event</param>
+    public void AddReceiver(Type typeOfReceiveEvent, Type typeOfEventReceiver, EventProviderType providerType)
     {
-        var eventName = typeOfEventSender.Name;
-        if (!_publishers.ContainsKey(eventName))
+        var eventName = typeOfReceiveEvent.Name;
+        if (!_receivers.ContainsKey(eventName))
         {
-            var hasHeaders = HasHeadersType.IsAssignableFrom(typeOfEventSender);
-            var hasAdditionalData = HasAdditionalDataType.IsAssignableFrom(typeOfEventSender);
+            var hasHeaders = HasHeadersType.IsAssignableFrom(typeOfReceiveEvent);
+            var hasAdditionalData = HasAdditionalDataType.IsAssignableFrom(typeOfReceiveEvent);
 
-            _publishers.Add(eventName,
-                (typeOfEventSender, typeOfEventPublisher, providerType.ToString(), hasHeaders, hasAdditionalData));
+            _receivers.Add(eventName,
+                (typeOfReceiveEvent, typeOfEventReceiver, providerType.ToString(), hasHeaders, hasAdditionalData));
         }
     }
 
     public async Task ExecuteUnprocessedEvents(CancellationToken stoppingToken)
     {
-        //TODO
         var semaphore = new SemaphoreSlim(_settings.MaxConcurrency);
         using var scope = _serviceProvider.CreateScope();
-        var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-        var eventsToPublish = await outboxRepository.GetUnprocessedEventsAsync();
+        var repository = scope.ServiceProvider.GetRequiredService<IInboxRepository>();
+        var eventsToReceive = await repository.GetUnprocessedEventsAsync();
 
         stoppingToken.ThrowIfCancellationRequested();
-        var tasks = eventsToPublish.Select(async eventToPublish =>
+        var tasks = eventsToReceive.Select(async eventToReceive =>
         {
             await semaphore.WaitAsync(stoppingToken);
             try
             {
                 stoppingToken.ThrowIfCancellationRequested();
-                await ExecuteEventPublisher(eventToPublish, scope);
+                await ExecuteEventReceiver(eventToReceive, scope);
             }
             catch
             {
-                eventToPublish.Failed(_settings.TryCount, _settings.TryAfterMinutes);
+                eventToReceive.Failed(_settings.TryCount, _settings.TryAfterMinutes);
             }
             finally
             {
@@ -83,36 +83,35 @@ internal class EventsReceiverManager : IEventsReceiverManager
 
         await Task.WhenAll(tasks);
 
-        await outboxRepository.UpdateEventsAsync(eventsToPublish);
+        await repository.UpdateEventsAsync(eventsToReceive);
     }
 
-    public async Task<bool> ExecuteEventPublisher(IOutboxEvent @event, IServiceScope serviceScope)
+    private async Task<bool> ExecuteEventReceiver(IInboxEvent @event, IServiceScope serviceScope)
     {
         try
         {
-            if (_publishers.TryGetValue(@event.EventName,
-                    out (Type eventType, Type eventHandlerType, string providerType, bool hasHeaders, bool
-                    hasAdditionalData) info))
+            if (_receivers.TryGetValue(@event.EventName,
+                    out (Type eventType, Type eventReceiverType, string providerType, bool hasHeaders, bool hasAdditionalData) info))
             {
                 if (@event.Provider == info.providerType)
                 {
-                    _logger.LogTrace("Executing the {EventType} outbox event with ID {EventId} to publish.",
+                    _logger.LogTrace("Executing the {EventType} inbox event with ID {EventId} to receive.",
                         @event.EventName, @event.Id);
 
-                    var eventToPublish = JsonSerializer.Deserialize(@event.Payload, info.eventType) as ISendEvent;
+                    var eventToReceive = JsonSerializer.Deserialize(@event.Payload, info.eventType) as IReceiveEvent;
                     if (info.hasHeaders && @event.Headers is not null)
-                        ((IHasHeaders)eventToPublish).Headers =
+                        ((IHasHeaders)eventToReceive).Headers =
                             JsonSerializer.Deserialize<Dictionary<string, string>>(@event.Headers);
 
                     if (info.hasAdditionalData && @event.AdditionalData is not null)
-                        ((IHasAdditionalData)eventToPublish).AdditionalData =
+                        ((IHasAdditionalData)eventToReceive).AdditionalData =
                             JsonSerializer.Deserialize<Dictionary<string, string>>(@event!.AdditionalData);
 
-                    var eventHandlerSubscriber = serviceScope.ServiceProvider.GetRequiredService(info.eventHandlerType);
+                    var eventReceiver = serviceScope.ServiceProvider.GetRequiredService(info.eventReceiverType);
 
-                    var publisherMethod = info.eventHandlerType.GetMethod(PublisherMethodName);
-                    var executedSuccessfully = await (Task<bool>)publisherMethod.Invoke(eventHandlerSubscriber,
-                        [eventToPublish, @event.EventPath]);
+                    var receiveMethod = info.eventReceiverType.GetMethod(ReceiverMethodName);
+                    var executedSuccessfully = await (Task<bool>)receiveMethod.Invoke(eventReceiver,
+                        [eventToReceive]);
                     if (executedSuccessfully)
                         @event.Processed();
                     else
@@ -124,7 +123,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
                 {
                     @event.Failed(0, TryAfterMinutes);
                     _logger.LogError(
-                        "The {EventType} outbox event with ID {EventId} requested to publish with {ProviderType} provider, but that is configured to publish with the {ConfiguredProviderType} provider.",
+                        "The {EventType} inbox event with ID {EventId} requested to receive with {ProviderType} provider, but that is configured to receive with the {ConfiguredProviderType} provider.",
                         @event.EventName, @event.Id, @event.Provider, info.providerType);
                 }
             }
@@ -132,7 +131,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
             {
                 @event.Failed(0, TryAfterMinutes);
                 _logger.LogWarning(
-                    "No publish provider configured for the {EventType} outbox event with ID: {EventId}.",
+                    "No publish provider configured for the {EventType} inbox event with ID: {EventId}.",
                     @event.EventName, @event.Id);
             }
 
@@ -141,7 +140,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
         catch (Exception e)
         {
             @event.Failed(_settings.TryCount, _settings.TryAfterMinutes);
-            _logger.LogError(e, "Error while publishing event with ID: {EventId}", @event.Id);
+            _logger.LogError(e, "Error while receiving event with ID: {EventId}", @event.Id);
             throw;
         }
     }

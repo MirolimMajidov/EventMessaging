@@ -58,8 +58,8 @@ internal class EventsPublisherManager : IEventsPublisherManager
     {
         var semaphore = new SemaphoreSlim(_settings.MaxConcurrency);
         using var scope = _serviceProvider.CreateScope();
-        var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-        var eventsToPublish = await outboxRepository.GetUnprocessedEventsAsync();
+        var repository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
+        var eventsToPublish = await repository.GetUnprocessedEventsAsync();
 
         stoppingToken.ThrowIfCancellationRequested();
         var tasks = eventsToPublish.Select(async eventToPublish =>
@@ -82,10 +82,10 @@ internal class EventsPublisherManager : IEventsPublisherManager
 
         await Task.WhenAll(tasks);
 
-        await outboxRepository.UpdateEventsAsync(eventsToPublish);
+        await repository.UpdateEventsAsync(eventsToPublish);
     }
 
-    public async Task<bool> ExecuteEventPublisher(IOutboxEvent @event, IServiceScope serviceScope)
+    private async Task<bool> ExecuteEventPublisher(IOutboxEvent @event, IServiceScope serviceScope)
     {
         try
         {

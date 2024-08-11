@@ -20,7 +20,7 @@ internal interface IEventRepository<TBaseEvent> where TBaseEvent :  class, IBase
     /// </summary>
     /// <param name="limit">Get first 500 events.</param>
     /// <returns>A list of unprocessed events that match the criteria.</returns>
-    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(int limit = 500);
+    Task<TBaseEvent[]> GetUnprocessedEventsAsync(int limit = 500);
 
     /// <summary>
     /// Updates the specified Event properties.

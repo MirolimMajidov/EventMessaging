@@ -19,7 +19,7 @@ internal class EventsReceiverService : BackgroundService
         _services = services;
         _eventsReceiverManager = eventsReceiverManager;
         _logger = logger;
-        _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelayProcessEvents);
+        _timeToDelay = TimeSpan.FromSeconds(settings.Inbox.SecondsToDelayProcessEvents);
     }
 
     public override Task StartAsync(CancellationToken cancellationToken)

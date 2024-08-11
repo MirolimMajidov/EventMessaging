@@ -7,10 +7,9 @@ namespace EventBus.RabbitMQ.Subscribers.Models;
 /// </summary>
 public abstract class SubscribeEvent : ISubscribeEvent
 {
-    public Guid EventId { get; }
+    public Guid EventId { get; init; }
 
-    public DateTime CreatedAt { get; }
-    
-    [JsonIgnore]
-    public Dictionary<string, string> Headers { get; set; }
+    public DateTime CreatedAt { get; init; }
+
+    [JsonIgnore] public Dictionary<string, string> Headers { get; set; }
 }
