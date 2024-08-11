@@ -327,7 +327,7 @@ public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
     }
 }
 ```
-Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event we want to publish. And, inject the `IEventPublisherManager` interface to publish the publishing event to the `RabbitMQ`.
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event we want to publish. And, inject the `IEventPublisherManager` interface to publish the publishing `UserCreated` event to the `RabbitMQ`.
 When we use the `Send` method of the `IEventSenderManager` to send an event, the event is first stored in the database. Based on our configuration (_by default, after one second_), the event will then be automatically execute the `Publish` method of created the `CreatedUserPublisher` event publisher.
 
 If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](#options-of-inbox-and-outbox-sections).
@@ -504,6 +504,86 @@ When we use the `Send` method of the `IEventSenderManager` to send an event, the
 
 If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](#options-of-inbox-and-outbox-sections).
 
-**Scenario 2:** _When user is deleted I need to notice the another service using the WebHook._<br/>
+**Scenario 2:** _When user is created I need to notice the another service using the RabbitMQ._<br/>
 
-## Options of Inbox and Outbox sections
+Start creating a structure of event to send. Your record must implement the `ISendEvent` interface. Example:
+
+```
+public record UserCreated : ISendEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    
+    public Guid UserId { get; init; }
+    
+    public string UserName { get; init; }
+    
+    public int Age { get; init; }
+}
+```
+
+Next, add an event publisher to manage a publishing RabbitMQ event. 
+
+```
+public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
+{
+    // private readonly IEventPublisherManager _eventPublisher;
+    //
+    // public CreatedUserPublisher(IEventPublisherManager eventPublisher)
+    // {
+    //     _eventPublisher = eventPublisher;
+    // }
+    
+    public async Task<bool> Publish(UserCreated @event, string eventPath)
+    {
+        // _eventPublisher.Publish(@event);
+        //Add you logic to publish an event to the RabbitMQ
+        
+        return await Task.FromResult(true);
+    }
+}
+```
+
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event (`UserCreated`), we want to publish.
+Your application is now ready to use this publisher. Inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your `UserCreated` event.
+
+```
+public class UserController : ControllerBase
+{
+    private readonly IEventSenderManager _eventSenderManager;
+
+    public UserController(IEventSenderManager eventSenderManager)
+    {
+        _eventSenderManager = eventSenderManager;
+    }
+    
+    [HttpPost]
+    public IActionResult Create([FromBody] User item)
+    {
+        Items.Add(item.Id, item);
+
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        var routingKey = "usser.created";
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, routingKey);
+        
+        return Ok(item);
+    }
+}
+```
+
+### Create and send an event using Outbox pattern
+**Scenario 1:** _When user is deleted I need to notice the another service using the WebHook._<br/>
+
+Start creating a structure of event to send. Your record must implement the `ISendEvent` interface. Example:
+
+```
+public record UserDeleted : ISendEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    
+    public Guid UserId { get; init; }
+    
+    public string UserName { get; init; }
+}
+```
+
+### Options of Inbox and Outbox sections
