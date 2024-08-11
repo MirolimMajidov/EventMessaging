@@ -1,14 +1,21 @@
 # Getting Started
 
+## List of libraries
+
+#### [EventBus.RabbitMQ: Event messaging library](#eventbus.rabbitmq)
+
+#### [EventStorage: A library for implementing the Inbox and Outbox patterns](#eventstorage)
+
+## EventBus.RabbitMQ
 EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multiple a virtual hosts of RabbitMQ. 
 
 
-## List of NuGet packages
+### NuGet package
 [![Version](https://img.shields.io/nuget/vpre/Mirolim.EventBus.RabbitMQ?label=Downloads:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
 [![Downloads](https://img.shields.io/nuget/dt/Mirolim.EventBus.RabbitMQ?label=Downloads:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
 
 
-## Set up the library
+### Setting up the library
 
 Make sure you have installed and run [RabbitMQ](https://www.rabbitmq.com/docs/download) in your machine. After that, you need to install Mirolim.EventBus.RabbitMQ NuGet.
 
@@ -22,7 +29,7 @@ Register the nuget package's necessary services to the services of DI in the Pro
 builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: [typeof(Program).Assembly]);
 ```
 
-## Create and publish an event massage
+### Create and publish an event massage
 
 Start creating an event to publish. Your record must implement the `IPublishEvent` interface or inherit from the `PublishEvent` record. Example: 
 
@@ -60,7 +67,7 @@ public class UserController : ControllerBase
 }
 ```
 
-## Create a subscriber to the event
+### Create a subscriber to the event
 
 If you want to subscribe to necessary an event, first you need to create your own an event structure to subscribe. Your subscribe record must implement the `ISubscribeEvent` interface or inherit from the `SubscribeEvent` record. Example: 
 
@@ -97,7 +104,7 @@ public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
 
 Depend on your business logic, you need to add your logic to the `Receive` method of subscriber to do something based on your received event.
 
-## Advanced configuration of publishers and subscribers from configuration file.
+### Advanced configuration of publishers and subscribers from configuration file.
 
 First you need to add a new section called `RabbitMQSettings` to your configuration file.
 
@@ -148,7 +155,7 @@ A section may have the following subsections: <br/>
 `Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
 
-### Customizing the event type of publishing/subscribing event
+#### Customizing the event type of publishing/subscribing event:
 While publishing or subscribing an event by default it uses the Name of event structure. For example, if you add an event named `UserUpdated`, while publishing or subscribing/receiving that `UserUpdated` name as event type will be used. But if you want you can overwrite the event type by added event type name to the config file: 
 ```
 "RabbitMQSettings": {
@@ -170,10 +177,10 @@ While publishing or subscribing an event by default it uses the Name of event st
   }
 ```
 
-### What if I want to subscribe to an event from another system that doesn't publish an event type?
+#### What if I want to subscribe to an event from another system that doesn't publish an event type?
 When RabbitMQ receives an event from a 'Consumer', it tries to read the event type from the received event, if it can't find it, it uses the 'routing key' instead to find the event subscriber.
 
-## Advanced configuration of publishers and subscribers while registering to the DI services.
+### Advanced configuration of publishers and subscribers while registering to the DI services.
 
 Since the library is designed to work with multiple a virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registering to the DI services.
 ```
@@ -203,7 +210,7 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 `eventSubscriberManagerOptions` - it is an alternative way of overwriting `Subscribers` settings, to register and set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
 
-## Adding property to the publishing event's headers
+### Adding property to the publishing event's headers
 
 Before publishing an event, you can attach properties to the event's headers by passing the header name and value to the `AddHeader` method. Keep in mind, the header name must be unique, otherwise it will throw exception. Example: 
 ```
@@ -213,7 +220,7 @@ userUpdated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
 _eventPublisherManager.Publish(userUpdated);
 ```
 
-## Reading property from the subscribed event's headers
+### Reading property from the subscribed event's headers
 
 We can read the attached property value from the Headers collection of the received event. Example: 
 ```
@@ -227,7 +234,7 @@ public async Task<bool> Receive(UserCreated @event)
 }
 ```
 
-## Changing a naming police for serializing and deserializing properties of Event
+### Changing a naming police for serializing and deserializing properties of Event
 
 By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for specific publisher or subscriber event. Example: 
 ```
@@ -250,3 +257,5 @@ By default, while serializing and deserializing properties of event, it will use
     }
   }
 ```
+
+## EventStorage
