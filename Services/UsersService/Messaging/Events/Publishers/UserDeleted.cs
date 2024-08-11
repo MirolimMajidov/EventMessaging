@@ -2,7 +2,7 @@ using EventBus.RabbitMQ.Publishers.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 
-public class UserDeleted : PublishEvent
+public record UserDeleted : PublishEvent
 {
     public Guid UserId { get; init; }
     

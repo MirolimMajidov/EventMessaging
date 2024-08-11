@@ -4,7 +4,7 @@ using EventStorage.Outbox.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 
-public class UserCreated : PublishEvent, IHasAdditionalData
+public record UserCreated : PublishEvent, IHasAdditionalData
 {
     public Guid UserId { get; init; }
     

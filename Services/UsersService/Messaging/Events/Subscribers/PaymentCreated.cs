@@ -2,7 +2,7 @@ using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace UsersService.Messaging.Events.Subscribers;
 
-public class PaymentCreated : SubscribeEvent
+public record PaymentCreated : SubscribeEvent
 {
     public Guid PaymentId { get; init; }
 

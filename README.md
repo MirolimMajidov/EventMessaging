@@ -22,12 +22,12 @@ Register the nuget package's necessary services to the services of DI in the Pro
 builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: [typeof(Program).Assembly]);
 ```
 
-## Create and publish an event
+## Create and publish an event massage
 
-Start creating an event to publish. Your class must implement the `IEventPublisher` interface or inherit from the `EventPublisher` class. Example: 
+Start creating an event to publish. Your record must implement the `IPublishEvent` interface or inherit from the `PublishEvent` record. Example: 
 
 ```
-public class UserDeleted : EventPublisher
+public record UserDeleted : PublishEvent
 {
     public Guid UserId { get; set; }
     
@@ -47,26 +47,25 @@ public class UserController : ControllerBase
         _eventPublisherManager = eventPublisherManager;
     }
     
-    [HttpDelete("{id:guid}")]
-    public IActionResult Delete(Guid id)
+    [HttpPost]
+    public IActionResult Create([FromBody] User item)
     {
-        if (!Items.TryGetValue(id, out User item))
-            return NotFound();
+        Items.Add(item.Id, item);
 
-        _eventPublisher.Publish(new UserDeleted { UserId = item.Id, UserName = item.Name });
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        _eventPublisherManager.Publish(userCreated);
         
-        Items.Remove(id);
         return Ok(item);
     }
 }
 ```
 
-## Create a subscriber with the handler and subscribe to the event
+## Create a subscriber to the event
 
-If you want to subscribe to necessary event, first you need to create your own an event structure to subscribe. Your subscriber class must implement the `IEventSubscriber` interface or inherit from the `EventSubscriber` class. Example: 
+If you want to subscribe to necessary an event, first you need to create your own an event structure to subscribe. Your subscribe record must implement the `ISubscribeEvent` interface or inherit from the `SubscribeEvent` record. Example: 
 
 ```
-public class UserDeleted : EventSubscriber
+public record UserCreated : SubscribeEvent
 {
     public Guid UserId { get; set; }
 
@@ -74,29 +73,29 @@ public class UserDeleted : EventSubscriber
 }
 ```
 
-Then you need to create a subscriber handler to receive the event. Your subscriber handler class must implement the `IEventSubscriberHandler<>` interface and implement your subscriber class. Example: 
+Then you need to create an event subscriber to receive an event. Your event subscriber class must implement the `IEventSubscriber<>` interface and implement your subscriber event structure. Example: 
 
 ```
-public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
+public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
 {
-    private readonly ILogger<UserDeletedHandler> _logger;
+    private readonly ILogger<UserCreatedSubscriber> _logger;
 
-    public UserDeletedHandler(ILogger<UserDeletedHandler> logger)
+    public UserCreatedSubscriber(ILogger<UserCreatedSubscriber> logger)
     {
         _logger = logger;
     }
 
-    public Task Handle(UserDeleted @event)
+    public async Task<bool> Receive(UserCreated @event)
     {
-        _logger.LogInformation("EventId ({EventId}): {UserName} user is deleted, the User id is {UserId}", @event.EventId,
+        _logger.LogInformation("EventId ({EventId}): '{UserName}' user is created with the {UserId} id", @event.EventId,
             @event.UserName, @event.UserId);
 
-        return Task.CompletedTask;
+        return await Task.FromResult(true);
     }
 }
 ```
 
-Depend on your business logic, you need to add your logic to the `Handle` method of handler to do something based on your received event.
+Depend on your business logic, you need to add your logic to the `Receive` method of subscriber to do something based on your received event.
 
 ## Advanced configuration of publishers and subscribers from configuration file.
 
@@ -138,7 +137,6 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
         }
       }
     }
-  }
 ```
 
 A section may have the following subsections: <br/>
@@ -178,31 +176,31 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 
 ## Adding property to the publishing event's headers
 
-Before publishing an event, you can attach properties to event headers by passing the header name and value to the `TryAddHeader` method. Keep in mind, the header name must be unique, otherwise it will be ignored. Example: 
+Before publishing an event, you can attach properties to the event's headers by passing the header name and value to the `AddHeader` method. Keep in mind, the header name must be unique, otherwise it will throw exception. Example: 
 ```
 var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
 userUpdated.Headers = new();
 userUpdated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
-_eventPublisher.Publish(userUpdated);
+_eventPublisherManager.Publish(userUpdated);
 ```
 
 ## Reading property from the subscribed event's headers
 
-The `Handle` method of the subscriber handler has a collection parameter named `eventHeaders`. From this you can read the property value from the event's headers. Example: 
+We can read the attached property value from the Headers collection of the received event. Example: 
 ```
-public Task Handle(UserUpdated @event)
+public async Task<bool> Receive(UserCreated @event)
 {
-   if (@event.Headers?.TryGetValue("TraceId", out string traceId) == true)
-   {
-   }
+    if (@event.Headers?.TryGetValue("TraceId", out var traceId) == true)
+    {
+    }
 
-   return Task.CompletedTask;
+    return await Task.FromResult(true);
 }
 ```
 
 ## Changing a naming police for serializing and deserializing properties of Event
 
-By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for publisher or subscriber event. Example: 
+By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for specific publisher or subscriber event. Example: 
 ```
 "RabbitMQSettings": {
     "DefaultSettings": {

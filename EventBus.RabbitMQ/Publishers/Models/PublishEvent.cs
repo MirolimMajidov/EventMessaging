@@ -5,7 +5,7 @@ namespace EventBus.RabbitMQ.Publishers.Models;
 /// <summary>
 /// Base class for all publisher classes
 /// </summary>
-public abstract class PublishEvent : IPublishEvent
+public abstract record PublishEvent : IPublishEvent
 {
     public PublishEvent(Guid? id = null)
     {
