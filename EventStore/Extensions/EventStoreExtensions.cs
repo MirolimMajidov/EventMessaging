@@ -58,8 +58,9 @@ public static class EventStoreExtensions
 
                 return publisherManager;
             });
-
+            
             services.AddHostedService<EventsPublisherService>();
+            services.AddHostedService<CleanUpProcessedOutboxEventsService>();
         }
 
         if (settings.Inbox.IsEnabled)
@@ -83,6 +84,7 @@ public static class EventStoreExtensions
             });
 
             services.AddHostedService<EventsReceiverService>();
+            services.AddHostedService<CleanUpProcessedInboxEventsService>();
         }
 
         InboxAndOutboxSettings GetDefaultSettings()

@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace EventStore.Inbox.BackgroundServices;
 
-//TODO: I need to add another service to remove an old processed events
 internal class EventsReceiverService : BackgroundService
 {
     private readonly IServiceProvider _services;
@@ -20,7 +19,7 @@ internal class EventsReceiverService : BackgroundService
         _services = services;
         _eventsReceiverManager = eventsReceiverManager;
         _logger = logger;
-        _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelay);
+        _timeToDelay = TimeSpan.FromSeconds(settings.Outbox.SecondsToDelayProcessEvents);
     }
 
     public override Task StartAsync(CancellationToken cancellationToken)
