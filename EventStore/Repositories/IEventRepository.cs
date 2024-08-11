@@ -2,7 +2,7 @@ using EventStore.Models;
 
 namespace EventStore.Repositories;
 
-internal interface IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
+internal interface IEventRepository<TBaseEvent> where TBaseEvent :  class, IBaseEventBox
 {
     /// <summary>
     /// Creates the table if it does not exist.
@@ -13,14 +13,15 @@ internal interface IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
     /// Inserts a new event into the database.
     /// </summary>
     /// <param name="event">The event to insert.</param>
-    void InsertEvent(TBaseEvent @event);
+    /// <returns>Returns true if it was entered successfully or false if the value is duplicated. It can throw an exception if something goes wrong.</returns>
+    bool InsertEvent(TBaseEvent @event);
 
     /// <summary>
     /// Retrieves all unprocessed events based on Provider, and TryAfterAt.
     /// </summary>
     /// <param name="limit">Get first 500 events.</param>
     /// <returns>A list of unprocessed events that match the criteria.</returns>
-    Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(int limit = 500);
+    Task<TBaseEvent[]> GetUnprocessedEventsAsync(int limit = 500);
 
     /// <summary>
     /// Updates the specified Event properties.

@@ -1,10 +1,10 @@
-using EventStore.Models.Outbox.Providers;
+using EventStore.Outbox.Providers;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Services;
 
 namespace UsersService.Messaging.Publishers;
 
-public class DeletedUserPublisher : IPublishWebHookEvent<UserDeleted>
+public class DeletedUserPublisher : IWebHookEventPublisher<UserDeleted>
 {
     private readonly IWebHookProvider _webHookProvider;
 

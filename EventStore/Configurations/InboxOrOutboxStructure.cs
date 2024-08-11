@@ -1,4 +1,4 @@
-namespace EventStore.Inbox.Configurations;
+namespace EventStore.Configurations;
 
 public record InboxOrOutboxStructure
 {
@@ -28,9 +28,19 @@ public record InboxOrOutboxStructure
     public int TryAfterMinutes { get; set; } = 5;
 
     /// <summary>
-    /// Seconds to delay before publishing/receiving events. Default value is "1".
+    /// Seconds to delay for processing events. Default value is "1".
     /// </summary>
-    public int SecondsToDelay { get; set; } = 1;
+    public int SecondsToDelayProcessEvents { get; set; } = 1;
+
+    /// <summary>
+    /// Days to cleaning up the processed events. Default value is "0". It will work when value is higher than or equal 1.
+    /// </summary>
+    public int DaysToCleanUpEvents { get; set; } = 0;
+
+    /// <summary>
+    /// Hours to delay for cleaning up the processed events. Default value is "1".
+    /// </summary>
+    public int HoursToDelayCleanUpEvents { get; set; } = 1;
 
     /// <summary>
     /// The database connection string of Inbox/Outbox for storing or reading all received/sending events.

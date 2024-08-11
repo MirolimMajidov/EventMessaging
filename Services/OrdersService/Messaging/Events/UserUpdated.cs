@@ -1,8 +1,8 @@
-using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace OrdersService.Messaging.Events;
 
-public class UserUpdated : EventSubscriber
+public class UserUpdated : SubscribeEvent
 {
     public Guid UserId { get; set; }
     

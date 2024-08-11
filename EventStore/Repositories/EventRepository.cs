@@ -1,12 +1,12 @@
 using Dapper;
-using EventStore.Inbox.Configurations;
+using EventStore.Configurations;
+using EventStore.Exceptions;
 using EventStore.Models;
-using EventStore.Models.Exceptions;
 using Npgsql;
 
 namespace EventStore.Repositories;
 
-internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEvent> where TBaseEvent : IBaseEventBox
+internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEvent> where TBaseEvent : class,  IBaseEventBox
 {
     private readonly string _tableName;
     private readonly string _connectionString;
@@ -57,7 +57,8 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
         }
     }
 
-    public void InsertEvent(TBaseEvent @event)
+    private const string UniqueKeyErrorId = "23505";
+    public bool InsertEvent(TBaseEvent @event)
     {
         using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
@@ -74,16 +75,21 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                 )";
 
                 dbConnection.Execute(sql, @event);
+
+                return true;
             }
             catch (Exception e)
             {
+                if (e is PostgresException px && px.SqlState == UniqueKeyErrorId)
+                    return false;
+                
                 throw new EventStoreException(e,
                     $"Error while inserting a new event to the {_tableName} table with the {@event.Id} id.");
             }
         }
     }
 
-    public async Task<IEnumerable<TBaseEvent>> GetUnprocessedEventsAsync(int limit)
+    public async Task<TBaseEvent[]> GetUnprocessedEventsAsync(int limit)
     {
         using (var dbConnection = new NpgsqlConnection(_connectionString))
         {
@@ -105,7 +111,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     Limit = limit
                 });
 
-                return unprocessedEvents;
+                return unprocessedEvents.ToArray();
             }
             catch (Exception e)
             {

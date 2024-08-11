@@ -1,8 +1,8 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Models;
 
 namespace UsersService.Messaging.Events.Publishers;
 
-public class UserUpdated : EventPublisher
+public class UserUpdated : PublishEvent
 {
     public Guid UserId { get; init; }
     

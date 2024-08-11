@@ -5,8 +5,8 @@ namespace EventStore.Models;
 /// </summary>
 public enum EventProviderType
 {
-    RabbitMQ,
-    SMS,
+    RabbitMq,
+    Sms,
     WebHook,
     Email,
     Unknown

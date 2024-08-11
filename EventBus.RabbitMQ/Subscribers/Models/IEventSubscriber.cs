@@ -1,0 +1,11 @@
+using EventStore.Inbox.Providers;
+
+namespace EventBus.RabbitMQ.Subscribers.Models;
+
+/// <summary>
+/// Base interface for all event subscriber handler classes
+/// </summary>
+public interface IEventSubscriber<TEventSubscriber> : IRabbitMqEventReceiver<TEventSubscriber>
+    where TEventSubscriber : class, ISubscribeEvent
+{
+}

@@ -1,12 +1,9 @@
-using EventBus.RabbitMQ.Publishers;
 using EventStore.Models;
-using EventStore.Models.Outbox;
-using EventStore.Outbox;
+using EventStore.Outbox.Managers;
 using Microsoft.AspNetCore.Mvc;
-using UsersService.Messaging.Events;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
-using IEventPublisherManager = EventBus.RabbitMQ.Publishers.IEventPublisherManager;
+using IEventPublisherManager = EventBus.RabbitMQ.Publishers.Managers.IEventPublisherManager;
 
 namespace UsersService.Controllers;
 
@@ -14,18 +11,18 @@ namespace UsersService.Controllers;
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly IEventPublisherManager _eventPublisher;
-    private readonly IEventSender _eventSender;
+    private readonly IEventPublisherManager _eventPublisherManager;
+    private readonly IEventSenderManager _eventSenderManager;
 
     private readonly ILogger<UserController> _logger;
     private static readonly Dictionary<Guid, User> Items = new();
 
-    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisher,
-        IEventSender eventSender)
+    public UserController(ILogger<UserController> logger, IEventPublisherManager eventPublisherManager,
+        IEventSenderManager eventSenderManager)
     {
         _logger = logger;
-        _eventPublisher = eventPublisher;
-        _eventSender = eventSender;
+        _eventPublisherManager = eventPublisherManager;
+        _eventSenderManager = eventSenderManager;
     }
 
     [HttpGet]
@@ -52,8 +49,8 @@ public class UserController : ControllerBase
         userCreated.Headers = new();
         userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
-        //_eventPublisher.Publish(userCreated);
-        _eventSender.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
+        //_eventPublisherManager.Publish(userCreated);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
         return Ok();
     }
 
@@ -66,7 +63,7 @@ public class UserController : ControllerBase
         var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
         userUpdated.Headers = new();
         userUpdated.Headers.TryAdd("TraceId", HttpContext.TraceIdentifier);
-        _eventPublisher.Publish(userUpdated);
+        _eventPublisherManager.Publish(userUpdated);
 
         item.Name = newName;
         return Ok(item);
@@ -79,7 +76,7 @@ public class UserController : ControllerBase
             return NotFound();
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
-        _eventSender.Send(userDeleted, EventProviderType.SMS, userDeleted.GetType().Name);
+        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.Sms, userDeleted.GetType().Name);
         
         Items.Remove(id);
         return Ok(item);

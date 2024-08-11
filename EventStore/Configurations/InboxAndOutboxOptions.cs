@@ -1,4 +1,4 @@
-namespace EventStore.Inbox.Configurations;
+namespace EventStore.Configurations;
 
 public class InboxAndOutboxOptions
 {

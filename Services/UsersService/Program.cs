@@ -1,10 +1,7 @@
 using EventBus.RabbitMQ.Extensions;
 using EventStore.Extensions;
-using EventStore.Models.Outbox;
-using UsersService.Messaging.Events;
 using UsersService.Messaging.Events.Publishers;
-using UsersService.Messaging.Events.Subscribers;
-using UsersService.Messaging.Handlers;
+using UsersService.Messaging.Subscribers;
 using UsersService.Repositories;
 using UsersService.Services;
 
@@ -25,7 +22,7 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     },
     eventSubscriberManagerOptions: subscriberManager =>
     {
-        subscriberManager.AddSubscriber<PaymentCreated, PaymentCreatedHandler>(op =>
+        subscriberManager.AddSubscriber<UsersService.Messaging.Events.Subscribers.PaymentCreated, PaymentCreatedSubscriber>(op =>
         {
             op.VirtualHost = "users/test";
         });
@@ -36,7 +33,7 @@ builder.Services.AddEventStore(builder.Configuration,
     assemblies: [typeof(Program).Assembly]
     , options =>
     {
-        options.Outbox.IsEnabled = true;
+        options.Outbox.IsEnabled = false;
         options.Outbox.TableName = "SentEvents";
     });
 

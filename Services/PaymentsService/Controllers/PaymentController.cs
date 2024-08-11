@@ -1,4 +1,4 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Managers;
 using Microsoft.AspNetCore.Mvc;
 using Payments.Service.Models;
 using PaymentsService.Messaging.Events.Publishers;
@@ -9,15 +9,15 @@ namespace PaymentsService.Controllers;
 [Route("[controller]")]
 public class PaymentController : ControllerBase
 {
-    private readonly IEventPublisherManager _eventPublisher;
+    private readonly IEventPublisherManager _eventPublisherManager;
 
     private readonly ILogger<PaymentController> _logger;
     private static readonly Dictionary<Guid, Payment> Items = new();
 
-    public PaymentController(ILogger<PaymentController> logger, IEventPublisherManager eventPublisherManager)
+    public PaymentController(ILogger<PaymentController> logger, IEventPublisherManager eventPublisherManagerManager)
     {
         _logger = logger;
-        _eventPublisher = eventPublisherManager;
+        _eventPublisherManager = eventPublisherManagerManager;
     }
 
     [HttpGet]
@@ -39,8 +39,12 @@ public class PaymentController : ControllerBase
     public IActionResult Create([FromBody] Payment item)
     {
         Items.Add(item.Id, item);
-
-        _eventPublisher.Publish(new PaymentCreated { PaymentId = item.Id, UserId = item.UserId, Amount = item.Amount });
+        
+        var paymentCreated = new PaymentCreated { PaymentId = item.Id, UserId = item.UserId, Amount = item.Amount };
+        paymentCreated.Headers = new();
+        paymentCreated.Headers.Add("DayName", DateTime.Now.DayOfWeek.ToString());
+        
+        _eventPublisherManager.Publish(paymentCreated);
         return Ok();
     }
 }
