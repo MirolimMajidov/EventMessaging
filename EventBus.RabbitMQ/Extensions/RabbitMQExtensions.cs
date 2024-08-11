@@ -6,6 +6,8 @@ using EventBus.RabbitMQ.Publishers.Options;
 using EventBus.RabbitMQ.Subscribers.Managers;
 using EventBus.RabbitMQ.Subscribers.Models;
 using EventBus.RabbitMQ.Subscribers.Options;
+using EventStore.Configurations;
+using EventStore.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,12 +23,14 @@ public static class RabbitMQExtensions
     /// <param name="defaultOptions">Default settings of RabbitMQ. It will overwrite all other default settings or settings those come from the configuration</param>
     /// <param name="eventPublisherManagerOptions">Options to register publisher with the settings. It will overwrite existing publisher setting if exists</param>
     /// <param name="eventSubscriberManagerOptions">Options to register subscriber with the settings. It will overwrite existing subscriber setting if exists</param>
+    /// <param name="eventStoreOptions">Options to overwrite default settings of Inbox and Outbox.</param>
     /// <param name="assemblies">Assemblies to find and load publisher and subscribers</param>
     public static void AddRabbitMQEventBus(this IServiceCollection services, IConfiguration configuration,
         Assembly[] assemblies,
         Action<RabbitMQOptions> defaultOptions = null,
         Action<EventPublisherManagerOptions> eventPublisherManagerOptions = null,
-        Action<EventSubscriberManagerOptions> eventSubscriberManagerOptions = null)
+        Action<EventSubscriberManagerOptions> eventSubscriberManagerOptions = null,
+        Action<InboxAndOutboxOptions> eventStoreOptions = null)
     {
         var settings = configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>();
         var defaultSettings = GetDefaultRabbitMQOptions(settings);
@@ -68,11 +72,16 @@ public static class RabbitMQExtensions
         });
 
         services.AddHostedService<StartEventBusServices>();
+
+        services.AddEventStore(configuration,
+            assemblies: assemblies,
+            options: eventStoreOptions);
     }
 
     #region Publishers
 
     static readonly Type PublisherType = typeof(IPublishEvent);
+
     private static Type[] GetPublisherTypes(Assembly[] assemblies)
     {
         if (assemblies is not null)
@@ -130,6 +139,7 @@ public static class RabbitMQExtensions
     }
 
     static readonly Type PublisherReceiverType = typeof(IEventSubscriber<>);
+
     private static List<(Type eventType, Type receiverType)> GetSubscriberReceiverTypes(Assembly[] assemblies)
     {
         List<(Type eventType, Type receiverType)> subscriberHandlerTypes = new();

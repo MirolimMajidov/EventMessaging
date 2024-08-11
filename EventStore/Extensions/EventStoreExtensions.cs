@@ -30,6 +30,14 @@ public static class EventStoreExtensions
         Assembly[] assemblies,
         Action<InboxAndOutboxOptions> options = null)
     {
+        var settingsType = typeof(InboxAndOutboxSettings);
+        var isAlreadyRegistered = services.Any(serviceDescriptor =>
+            serviceDescriptor.ServiceType == settingsType &&
+            serviceDescriptor.Lifetime == ServiceLifetime.Singleton);
+        //If it is already registered from another place, we need to just skeep it to avoid of registering it twice.
+        if (isAlreadyRegistered)
+            return;
+
         var settings = GetDefaultSettings();
         if (!settings.Inbox.IsEnabled && !settings.Outbox.IsEnabled)
             return;
@@ -58,7 +66,7 @@ public static class EventStoreExtensions
 
                 return publisherManager;
             });
-            
+
             services.AddHostedService<EventsPublisherService>();
             services.AddHostedService<CleanUpProcessedOutboxEventsService>();
         }

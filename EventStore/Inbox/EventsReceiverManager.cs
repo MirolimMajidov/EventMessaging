@@ -56,6 +56,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
 
     public async Task ExecuteUnprocessedEvents(CancellationToken stoppingToken)
     {
+        //TODO
         var semaphore = new SemaphoreSlim(_settings.MaxConcurrency);
         using var scope = _serviceProvider.CreateScope();
         var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
