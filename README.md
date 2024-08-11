@@ -9,7 +9,7 @@
 ## EventBus.RabbitMQ
 EventBus.RabbitMQ is a messaging library designed to simplify the implementation of communication using RabbitMQ. It enables seamless publishing and receiving of events between microservices or other types of applications. The library is easy to set up and is compatible with all recent .NET platforms. Additionally, it supports working with multiple virtual hosts in RabbitMQ.
 
-With this library, you can easily implement the [Inbox and outbox patterns](https://en.wikipedia.org/wiki/Inbox_and_outbox_pattern) in your application. It allows you to persist all incoming and outgoing event messages in a PostgreSQL database for reliable handling.
+With this library, you can easily implement the [Inbox and outbox patterns](https://en.wikipedia.org/wiki/Inbox_and_outbox_pattern) in your application. It allows you to persist all incoming and outgoing event messages in the database. Currently, it supports storing event data only in a PostgreSQL database.
 
 ### NuGet package
 [![Version](https://img.shields.io/nuget/vpre/Mirolim.EventBus.RabbitMQ?label=Downloads:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
@@ -259,4 +259,29 @@ By default, while serializing and deserializing properties of event, it will use
   }
 ```
 
+### Setting up the Inbox and Outbox patterns in this library
+
+As mentioned earlier, implementing the Inbox and Outbox patterns with this library is easy. Currently, it supports storing event data only in a PostgreSQL database.
+
+#### How to use the Outbox pattern in this library?
+As you know, the Outbox pattern for storing all outgoing events or messages of application in a database. To use this functionality, first you need to enable the `Outbox` feature by adding the following section to your AppSettings file.
+```
+"InboxAndOutbox": {
+    "Inbox": {
+      //Your inbox settings
+    },
+    "Outbox": {
+      "IsEnabled": true,
+      "ConnectionString": "Connection string of the SQL database"
+      //...
+    }
+  }
+```
+The `InboxAndOutbox` is the main section for setting of the Outbox and Inbox functionalities. The `Outbox` and `Inbox` subsections offer numerous options. For a detailed explanation on using these options, go to the [options of Inbox and Outbox sections](#options-of-inbox-and-outbox-sections) of the EventStorage documentation.     
+
+
 ## EventStorage
+
+
+
+## Options of Inbox and Outbox sections
