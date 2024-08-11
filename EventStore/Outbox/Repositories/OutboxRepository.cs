@@ -1,7 +1,8 @@
-using EventStore.Inbox.Configurations;
-using EventStore.Models.Outbox;
+using EventStore.Configurations;
+using EventStore.Outbox.Models;
+using EventStore.Repositories;
 
-namespace EventStore.Repositories.Outbox;
+namespace EventStore.Outbox.Repositories;
 
 internal class OutboxRepository : EventRepository<OutboxEvent>, IOutboxRepository
 {

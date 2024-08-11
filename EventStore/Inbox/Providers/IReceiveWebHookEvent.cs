@@ -1,3 +1,6 @@
+using EventStore.Inbox.Models;
+using EventStore.Inbox.Providers;
+
 namespace EventStore.Models.Inbox.Providers;
 
 /// <summary>

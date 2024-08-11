@@ -1,6 +1,5 @@
-using EventBus.RabbitMQ.Publishers;
 using EventBus.RabbitMQ.Publishers.Models;
-using EventStore.Models.Inbox;
+using EventStore.Inbox.Models;
 
 namespace EventBus.RabbitMQ.Subscribers.Models;
 

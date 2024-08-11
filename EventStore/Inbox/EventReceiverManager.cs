@@ -1,9 +1,9 @@
 using System.Text.Json;
-using EventStore.Inbox.Configurations;
+using EventStore.Configurations;
 using EventStore.Models;
-using EventStore.Models.Outbox;
-using EventStore.Models.Outbox.Providers;
-using EventStore.Repositories.Outbox;
+using EventStore.Outbox.Models;
+using EventStore.Outbox.Providers;
+using EventStore.Outbox.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

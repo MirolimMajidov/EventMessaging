@@ -1,4 +1,6 @@
-namespace EventStore.Models.Outbox.Providers;
+using EventStore.Outbox.Models;
+
+namespace EventStore.Outbox.Providers;
 
 /// <summary>
 /// An interface for determine a publisher of events. It may use for Unknown type.

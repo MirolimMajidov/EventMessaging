@@ -14,7 +14,7 @@ public static class RabbitMQExtensions
     /// <summary>
     /// Register the RabbitMQ settings as EventBus
     /// </summary>
-    /// <param name="services">Services of DI</param>
+    /// <param name="services">BackgroundServices of DI</param>
     /// <param name="configuration">Configuration to get config</param>
     /// <param name="defaultOptions">Default settings of RabbitMQ. It will overwrite all other default settings or settings those come from the configuration</param>
     /// <param name="eventPublisherManagerOptions">Options to register publisher with the settings. It will overwrite existing publisher setting if exists</param>

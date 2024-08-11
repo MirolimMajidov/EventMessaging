@@ -1,7 +1,7 @@
 using Dapper;
-using EventStore.Inbox.Configurations;
+using EventStore.Configurations;
+using EventStore.Exceptions;
 using EventStore.Models;
-using EventStore.Models.Exceptions;
 using Npgsql;
 
 namespace EventStore.Repositories;

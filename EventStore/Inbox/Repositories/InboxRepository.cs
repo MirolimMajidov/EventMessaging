@@ -1,7 +1,8 @@
-using EventStore.Inbox.Configurations;
-using EventStore.Models.Inbox;
+using EventStore.Configurations;
+using EventStore.Inbox.Models;
+using EventStore.Repositories;
 
-namespace EventStore.Repositories.Inbox;
+namespace EventStore.Inbox.Repositories;
 
 internal class InboxRepository : EventRepository<InboxEvent>, IInboxRepository
 {

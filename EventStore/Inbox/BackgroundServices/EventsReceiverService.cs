@@ -1,11 +1,10 @@
-using EventStore.Inbox;
-using EventStore.Inbox.Configurations;
-using EventStore.Repositories.Inbox;
+using EventStore.Configurations;
+using EventStore.Inbox.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace EventStore.BackgroundServices;
+namespace EventStore.Inbox.BackgroundServices;
 
 //TODO: I need to add another service to remove an old processed events
 internal class EventsReceiverService : BackgroundService

@@ -1,13 +1,15 @@
 using System.Reflection;
-using EventStore.BackgroundServices;
+using EventStore.Configurations;
 using EventStore.Inbox;
-using EventStore.Inbox.Configurations;
+using EventStore.Inbox.BackgroundServices;
+using EventStore.Inbox.Providers;
+using EventStore.Inbox.Repositories;
 using EventStore.Models;
 using EventStore.Models.Inbox.Providers;
-using EventStore.Models.Outbox.Providers;
 using EventStore.Outbox;
-using EventStore.Repositories.Inbox;
-using EventStore.Repositories.Outbox;
+using EventStore.Outbox.BackgroundServices;
+using EventStore.Outbox.Providers;
+using EventStore.Outbox.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +20,7 @@ public static class EventStoreExtensions
     /// <summary>
     /// Register the RabbitMQ settings as EventBus
     /// </summary>
-    /// <param name="services">Services of DI</param>
+    /// <param name="services">BackgroundServices of DI</param>
     /// <param name="configuration">Configuration to get config</param>
     /// <param name="options">Options to overwrite default settings of Inbox and Outbox. </param>
     /// <param name="assemblies">Assemblies to find and load publisher and subscribers</param>

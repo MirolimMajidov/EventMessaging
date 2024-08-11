@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EventStore.Inbox.Models;
+using EventStore.Inbox.Repositories;
 using EventStore.Models;
-using EventStore.Models.Inbox;
-using EventStore.Repositories.Inbox;
 
 namespace EventStore.Inbox;
 

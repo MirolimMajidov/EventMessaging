@@ -1,4 +1,4 @@
-namespace EventStore.Models.Exceptions;
+namespace EventStore.Exceptions;
 
 public class EventStoreException : Exception
 {

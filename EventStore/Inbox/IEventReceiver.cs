@@ -1,5 +1,5 @@
+using EventStore.Inbox.Models;
 using EventStore.Models;
-using EventStore.Models.Inbox;
 
 namespace EventStore.Inbox;
 

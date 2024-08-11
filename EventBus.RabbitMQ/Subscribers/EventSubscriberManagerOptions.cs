@@ -1,4 +1,3 @@
-using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace EventBus.RabbitMQ.Subscribers;

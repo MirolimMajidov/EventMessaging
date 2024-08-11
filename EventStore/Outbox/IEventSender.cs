@@ -1,5 +1,5 @@
 using EventStore.Models;
-using EventStore.Models.Outbox;
+using EventStore.Outbox.Models;
 
 namespace EventStore.Outbox;
 

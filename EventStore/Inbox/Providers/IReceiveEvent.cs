@@ -1,4 +1,6 @@
-namespace EventStore.Models.Inbox.Providers;
+using EventStore.Inbox.Models;
+
+namespace EventStore.Inbox.Providers;
 
 /// <summary>
 /// An interface for determine a receiver of events. It may use for Unknown type.

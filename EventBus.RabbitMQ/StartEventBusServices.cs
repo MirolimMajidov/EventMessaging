@@ -1,6 +1,3 @@
-using System.Text;
-using System.Text.Json;
-using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Publishers;
 using EventBus.RabbitMQ.Subscribers;
 using Microsoft.Extensions.Hosting;

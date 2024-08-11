@@ -1,5 +1,3 @@
-using EventBus.RabbitMQ.Subscribers;
-
 namespace EventBus.RabbitMQ.Configurations;
 
 public class RabbitMQOptions : BaseEventOptions, IHasQueueArguments

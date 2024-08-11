@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EventStore.Models;
-using EventStore.Models.Outbox;
-using EventStore.Repositories.Outbox;
+using EventStore.Outbox.Models;
+using EventStore.Outbox.Repositories;
 
 namespace EventStore.Outbox;
 

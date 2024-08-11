@@ -1,9 +1,9 @@
-namespace EventStore.Models.Outbox;
+namespace EventStore.Inbox.Models;
 
 /// <summary>
-/// An interface for determine events to send
+/// An interface for determine events to receive
 /// </summary>
-public interface ISendEvent
+public interface IReceiveEvent
 {
     /// <summary>
     /// Id of event

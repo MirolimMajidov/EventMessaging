@@ -1,4 +1,6 @@
-namespace EventStore.Models.Outbox;
+using EventStore.Models;
+
+namespace EventStore.Outbox.Models;
 
 internal class OutboxEvent : BaseEventBox, IOutboxEvent
 {

@@ -1,4 +1,4 @@
-using EventStore.Models.Outbox.Providers;
+using EventStore.Outbox.Providers;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Services;
 

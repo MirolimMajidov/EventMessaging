@@ -1,4 +1,4 @@
-using EventStore.Models.Outbox;
+using EventStore.Outbox.Models;
 
 namespace EventBus.RabbitMQ.Publishers.Models;
 
