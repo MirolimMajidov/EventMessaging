@@ -3,7 +3,7 @@ using EventStore.Outbox.Managers;
 using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
-using IEventPublisherManager = EventBus.RabbitMQ.Publishers.IEventPublisherManager;
+using IEventPublisherManager = EventBus.RabbitMQ.Publishers.Managers.IEventPublisherManager;
 
 namespace UsersService.Controllers;
 
@@ -50,7 +50,7 @@ public class UserController : ControllerBase
         userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
         
         //_eventPublisherManager.Publish(userCreated);
-        _eventSenderManager.Send(userCreated, EventProviderType.RabbitMQ, userCreated.GetType().Name);
+        _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
         return Ok();
     }
 
@@ -76,7 +76,7 @@ public class UserController : ControllerBase
             return NotFound();
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
-        _eventSenderManager.Send(userDeleted, EventProviderType.SMS, userDeleted.GetType().Name);
+        _eventSenderManager.Send(userDeleted, EventProviderType.Sms, userDeleted.GetType().Name);
         
         Items.Remove(id);
         return Ok(item);

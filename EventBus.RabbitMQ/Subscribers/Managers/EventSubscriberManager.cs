@@ -1,7 +1,9 @@
 using EventBus.RabbitMQ.Configurations;
+using EventBus.RabbitMQ.Subscribers.Consumers;
 using EventBus.RabbitMQ.Subscribers.Models;
+using EventBus.RabbitMQ.Subscribers.Options;
 
-namespace EventBus.RabbitMQ.Subscribers;
+namespace EventBus.RabbitMQ.Subscribers.Managers;
 
 internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceProvider serviceProvider)
     : IEventSubscriberManager
@@ -41,22 +43,22 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
     /// </summary>
     /// <param name="typeOfSubscriber">Event type which we want to subscribe</param>
     /// <param name="typeOfHandler">Handler type of the event which we want to receive event</param>
-    /// <param name="settings">Settings of subscriber</param>
-    public void AddSubscriber(Type typeOfSubscriber, Type typeOfHandler, EventSubscriberOptions settings)
+    /// <param name="subscriberSettings">Settings of subscriber</param>
+    public void AddSubscriber(Type typeOfSubscriber, Type typeOfHandler, EventSubscriberOptions subscriberSettings)
     {
         var subscriberName = typeOfSubscriber.Name;
-        EventSubscriberOptions _settings;
+        EventSubscriberOptions settings;
         if (_subscribers.TryGetValue(subscriberName, out var info))
         {
-            _settings = info.eventSettings;
+            settings = info.eventSettings;
         }
         else
         {
-            _settings = defaultSettings.Clone<EventSubscriberOptions>();
-            _subscribers.Add(subscriberName, (typeOfSubscriber, typeOfHandler, _settings));
+            settings = defaultSettings.Clone<EventSubscriberOptions>();
+            _subscribers.Add(subscriberName, (typeOfSubscriber, typeOfHandler, settings));
         }
 
-        _settings.OverwriteSettings(settings);
+        settings.OverwriteSettings(subscriberSettings);
     }
 
     /// <summary>
@@ -86,16 +88,16 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
         foreach (var (_, eventInfo) in _subscribers)
         {
             var consumerId = $"{eventInfo.eventSettings.VirtualHost}-{eventInfo.eventSettings.QueueName}";
-            if (!_eventConsumers.TryGetValue(consumerId, out IEventConsumerService _eventConsumer))
+            if (!_eventConsumers.TryGetValue(consumerId, value: out IEventConsumerService eventConsumer))
             {
-                _eventConsumer = new EventConsumerService(eventInfo.eventSettings, serviceProvider);
-                _eventConsumers.Add(consumerId, _eventConsumer);
+                eventConsumer = new EventConsumerService(eventInfo.eventSettings, serviceProvider);
+                _eventConsumers.Add(consumerId, eventConsumer);
             }
 
-            _eventConsumer.AddSubscriber(eventInfo);
+            eventConsumer.AddSubscriber(eventInfo);
         }
 
-        foreach (var _eventConsumer in _eventConsumers)
-            _eventConsumer.Value.StartAndSubscribeReceiver();
+        foreach (var consumer in _eventConsumers)
+            consumer.Value.StartAndSubscribeReceiver();
     }
 }

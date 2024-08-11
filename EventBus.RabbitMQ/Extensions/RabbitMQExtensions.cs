@@ -1,9 +1,13 @@
 using System.Reflection;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Managers;
 using EventBus.RabbitMQ.Publishers.Models;
+using EventBus.RabbitMQ.Publishers.Options;
 using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Managers;
 using EventBus.RabbitMQ.Subscribers.Models;
+using EventBus.RabbitMQ.Subscribers.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

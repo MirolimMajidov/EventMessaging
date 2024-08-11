@@ -1,5 +1,7 @@
 using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Options;
 using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Options;
 
 namespace EventBus.RabbitMQ.Configurations;
 

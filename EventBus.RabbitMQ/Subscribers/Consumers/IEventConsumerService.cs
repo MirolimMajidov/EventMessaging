@@ -1,4 +1,6 @@
-namespace EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Options;
+
+namespace EventBus.RabbitMQ.Subscribers.Consumers;
 
 internal interface IEventConsumerService
 {

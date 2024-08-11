@@ -154,7 +154,7 @@ public static class EventStoreExtensions
                         EventProviderType provider;
                         var genericType = implementedInterface.GetGenericTypeDefinition();
                         if (genericType == RabbitMqEventType)
-                            provider = EventProviderType.RabbitMQ;
+                            provider = EventProviderType.RabbitMq;
                         else if (genericType == EmailEventType)
                             provider = EventProviderType.Email;
                         else if (genericType == SmsEventType)
@@ -221,7 +221,7 @@ public static class EventStoreExtensions
                         EventProviderType provider;
                         var genericType = implementedInterface.GetGenericTypeDefinition();
                         if (genericType == RabbitMqReceiveEventType)
-                            provider = EventProviderType.RabbitMQ;
+                            provider = EventProviderType.RabbitMq;
                         else if (genericType == EmailReceiveEventType)
                             provider = EventProviderType.Email;
                         else if (genericType == SmsReceiveEventType)

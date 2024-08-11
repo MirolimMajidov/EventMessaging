@@ -3,11 +3,12 @@ using System.Text.Json;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Connections;
 using EventBus.RabbitMQ.Publishers.Models;
+using EventBus.RabbitMQ.Publishers.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace EventBus.RabbitMQ.Publishers;
+namespace EventBus.RabbitMQ.Publishers.Managers;
 
 internal class EventPublisherManager : IEventPublisherManager
 {
@@ -15,7 +16,7 @@ internal class EventPublisherManager : IEventPublisherManager
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventPublisherManager> _logger;
     private readonly Dictionary<string, EventPublisherOptions> _publishers;
-    private readonly Dictionary<string, IRabbitMQConnection> _openedRabbitMQConnections;
+    private readonly Dictionary<string, IRabbitMQConnection> _openedRabbitMqConnections;
 
     public EventPublisherManager(IServiceProvider serviceProvider)
     {
@@ -23,7 +24,7 @@ internal class EventPublisherManager : IEventPublisherManager
         _defaultSettings = serviceProvider.GetRequiredService<RabbitMQOptions>();
         _logger = serviceProvider.GetRequiredService<ILogger<EventPublisherManager>>();
         _publishers = new();
-        _openedRabbitMQConnections = new();
+        _openedRabbitMqConnections = new();
     }
 
     /// <summary>
@@ -34,13 +35,13 @@ internal class EventPublisherManager : IEventPublisherManager
         where TPublisher : class, IPublishEvent
     {
         var publisherName = typeof(TPublisher).Name;
-        if (_publishers.TryGetValue(publisherName, out var _settings))
+        if (_publishers.TryGetValue(publisherName, out var settings))
         {
-            options?.Invoke(_settings);
+            options?.Invoke(settings);
         }
         else
         {
-            var settings = _defaultSettings.Clone<EventPublisherOptions>();
+            settings = _defaultSettings.Clone<EventPublisherOptions>();
             options?.Invoke(settings);
 
             _publishers.Add(publisherName, settings);
@@ -51,17 +52,17 @@ internal class EventPublisherManager : IEventPublisherManager
     /// Registers a publisher.
     /// </summary>
     /// <param name="typeOfPublisher">The type of the publisher.</param>
-    /// <param name="settings">The options specific to the publisher, if any.</param>
-    public void AddPublisher(Type typeOfPublisher, EventPublisherOptions settings)
+    /// <param name="publisherSettings">The options specific to the publisher, if any.</param>
+    public void AddPublisher(Type typeOfPublisher, EventPublisherOptions publisherSettings)
     {
         var publisherName = typeOfPublisher.Name;
-        if (!_publishers.TryGetValue(publisherName, out var _settings))
+        if (!_publishers.TryGetValue(publisherName, out var settings))
         {
-            _settings = _defaultSettings.Clone<EventPublisherOptions>();
-            _publishers.Add(publisherName, _settings);
+            settings = _defaultSettings.Clone<EventPublisherOptions>();
+            _publishers.Add(publisherName, settings);
         }
 
-        _settings.OverwriteSettings(settings);
+        settings.OverwriteSettings(publisherSettings);
     }
 
     /// <summary>
@@ -90,13 +91,13 @@ internal class EventPublisherManager : IEventPublisherManager
     /// </summary>
     /// <param name="settings">Publisher setting to open connection</param>
     /// <returns>Returns create RabbitMQ connection</returns>
-    private IRabbitMQConnection CreateRabbitMQConnection(EventPublisherOptions settings)
+    private IRabbitMQConnection CreateRabbitMqConnection(EventPublisherOptions settings)
     {
         var connectionId = $"{settings.VirtualHost}-{settings.ExchangeName}";
-        if (!_openedRabbitMQConnections.TryGetValue(connectionId, out var connection))
+        if (!_openedRabbitMqConnections.TryGetValue(connectionId, out var connection))
         {
             connection = new RabbitMQConnection(settings, _serviceProvider);
-            _openedRabbitMQConnections.Add(connectionId, connection);
+            _openedRabbitMqConnections.Add(connectionId, connection);
         }
 
         return connection;
@@ -107,9 +108,9 @@ internal class EventPublisherManager : IEventPublisherManager
     /// </summary>
     /// <param name="settings">Publisher setting to open connection</param>
     /// <returns>Create and return chanel after creating and opening RabbitMQ connection</returns>
-    private IModel CreateRabbitMQChannel(EventPublisherOptions settings)
+    private IModel CreateRabbitMqChannel(EventPublisherOptions settings)
     {
-        var connection = CreateRabbitMQConnection(settings);
+        var connection = CreateRabbitMqConnection(settings);
         return connection.CreateChannel();
     }
 
@@ -126,7 +127,7 @@ internal class EventPublisherManager : IEventPublisherManager
                 var exchangeId = $"{eventSettings.VirtualHost}-{eventSettings.ExchangeName}";
                 if (createdExchangeNames.Contains(exchangeId)) continue;
 
-                var channel = CreateRabbitMQChannel(eventSettings);
+                var channel = CreateRabbitMqChannel(eventSettings);
                 channel.ExchangeDeclare(eventSettings.ExchangeName, eventSettings.ExchangeType, durable: true,
                     autoDelete: false);
 
@@ -150,25 +151,23 @@ internal class EventPublisherManager : IEventPublisherManager
             $"The reading {publisherName} publisher does not exist in the registered publishers list.");
     }
 
-    private const string NameOfEventType = nameof(EventPublisherOptions.EventTypeName);
-
     public void Publish<TEventPublisher>(TEventPublisher @event) where TEventPublisher : IPublishEvent
     {
         try
         {
             var publisherName = @event.GetType().Name;
             var eventSettings = GetPublisherSettings(publisherName);
-            using var channel = CreateRabbitMQChannel(eventSettings);
+            using var channel = CreateRabbitMqChannel(eventSettings);
 
             var properties = channel.CreateBasicProperties();
             properties.MessageId = @event.EventId.ToString();
             properties.Type = eventSettings.EventTypeName;
             if (@event.Headers?.Any() == true)
             {
-                var _headers = new Dictionary<string, object>();
+                var headers = new Dictionary<string, object>();
                 foreach (var item in  @event.Headers)
-                    _headers.Add(item.Key, item.Value);
-                properties.Headers =_headers;
+                    headers.Add(item.Key, item.Value);
+                properties.Headers =headers;
             }
 
             var jsonSerializerSetting = eventSettings.GetJsonSerializer();

@@ -1,6 +1,7 @@
+using EventBus.RabbitMQ.Publishers.Managers;
 using EventBus.RabbitMQ.Publishers.Models;
 
-namespace EventBus.RabbitMQ.Publishers;
+namespace EventBus.RabbitMQ.Publishers.Options;
 
 public class EventPublisherManagerOptions
 {

@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Subscribers;
+using EventBus.RabbitMQ.Subscribers.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;

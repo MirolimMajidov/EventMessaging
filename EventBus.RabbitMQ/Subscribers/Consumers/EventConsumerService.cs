@@ -2,12 +2,13 @@ using System.Text;
 using System.Text.Json;
 using EventBus.RabbitMQ.Connections;
 using EventBus.RabbitMQ.Subscribers.Models;
+using EventBus.RabbitMQ.Subscribers.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace EventBus.RabbitMQ.Subscribers;
+namespace EventBus.RabbitMQ.Subscribers.Consumers;
 
 internal class EventConsumerService : IEventConsumerService
 {
@@ -34,7 +35,7 @@ internal class EventConsumerService : IEventConsumerService
 
     public void AddSubscriber((Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) eventInfo)
     {
-        _subscribers.Add(eventInfo.Item3.EventTypeName!, eventInfo);
+        _subscribers.Add(eventInfo.eventSettings.EventTypeName!, eventInfo);
     }
 
     /// <summary>
@@ -66,7 +67,7 @@ internal class EventConsumerService : IEventConsumerService
             channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.ExchangeName,
                 eventSettings.RoutingKey);
 
-        channel.CallbackException += (sender, ea) =>
+        channel.CallbackException += (_, ea) =>
         {
             _logger.LogWarning(ea.Exception, "Recreating RabbitMQ consumer channel");
 
@@ -102,7 +103,7 @@ internal class EventConsumerService : IEventConsumerService
                 LoadEventHeaders(eventSubscriber);
 
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
-                await (Task)handleMethod.Invoke(eventHandlerSubscriber, [eventSubscriber]);
+                await (Task)handleMethod!.Invoke(eventHandlerSubscriber, [eventSubscriber]);
 
                 _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
             }

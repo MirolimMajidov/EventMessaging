@@ -1,4 +1,4 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Managers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace OrdersService.Controllers;

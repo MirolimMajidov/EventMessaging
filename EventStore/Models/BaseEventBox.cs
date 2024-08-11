@@ -2,8 +2,8 @@ namespace EventStore.Models;
 
 internal abstract class BaseEventBox : IBaseEventBox
 {
-    public Guid Id { get; set; }
-    public string Provider { get; set; }
+    public Guid Id { get; init; }
+    public string Provider { get; init; }
     public string EventName { get; init; }
     public string EventPath { get; init; }
     public string Payload { get; internal set; }

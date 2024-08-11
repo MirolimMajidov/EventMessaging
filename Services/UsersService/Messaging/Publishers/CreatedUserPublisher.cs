@@ -1,4 +1,4 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Managers;
 using EventStore.Outbox.Providers;
 using UsersService.Messaging.Events.Publishers;
 

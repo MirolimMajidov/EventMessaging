@@ -1,6 +1,6 @@
 using EventBus.RabbitMQ.Configurations;
 
-namespace EventBus.RabbitMQ.Subscribers;
+namespace EventBus.RabbitMQ.Subscribers.Options;
 
 public class EventSubscriberOptions : BaseEventOptions, IHasQueueArguments
 {
@@ -28,12 +28,7 @@ public class EventSubscriberOptions : BaseEventOptions, IHasQueueArguments
             if (settings is IHasQueueArguments hasQueueArguments)
             {
                 foreach (var argument in hasQueueArguments.QueueArguments)
-                {
-                    if (QueueArguments.ContainsKey(argument.Key))
-                        QueueArguments[argument.Key] = argument.Value;
-                    else
-                        QueueArguments.Add(argument.Key, argument.Value);
-                }
+                    QueueArguments[argument.Key] = argument.Value;
             }
         }
     }

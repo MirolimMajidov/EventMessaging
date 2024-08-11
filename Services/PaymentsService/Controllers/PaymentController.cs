@@ -1,4 +1,4 @@
-using EventBus.RabbitMQ.Publishers;
+using EventBus.RabbitMQ.Publishers.Managers;
 using Microsoft.AspNetCore.Mvc;
 using Payments.Service.Models;
 using PaymentsService.Messaging.Events.Publishers;
