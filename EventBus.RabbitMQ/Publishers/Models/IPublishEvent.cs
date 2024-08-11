@@ -1,5 +1,5 @@
 using EventBus.RabbitMQ.Models;
-using EventStore.Outbox.Models;
+using EventStorage.Outbox.Models;
 
 namespace EventBus.RabbitMQ.Publishers.Models;
 

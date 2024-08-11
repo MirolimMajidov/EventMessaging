@@ -1,5 +1,5 @@
-using EventStore.Models;
-using EventStore.Outbox.Managers;
+using EventStorage.Models;
+using EventStorage.Outbox.Managers;
 using Microsoft.AspNetCore.Mvc;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Models;
@@ -46,11 +46,11 @@ public class UserController : ControllerBase
         Items.Add(item.Id, item);
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
-        userCreated.Headers = new();
-        userCreated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
-        
         //_eventPublisherManager.Publish(userCreated);
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, userCreated.GetType().Name);
+        
+        var eventPath = userCreated.GetType().Name;
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
+        
         return Ok();
     }
 
@@ -76,7 +76,8 @@ public class UserController : ControllerBase
             return NotFound();
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
-        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.Sms, userDeleted.GetType().Name);
+        var url = "https:example.com/api/users";
+        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.WebHook, url);
         
         Items.Remove(id);
         return Ok(item);

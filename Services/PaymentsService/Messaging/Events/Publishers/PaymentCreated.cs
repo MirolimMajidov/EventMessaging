@@ -1,9 +1,9 @@
 using EventBus.RabbitMQ.Publishers.Models;
-using EventStore.Outbox.Models;
+using EventStorage.Outbox.Models;
 
 namespace PaymentsService.Messaging.Events.Publishers;
 
-public class PaymentCreated : PublishEvent, IHasAdditionalData
+public record PaymentCreated : PublishEvent, IHasAdditionalData
 {
     public Guid PaymentId { get; set; }
 

@@ -1,16 +1,24 @@
 # Getting Started
 
-EventBus.RabbitMQ is an event messaging library that makes it easy to implement messaging communication with RabbitMQ to publish and receive events between microservice applications. It is easy to set up and runs on all recent .NET platforms and designed to work with the multiple a virtual hosts of RabbitMQ. 
+### List of libraries
 
+1. #### [EventBus.RabbitMQ: Event messaging library](#eventbus.rabbitmq)
 
-## List of NuGet packages
-[![Version](https://img.shields.io/nuget/vpre/Mirolim.EventBus.RabbitMQ?label=Downloads:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
+1. #### [EventStorage: A library for implementing the Inbox and Outbox patterns](#eventstorage)
+
+## EventBus.RabbitMQ
+EventBus.RabbitMQ is a messaging library designed to simplify the implementation of communication using RabbitMQ. It enables seamless publishing and receiving of events between microservices or other types of applications. The library is easy to set up and is compatible with all recent .NET platforms. Additionally, it supports working with multiple virtual hosts in RabbitMQ.
+
+With this library, you can easily implement the [Inbox and outbox patterns](https://en.wikipedia.org/wiki/Inbox_and_outbox_pattern) in your application. It allows you to persist all incoming and outgoing event messages in the database. Currently, it supports storing event data only in a PostgreSQL database.
+
+### NuGet package
+[![Version](https://img.shields.io/nuget/v/Mirolim.EventBus.RabbitMQ?label=Version:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
 [![Downloads](https://img.shields.io/nuget/dt/Mirolim.EventBus.RabbitMQ?label=Downloads:Mirolim.EventBus.RabbitMQ)](https://www.nuget.org/packages/Mirolim.EventBus.RabbitMQ)
 
 
-## Set up the library
+### Setting up the library
 
-Make sure you have installed and run [RabbitMQ](https://www.rabbitmq.com/docs/download) in your machine. After that, you need to install Mirolim.EventBus.RabbitMQ NuGet.
+Make sure you have installed and run [RabbitMQ](https://www.rabbitmq.com/docs/download) in your machine. After that, you need to install Mirolim.EventBus.RabbitMQ NuGet package.
 
 ```powershell
 Install-Package Mirolim.EventBus.RabbitMQ
@@ -22,12 +30,12 @@ Register the nuget package's necessary services to the services of DI in the Pro
 builder.Services.AddRabbitMQEventBus(builder.Configuration, assemblies: [typeof(Program).Assembly]);
 ```
 
-## Create and publish an event
+### Create and publish an event massage
 
-Start creating an event to publish. Your class must implement the `IEventPublisher` interface or inherit from the `EventPublisher` class. Example: 
+Start creating an event to publish. Your record must implement the `IPublishEvent` interface or inherit from the `PublishEvent` record. Example: 
 
 ```
-public class UserDeleted : EventPublisher
+public record UserDeleted : PublishEvent
 {
     public Guid UserId { get; set; }
     
@@ -35,7 +43,7 @@ public class UserDeleted : EventPublisher
 }
 ```
 
-In publish your event, you must first inject the `IEventPublisherManager` interface from the DI and pass your event object to the `Publish` method. Then, your event will be published.
+To publish your event, you must first inject the `IEventPublisherManager` interface from the DI and pass your event object to the `Publish` method. Then, your event will be published.
 
 ```
 public class UserController : ControllerBase
@@ -47,26 +55,25 @@ public class UserController : ControllerBase
         _eventPublisherManager = eventPublisherManager;
     }
     
-    [HttpDelete("{id:guid}")]
-    public IActionResult Delete(Guid id)
+    [HttpPost]
+    public IActionResult Create([FromBody] User item)
     {
-        if (!Items.TryGetValue(id, out User item))
-            return NotFound();
+        Items.Add(item.Id, item);
 
-        _eventPublisher.Publish(new UserDeleted { UserId = item.Id, UserName = item.Name });
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        _eventPublisherManager.Publish(userCreated);
         
-        Items.Remove(id);
         return Ok(item);
     }
 }
 ```
 
-## Create a subscriber with the handler and subscribe to the event
+### Create a subscriber to the event
 
-If you want to subscribe to necessary event, first you need to create your own an event structure to subscribe. Your subscriber class must implement the `IEventSubscriber` interface or inherit from the `EventSubscriber` class. Example: 
+If you want to subscribe to necessary an event, first you need to create your own an event structure to subscribe. Your subscribe record must implement the `ISubscribeEvent` interface or inherit from the `SubscribeEvent` record. Example: 
 
 ```
-public class UserDeleted : EventSubscriber
+public record UserCreated : SubscribeEvent
 {
     public Guid UserId { get; set; }
 
@@ -74,31 +81,31 @@ public class UserDeleted : EventSubscriber
 }
 ```
 
-Then you need to create a subscriber handler to receive the event. Your subscriber handler class must implement the `IEventSubscriberHandler<>` interface and implement your subscriber class. Example: 
+Then you need to create an event subscriber to receive an event. Your event subscriber class must implement the `IEventSubscriber<>` interface and implement your subscriber event structure. Example: 
 
 ```
-public class UserDeletedHandler : IEventSubscriberHandler<UserDeleted>
+public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
 {
-    private readonly ILogger<UserDeletedHandler> _logger;
+    private readonly ILogger<UserCreatedSubscriber> _logger;
 
-    public UserDeletedHandler(ILogger<UserDeletedHandler> logger)
+    public UserCreatedSubscriber(ILogger<UserCreatedSubscriber> logger)
     {
         _logger = logger;
     }
 
-    public Task Handle(UserDeleted @event)
+    public async Task<bool> Receive(UserCreated @event)
     {
-        _logger.LogInformation("EventId ({EventId}): {UserName} user is deleted, the User id is {UserId}", @event.EventId,
+        _logger.LogInformation("EventId ({EventId}): '{UserName}' user is created with the {UserId} id", @event.EventId,
             @event.UserName, @event.UserId);
 
-        return Task.CompletedTask;
+        return await Task.FromResult(true);
     }
 }
 ```
 
-Depend on your business logic, you need to add your logic to the `Handle` method of handler to do something based on your received event.
+Depend on your business logic, you need to add your logic to the `Receive` method of subscriber to do something based on your received event.
 
-## Advanced configuration of publishers and subscribers from configuration file.
+### Advanced configuration of publishers and subscribers from configuration file.
 
 First you need to add a new section called `RabbitMQSettings` to your configuration file.
 
@@ -121,9 +128,12 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
     },
     "Publishers": {
       "UserDeleted": {
-        "VirtualHost": "users/test"
+        "VirtualHost": "users/test",
+        "RoutingKey": "users.deleted",
+        "PropertyNamingPolicy": "KebabCaseLower"
       },
       "UserUpdated": {
+        "RoutingKey": "users.updated",
         "EventTypeName": "UserUpdatedEvent"
       }
     },
@@ -138,7 +148,7 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
         }
       }
     }
-  }
+  },
 ```
 
 A section may have the following subsections: <br/>
@@ -146,7 +156,32 @@ A section may have the following subsections: <br/>
 `Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
 
-## Advanced configuration of publishers and subscribers while registering to the DI services.
+#### Customizing the event type of publishing/subscribing event:
+While publishing or subscribing an event by default it uses the Name of event structure. For example, if you add an event named `UserUpdated`, while publishing or subscribing/receiving that `UserUpdated` name as event type will be used. But if you want you can overwrite the event type by added event type name to the config file: 
+```
+"RabbitMQSettings": {
+    "DefaultSettings": {
+      //your settings
+    },
+    "Publishers": {
+      "UserUpdated": {
+        "RoutingKey": "users.updated",
+        "EventTypeName": "UserUpdatedEvent"
+      }
+    },
+    "Subscribers": {
+      "UserDeleted": {
+        //your settings
+        "EventTypeName": "MyUserDeletedEvent"
+      }
+    }
+  }
+```
+
+#### What if I want to subscribe to an event from another system that doesn't publish an event type?
+When RabbitMQ receives an event from a 'Consumer', it tries to read the event type from the received event, if it can't find it, it uses the 'routing key' instead to find the event subscriber.
+
+### Advanced configuration of publishers and subscribers while registering to the DI services.
 
 Since the library is designed to work with multiple a virtual hosts of RabbitMQ, there is a way to configure each publisher and subscriber separately from the configuration file or while registering to the DI services.
 ```
@@ -176,33 +211,33 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 `eventSubscriberManagerOptions` - it is an alternative way of overwriting `Subscribers` settings, to register and set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
 
-## Adding property to the publishing event's headers
+### Adding property to the publishing event's headers
 
-Before publishing an event, you can attach properties to event headers by passing the header name and value to the `TryAddHeader` method. Keep in mind, the header name must be unique, otherwise it will be ignored. Example: 
+Before publishing an event, you can attach properties to the event's headers by passing the header name and value to the `AddHeader` method. Keep in mind, the header name must be unique, otherwise it will throw exception. Example: 
 ```
 var userUpdated = new UserUpdated { UserId = item.Id, OldUserName = item.Name, NewUserName = newName };
 userUpdated.Headers = new();
 userUpdated.Headers.Add("TraceId", HttpContext.TraceIdentifier);
-_eventPublisher.Publish(userUpdated);
+_eventPublisherManager.Publish(userUpdated);
 ```
 
-## Reading property from the subscribed event's headers
+### Reading property from the subscribed event's headers
 
-The `Handle` method of the subscriber handler has a collection parameter named `eventHeaders`. From this you can read the property value from the event's headers. Example: 
+We can read the attached property value from the Headers collection of the received event. Example: 
 ```
-public Task Handle(UserUpdated @event)
+public async Task<bool> Receive(UserCreated @event)
 {
-   if (@event.Headers?.TryGetValue("TraceId", out string traceId) == true)
-   {
-   }
+    if (@event.Headers?.TryGetValue("TraceId", out var traceId) == true)
+    {
+    }
 
-   return Task.CompletedTask;
+    return await Task.FromResult(true);
 }
 ```
 
-## Changing a naming police for serializing and deserializing properties of Event
+### Changing a naming police for serializing and deserializing properties of Event
 
-By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for publisher or subscriber event. Example: 
+By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for specific publisher or subscriber event. Example: 
 ```
 "RabbitMQSettings": {
     "DefaultSettings": {
@@ -223,3 +258,419 @@ By default, while serializing and deserializing properties of event, it will use
     }
   }
 ```
+
+### Setting up the Inbox and Outbox patterns in this library
+
+As mentioned earlier, implementing the Inbox and Outbox patterns with this library is easy. Currently, it supports storing event data only in a PostgreSQL database.
+
+#### How to use the Outbox pattern in this library?
+As you know, the Outbox pattern for storing all outgoing events or messages of application in a database. To use this functionality, first you need to enable the `Outbox` feature by adding the following section to your AppSettings file.
+```
+"InboxAndOutbox": {
+    "Inbox": {
+      //Your inbox settings
+    },
+    "Outbox": {
+      "IsEnabled": true,
+      "ConnectionString": "Connection string of the SQL database"
+      //...
+    }
+  }
+```
+The `InboxAndOutbox` is the main section for setting of the Outbox and Inbox functionalities. The `Outbox` and `Inbox` subsections offer numerous options. For a detailed explanation on using these options, go to the [options of Inbox and Outbox sections](#options-of-inbox-and-outbox-sections) of the EventStorage documentation.     
+
+Your application is now ready to use the Outbox feature. Now you can inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your event.
+
+```
+public class UserController : ControllerBase
+{
+    private readonly IEventSenderManager _eventSenderManager;
+
+    public UserController(IEventSenderManager eventSenderManager)
+    {
+        _eventSenderManager = eventSenderManager;
+    }
+    
+    [HttpPost]
+    public IActionResult Create([FromBody] User item)
+    {
+        Items.Add(item.Id, item);
+
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        //_eventPublisherManager.Publish(userCreated);
+        
+        var eventPath = userCreated.GetType().Name;
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
+        
+        return Ok(item);
+    }
+}
+```
+
+Next, add an event publisher to manage a publishing event. Since the event storage functionality is designed as a separate library, it doesn't know about the actual sending of events. Therefore, we'll need to create an event publisher specific to the type of event we want to publish.
+
+```
+public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
+{
+    private readonly IEventPublisherManager _eventPublisher;
+
+    public CreatedUserPublisher(IEventPublisherManager eventPublisher)
+    {
+        _eventPublisher = eventPublisher;
+    }
+    
+    public async Task<bool> Publish(UserCreated @event, string eventPath)
+    {
+        _eventPublisher.Publish(@event);
+        
+        return await Task.FromResult(true);
+    }
+}
+```
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event we want to publish. And, inject the `IEventPublisherManager` interface to publish the publishing `UserCreated` event to the `RabbitMQ`.
+When we use the `Send` method of the `IEventSenderManager` to send an event, the event is first stored in the database. Based on our configuration (_by default, after one second_), the event will then be automatically execute the `Publish` method of created the `CreatedUserPublisher` event publisher.
+
+If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](#options-of-inbox-and-outbox-sections).
+
+#### How to use the Inbox pattern in this library?
+
+As you know, the Inbox pattern for storing all incoming events or messages to the application in a database. To use this functionality, first you need to enable the `Inbox` feature by adding the following section to your AppSettings file.
+```
+"InboxAndOutbox": {
+    "Inbox": {
+      "IsEnabled": true,
+      "ConnectionString": "Connection string of the SQL database"
+      //...
+    },
+    "Outbox": {
+      //Your inbox settings
+    }
+  }
+```
+
+And then, set `true` to the `UseInbox` option of the `RabbitMQSettings.DefaultSettings`. Because by default it is disabled.
+
+```
+"RabbitMQSettings": {
+    "DefaultSettings": {
+        "UseInbox": true
+        //your settings
+    },
+    "Publishers": {
+        //your Subscribers
+    },
+    "Subscribers": {
+        //your Subscribers
+    }
+  }
+```
+
+That's all. Now all incoming events from RabbitMQ are stored in the `Inbox` table of the database and then execute the `Receive` method of your event subscriber. See the [document of creating event subscriber](#create-a-subscriber-to-the-event).
+
+#### Advanced configuration of the Inbox and Outbox functionalities while registering to the DI services.
+
+Since the library is designed to  from multiple places, there is a way to configure the `Inbox` and `Outbox` functionalities from the configuration file or while registering to the DI services.
+```
+builder.Services.AddRabbitMQEventBus(builder.Configuration,
+    assemblies: [typeof(Program).Assembly],
+    defaultOptions: options =>
+    {
+        //Your settings
+    },
+    eventPublisherManagerOptions: publisherManager =>
+    {
+        //Your settings
+    },
+    eventSubscriberManagerOptions: subscriberManager =>
+    {
+        //Your settings
+    },
+    eventStoreOptions: options =>
+    {
+        options.Inbox.IsEnabled = true;
+        options.Inbox.TableName = "ReceivedEvents";
+        options.Outbox.IsEnabled = true;
+        options.Outbox.TableName = "SentEvents";
+    }
+);
+```
+`eventStoreOptions` - it is an alternative way of overwriting configurations of the `Inbox` and `Outbox` functionalities. If you don't pass them, it will use default settings from the `AppSettings`. About other configurations, you can get information from [here](#advanced-configuration-of-publishers-and-subscribers-while-registering-to-the-di-services).
+
+
+## EventStorage
+
+EventStorage is a library designed to simplify the implementation of the [Inbox and outbox patterns](https://en.wikipedia.org/wiki/Inbox_and_outbox_pattern) for handling multiple types of events in your application. It allows you to persist all incoming and outgoing event messages in the database. Currently, it supports storing event data only in a PostgreSQL database.
+
+### NuGet package
+[![Version](https://img.shields.io/nuget/v/Mirolim.EventStorage?label=Version:Mirolim.EventStorage)](https://www.nuget.org/packages/Mirolim.EventStorage)
+[![Downloads](https://img.shields.io/nuget/dt/Mirolim.EventStorage?label=Downloads:Mirolim.EventStorage)](https://www.nuget.org/packages/Mirolim.EventStorage)
+
+
+### Setting up the library
+
+Make sure you have installed and run [PostgreSQL](https://www.postgresql.org/download/) in your machine. After that, you need to install Mirolim.EventStorage NuGet package.
+
+```powershell
+Install-Package Mirolim.EventStorage
+```
+
+Register the nuget package's necessary services to the services of DI in the Program.cs and pass the assemblies to find and load the events, publishers and receivers automatically:
+
+```
+builder.Services.AddEventStore(builder.Configuration,
+    assemblies: [typeof(Program).Assembly]
+    , options =>
+    {
+        options.Inbox.IsEnabled = true;
+        options.Inbox.ConnectionString = "Connection string of the SQL database";
+        //Other settings of the Inbox
+        
+        options.Outbox.IsEnabled = true;
+        options.Outbox.ConnectionString = "Connection string of the SQL database";
+        //Other settings of the Outbox
+    });
+```
+
+Based on the configuration the tables will be automatically created while starting the server, if not exists.
+
+### Using the Outbox pattern while publishing event
+**Scenario 1:** _When user is deleted I need to notice the another service using the WebHook._<br/>
+
+Start creating a structure of event to send. Your record must implement the `ISendEvent` interface. Example:
+
+```
+public record UserDeleted : ISendEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    
+    public Guid UserId { get; init; }
+    
+    public string UserName { get; init; }
+}
+```
+The `EventId` property is required, the other property can be added based on your business logic.<br/>
+
+Since the library doesn't know about the actual sending of events, we need to create an event publisher specific to the type of event we want to publish. Add an event publisher by inheriting `IWebHookEventPublisher` and your `UserDeleted` event to manage a publishing event using the WebHook. 
+
+```
+public class DeletedUserPublisher : IWebHookEventPublisher<UserDeleted>
+{
+    // private readonly IWebHookProvider _webHookProvider;
+    //
+    // public DeletedUserPublisher(IWebHookProvider webHookProvider)
+    // {
+    //     _webHookProvider = webHookProvider;
+    // }
+
+    public async Task<bool> Publish(UserDeleted @event, string eventPath)
+    {
+        //Add your logic
+        return await Task.FromResult(false);
+    }
+}
+```
+The event provider support a few types: `RabbitMq`-for RabbitMQ message, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages. 
+Depend on the event provider, the event subscriber must implement the necessary publisher interface: `IRabbitMqEventPublisher`, `ISmsEventPublisher`, `IWebHookEventPublisher`, `IEmailEventPublisher` and `IEventPublisher`- for `Unknown` provider type.
+
+Now you can inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your event.
+
+```
+public class UserController : ControllerBase
+{
+    private readonly IEventSenderManager _eventSenderManager;
+
+    public UserController(IEventSenderManager eventSenderManager)
+    {
+        _eventSenderManager = eventSenderManager;
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public IActionResult Delete(Guid id)
+    {
+        if (!Items.TryGetValue(id, out User item))
+            return NotFound();
+
+        var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
+        var webHookUrl = "https:example.com/api/users";
+        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.WebHook, webHookUrl);
+        
+        Items.Remove(id);
+        return Ok(item);
+    }
+}
+```
+
+When we use the `Send` method of the `IEventSenderManager` to send an event, the event is first stored in the database. Based on our configuration (_by default, after one second_), the event will then be automatically execute the `Publish` method of created the `DeletedUserPublisher` event publisher.
+
+If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](#options-of-inbox-and-outbox-sections).
+
+**Scenario 2:** _When user is created I need to notice the another service using the RabbitMQ._<br/>
+
+Start creating a structure of event to send. Your record must implement the `ISendEvent` interface. Example:
+
+```
+public record UserCreated : ISendEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    
+    public Guid UserId { get; init; }
+    
+    public string UserName { get; init; }
+    
+    public int Age { get; init; }
+}
+```
+
+Next, add an event publisher to manage a publishing RabbitMQ event. 
+
+```
+public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
+{
+    // private readonly IEventPublisherManager _eventPublisher;
+    //
+    // public CreatedUserPublisher(IEventPublisherManager eventPublisher)
+    // {
+    //     _eventPublisher = eventPublisher;
+    // }
+    
+    public async Task<bool> Publish(UserCreated @event, string eventPath)
+    {
+        // _eventPublisher.Publish(@event);
+        //Add you logic to publish an event to the RabbitMQ
+        
+        return await Task.FromResult(true);
+    }
+}
+```
+
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event (`UserCreated`), we want to publish.
+Your application is now ready to use this publisher. Inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your `UserCreated` event.
+
+```
+public class UserController : ControllerBase
+{
+    private readonly IEventSenderManager _eventSenderManager;
+
+    public UserController(IEventSenderManager eventSenderManager)
+    {
+        _eventSenderManager = eventSenderManager;
+    }
+    
+    [HttpPost]
+    public IActionResult Create([FromBody] User item)
+    {
+        Items.Add(item.Id, item);
+
+        var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        var routingKey = "usser.created";
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, routingKey);
+        
+        return Ok(item);
+    }
+}
+```
+
+### Using the Inbox pattern while receiving event
+
+Start creating a structure of event to receive. Your record must implement the `IReceiveEvent` interface. Example:
+
+```
+public record UserCreated : IReceiveEvent
+{
+    public Guid EventId { get; init; }
+    
+    public Guid UserId { get; init; }
+    
+    public string UserName { get; init; }
+    
+    public int Age { get; init; }
+}
+```
+
+Next, add an event receiver to manage a publishing RabbitMQ event.
+
+```
+public class UserCreatedReceiver : IRabbitMqEventReceiver<UserCreated>
+{
+    private readonly ILogger<UserCreatedReceiver> _logger;
+
+    public UserCreatedReceiver(ILogger<UserCreatedReceiver> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<bool> Receive(UserCreated @event)
+    {
+        _logger.LogInformation("EventId ({EventId}): {UserName} user is created with the {UserId} id", @event.EventId,
+            @event.UserName, @event.UserId);
+        //Add your logic in here
+        
+        return await Task.FromResult(true);
+    }
+}
+```
+
+Now the `UserCreatedReceiver` receiver is ready to receive the event. To make it work, from your logic which you receive the event from the RabbitMQ, you need to inject the `IEventReceiverManager` interface and puss the received event to the `Received` method.
+
+```
+UserCreated receivedEvent = new UserCreated
+{
+    //Get created you data from the Consumer of RabbitMQ.
+};
+try
+{
+    IEventReceiverManager eventReceiverManager = scope.ServiceProvider.GetService<IEventReceiverManager>();
+    if (eventReceiverManager is not null)
+    {
+        var succussfullyReceived = eventReceiverManager.Received(receivedEvent, eventArgs.RoutingKey, EventProviderType.RabbitMq);
+        if(succussfullyReceived){
+            //If the event received twice, it will return false. You need to add your logic to manage this use case.
+        }
+    }else{
+        //the IEventReceiverManager will not be injected if the Inbox pattern is not enabled. You need to add your logic to manage this use case.
+    }
+}
+catch (Exception ex)
+{
+    //You need to add logic to handle some unexpected use cases.
+}
+```
+
+That's all. As we mentioned in above, the event provider support a few types: `RabbitMq`-for RabbitMQ message, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages.
+Depend on the event provider, the event receiver must implement the necessary receiver interface: `IRabbitMqEventReceiver`, `ISmsEventReceiver`, `IWebHookEventReceiver`, `IEmailEventReceiver` and `IEventReceiver`- for `Unknown` provider type.
+
+### Options of Inbox and Outbox sections
+
+The `InboxAndOutbox` is the main section for setting of the Outbox and Inbox functionalities. The `Outbox` and `Inbox` subsections offer numerous options.
+
+```
+"InboxAndOutbox": {
+    "Inbox": {
+      //Your inbox settings
+    },
+    "Outbox": {
+      "IsEnabled": false,
+      "TableName": "Outbox",
+      "MaxConcurrency": 10,
+      "TryCount": 5,
+      "TryAfterMinutes": 20,
+      "SecondsToDelayProcessEvents": 2,
+      "DaysToCleanUpEvents": 30,
+      "HoursToDelayCleanUpEvents": 2,
+      "ConnectionString": "Connection string of the SQL database"
+    }
+  }
+```
+**Description of options:** 
+
+`IsEnabled` - Enables or disables the use of Inbox/Outbox for storing received/sent events. Default value is false. <br/>
+`TableName` - Specifies the table name used for storing received/sent events. Default value is "Inbox" for Inbox, "Outbox" for Outbox.<br/>
+`MaxConcurrency` - Sets the maximum number of concurrent tasks for executing received/publishing events. Default value is 10.<br/>
+`TryCount` - Defines the number of attempts before increasing the delay for the next retry. Default value is 10.<br/>
+`TryAfterMinutes` - Specifies the number of minutes to wait before retrying if an event fails. Default value is 5.<br/>
+`SecondsToDelayProcessEvents` - The delay in seconds before processing events. Default value is 1.<br/>
+`DaysToCleanUpEvents` - Number of days after which processed events are cleaned up. Cleanup only occurs if this value is 1 or higher. Default value is 0.<br/>
+`HoursToDelayCleanUpEvents` - Specifies the delay in hours before cleaning up processed events. Default value is 1.<br/>
+`ConnectionString` - The connection string for the PostgreSQL database used to store or read received/sent events.<br/>
+
+All options of the Inbox and Outbox are optional, if we don't pass the value of them, it will use the default value of the option.

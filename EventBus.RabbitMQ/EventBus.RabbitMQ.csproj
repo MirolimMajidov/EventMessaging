@@ -6,14 +6,14 @@
         <Title>EventBus.RabbitMQ</Title>
         <Authors>MirolimMajidov</Authors>
         <Description>It's easier to implement EventBus with RabbitMQ to publish and receive events. It is designed to work with multiple virtual hosts.</Description>
-        <PackageProjectUrl>https://github.com/MirolimMajidov/EventBus.RabbitMQ</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/MirolimMajidov/EventBus.RabbitMQ</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
         <RepositoryType>public</RepositoryType>
         <PackageTags>EventBus.RabbitMQ, RabbitMQ, EventBus</PackageTags>
         <Company>Alif Bank</Company>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Mirolim.EventBus.RabbitMQ</AssemblyName>
-        <Version>1.0.1</Version>
+        <Version>1.5.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EventStore\EventStore.csproj" />
+      <ProjectReference Include="..\EventStorage\EventStorage.csproj" />
     </ItemGroup>
 
 </Project>

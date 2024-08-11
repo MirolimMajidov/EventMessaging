@@ -11,7 +11,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\EventBus.RabbitMQ\EventBus.RabbitMQ.csproj" />
-      <ProjectReference Include="..\..\EventStore\EventStore.csproj" />
+      <ProjectReference Include="..\..\EventStorage\EventStorage.csproj" />
     </ItemGroup>
 
 </Project>

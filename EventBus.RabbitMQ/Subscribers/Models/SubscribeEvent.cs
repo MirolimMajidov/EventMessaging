@@ -5,7 +5,7 @@ namespace EventBus.RabbitMQ.Subscribers.Models;
 /// <summary>
 /// Base class for all subscriber classes
 /// </summary>
-public abstract class SubscribeEvent : ISubscribeEvent
+public abstract record SubscribeEvent : ISubscribeEvent
 {
     public Guid EventId { get; init; }
 

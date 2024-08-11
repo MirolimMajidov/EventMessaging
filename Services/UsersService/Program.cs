@@ -1,5 +1,5 @@
 using EventBus.RabbitMQ.Extensions;
-using EventStore.Extensions;
+using EventStorage.Extensions;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Messaging.Subscribers;
 using UsersService.Repositories;
@@ -26,16 +26,30 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
         {
             op.VirtualHost = "users/test";
         });
+    },
+    eventStoreOptions: options =>
+    {
+        options.Inbox.IsEnabled = true;
+        options.Inbox.TableName = "ReceivedEvents";
+        options.Outbox.IsEnabled = true;
+        options.Outbox.TableName = "SentEvents";
     }
 );
 
-builder.Services.AddEventStore(builder.Configuration,
-    assemblies: [typeof(Program).Assembly]
-    , options =>
-    {
-        options.Outbox.IsEnabled = false;
-        options.Outbox.TableName = "SentEvents";
-    });
+// builder.Services.AddEventStore(builder.Configuration,
+//     assemblies: [typeof(Program).Assembly]
+//     , options =>
+//     {
+//         options.Inbox.IsEnabled = true;
+//         options.Inbox.TableName = "ReceivedEvents";
+//         options.Inbox.ConnectionString = "Connection string of the SQL database";
+//         //Other settings of the Inbox
+//         
+//         options.Outbox.IsEnabled = true;
+//         options.Outbox.TableName = "SentEvents";
+//         options.Outbox.ConnectionString = "Connection string of the SQL database";
+//         //Other settings of the Outbox
+//     });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

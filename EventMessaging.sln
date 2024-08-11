@@ -10,7 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsersService", "Services\Us
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventBus.RabbitMQ", "EventBus.RabbitMQ\EventBus.RabbitMQ.csproj", "{AEDCDA7C-D0B6-4DD9-AC03-550459731666}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore", "EventStore\EventStore.csproj", "{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStorage", "EventStorage\EventStorage.csproj", "{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

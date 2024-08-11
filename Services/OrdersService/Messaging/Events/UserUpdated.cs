@@ -2,7 +2,7 @@ using EventBus.RabbitMQ.Subscribers.Models;
 
 namespace OrdersService.Messaging.Events;
 
-public class UserUpdated : SubscribeEvent
+public record UserUpdated : SubscribeEvent
 {
     public Guid UserId { get; set; }
     
