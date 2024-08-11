@@ -40,8 +40,15 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
 //     assemblies: [typeof(Program).Assembly]
 //     , options =>
 //     {
+//         options.Inbox.IsEnabled = true;
+//         options.Inbox.TableName = "ReceivedEvents";
+//         options.Inbox.ConnectionString = "Connection string of the SQL database";
+//         //Other settings of the Inbox
+//         
 //         options.Outbox.IsEnabled = true;
 //         options.Outbox.TableName = "SentEvents";
+//         options.Outbox.ConnectionString = "Connection string of the SQL database";
+//         //Other settings of the Outbox
 //     });
 
 builder.Services.AddControllers();

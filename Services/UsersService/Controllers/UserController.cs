@@ -76,7 +76,8 @@ public class UserController : ControllerBase
             return NotFound();
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
-        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.Sms, userDeleted.GetType().Name);
+        var url = "https:example.com/api/users";
+        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.WebHook, url);
         
         Items.Remove(id);
         return Ok(item);
