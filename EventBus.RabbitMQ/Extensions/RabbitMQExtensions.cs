@@ -35,6 +35,11 @@ public static class RabbitMQExtensions
         var settings = configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>();
         var defaultSettings = GetDefaultRabbitMQOptions(settings);
         defaultOptions?.Invoke(defaultSettings);
+        
+        services.AddEventStore(configuration, assemblies: assemblies, options: eventStoreOptions);
+        
+        if(!defaultSettings.IsEnabled) return;
+        
         services.AddSingleton(defaultSettings);
 
         services.AddSingleton<IEventPublisherManager>(serviceProvider =>
@@ -72,10 +77,6 @@ public static class RabbitMQExtensions
         });
 
         services.AddHostedService<StartEventBusServices>();
-
-        services.AddEventStore(configuration,
-            assemblies: assemblies,
-            options: eventStoreOptions);
     }
 
     #region Publishers

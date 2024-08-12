@@ -3,6 +3,11 @@ namespace EventBus.RabbitMQ.Configurations;
 public class RabbitMQOptions : BaseEventOptions, IHasQueueArguments
 {
     /// <summary>
+    /// To enable using an RabbitMQ. Default value is "tru".
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+    
+    /// <summary>
     /// The name of the queue to use in RabbitMQ. Default value is "DefaultQueue".
     /// </summary>
     public string QueueName { get; set; }
