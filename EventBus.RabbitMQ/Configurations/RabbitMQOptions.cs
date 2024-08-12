@@ -3,7 +3,7 @@ namespace EventBus.RabbitMQ.Configurations;
 public class RabbitMQOptions : BaseEventOptions, IHasQueueArguments
 {
     /// <summary>
-    /// To enable using an RabbitMQ. Default value is "tru".
+    /// To enable using an RabbitMQ. Default value is "true".
     /// </summary>
     public bool IsEnabled { get; set; } = true;
     
