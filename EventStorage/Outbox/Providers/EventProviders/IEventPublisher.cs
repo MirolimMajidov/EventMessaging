@@ -1,11 +1,12 @@
 using EventStorage.Outbox.Models;
 
-namespace EventStorage.Outbox.Providers;
+namespace EventStorage.Outbox.Providers.EventProviders;
 
 /// <summary>
-/// Base interface to implement publishing events functionality for all providers
+/// Base interface for determine a publisher of events. It may use for Unknown type.
 /// </summary>
-public interface IEventPublisher
+public interface IEventPublisher<TSendEvent>
+    where TSendEvent : class, ISendEvent
 {
     /// <summary>
     /// For publishing an event 
@@ -13,5 +14,5 @@ public interface IEventPublisher
     /// <param name="event">Publishing an event</param>
     /// <param name="eventPath">Event path of publishing an event. It can be routing key, URL, or different value depend on provider type.</param>
     /// <returns>Return true if it executes successfully</returns>
-    Task<bool> Publish(ISendEvent @event, string eventPath);
+    Task<bool> Publish(TSendEvent @event, string eventPath);
 }

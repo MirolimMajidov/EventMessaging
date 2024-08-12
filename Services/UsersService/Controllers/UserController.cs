@@ -49,7 +49,7 @@ public class UserController : ControllerBase
         //_eventPublisherManager.Publish(userCreated);
         
         var eventPath = userCreated.GetType().Name;
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, eventPath);
         
         return Ok();
     }

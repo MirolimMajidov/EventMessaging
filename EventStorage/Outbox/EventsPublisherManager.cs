@@ -2,7 +2,7 @@ using System.Text.Json;
 using EventStorage.Configurations;
 using EventStorage.Models;
 using EventStorage.Outbox.Models;
-using EventStorage.Outbox.Providers;
+using EventStorage.Outbox.Providers.EventProviders;
 using EventStorage.Outbox.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

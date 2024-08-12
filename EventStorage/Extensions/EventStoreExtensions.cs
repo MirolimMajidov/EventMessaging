@@ -6,11 +6,10 @@ using EventStorage.Inbox.Managers;
 using EventStorage.Inbox.Providers;
 using EventStorage.Inbox.Repositories;
 using EventStorage.Models;
-using EventStorage.Models.Inbox.Providers;
 using EventStorage.Outbox;
 using EventStorage.Outbox.BackgroundServices;
 using EventStorage.Outbox.Managers;
-using EventStorage.Outbox.Providers;
+using EventStorage.Outbox.Providers.EventProviders;
 using EventStorage.Outbox.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -140,11 +139,12 @@ public static class EventStoreExtensions
             services.AddTransient(publisherType);
     }
 
-    static readonly Type PublishEventType = typeof(IEventPublisher<>);
-    static readonly Type RabbitMqEventType = typeof(IRabbitMqEventPublisher<>);
-    static readonly Type EmailEventType = typeof(IEmailEventPublisher<>);
-    static readonly Type SmsEventType = typeof(ISmsEventPublisher<>);
-    static readonly Type WebHookEventType = typeof(IWebHookEventPublisher<>);
+    private static readonly Type UnknownEventType = typeof(IUnknownEventPublisher<>);
+    private static readonly Type RabbitMqEventType = typeof(IMessageBrokerEventPublisher<>);
+    private static readonly Type EmailEventType = typeof(IEmailEventPublisher<>);
+    private static readonly Type SmsEventType = typeof(ISmsEventPublisher<>);
+    private static readonly Type WebHookEventType = typeof(IWebHookEventPublisher<>);
+    private static readonly Type GrpcEventType = typeof(IGrpcEventPublisher<>);
 
     private static List<(Type eventType, Type publisherType, EventProviderType provider)> GetPublisherHandlerTypes(
         Assembly[] assemblies)
@@ -164,14 +164,16 @@ public static class EventStoreExtensions
                         EventProviderType provider;
                         var genericType = implementedInterface.GetGenericTypeDefinition();
                         if (genericType == RabbitMqEventType)
-                            provider = EventProviderType.RabbitMq;
-                        else if (genericType == EmailEventType)
-                            provider = EventProviderType.Email;
+                            provider = EventProviderType.MessageBroker;
                         else if (genericType == SmsEventType)
+                            provider = EventProviderType.Sms;
+                        else if (genericType == EmailEventType)
                             provider = EventProviderType.Email;
                         else if (genericType == WebHookEventType)
                             provider = EventProviderType.WebHook;
-                        else if (genericType == PublishEventType)
+                        else if (genericType == GrpcEventType)
+                            provider = EventProviderType.gRPC;
+                        else if (genericType == UnknownEventType)
                             provider = EventProviderType.Unknown;
                         else
                             continue;
@@ -207,11 +209,12 @@ public static class EventStoreExtensions
             services.AddTransient(receiverType);
     }
 
-    static readonly Type EventReceiveType = typeof(IEventReceiver<>);
-    static readonly Type RabbitMqReceiveEventType = typeof(IRabbitMqEventReceiver<>);
+    static readonly Type UnknownReceiveType = typeof(IUnknownEventReceiver<>);
+    static readonly Type RabbitMqReceiveEventType = typeof(IMessageBrokerEventReceiver<>);
     static readonly Type EmailReceiveEventType = typeof(IEmailEventReceiver<>);
     static readonly Type SmsReceiveEventType = typeof(ISmsEventReceiver<>);
     static readonly Type WebHookReceiveEventType = typeof(IWebHookEventReceiver<>);
+    static readonly Type GrpcReceiveEventType = typeof(IGrpcEventReceiver<>);
 
     private static List<(Type eventType, Type receiverType, EventProviderType provider)> GetReceiverHandlerTypes(
         Assembly[] assemblies)
@@ -231,14 +234,16 @@ public static class EventStoreExtensions
                         EventProviderType provider;
                         var genericType = implementedInterface.GetGenericTypeDefinition();
                         if (genericType == RabbitMqReceiveEventType)
-                            provider = EventProviderType.RabbitMq;
+                            provider = EventProviderType.MessageBroker;
                         else if (genericType == EmailReceiveEventType)
                             provider = EventProviderType.Email;
                         else if (genericType == SmsReceiveEventType)
-                            provider = EventProviderType.Email;
+                            provider = EventProviderType.Sms;
                         else if (genericType == WebHookReceiveEventType)
+                            provider = EventProviderType.gRPC;
+                        else if (genericType == GrpcReceiveEventType)
                             provider = EventProviderType.WebHook;
-                        else if (genericType == EventReceiveType)
+                        else if (genericType == UnknownReceiveType)
                             provider = EventProviderType.Unknown;
                         else
                             continue;

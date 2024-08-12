@@ -1,11 +1,8 @@
-using EventStorage.Outbox.Models;
-
 namespace EventStorage.Outbox.Providers;
 
 /// <summary>
-/// An interface to define an event publisher of type Email
+/// An interface to implement publishing events functionality with the Email provider
 /// </summary>
-public interface IEmailEventPublisher<TSendEvent> : IEventPublisher<TSendEvent>
-    where TSendEvent : class, ISendEvent
+public interface IEmailEventPublisher : IEventPublisher
 {
 }
