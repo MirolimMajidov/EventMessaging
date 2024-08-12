@@ -21,6 +21,8 @@ internal class EventsPublisherManager : IEventsPublisherManager
     private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
         hasHeaders, bool hasAdditionalData)> _publishers;
 
+    private readonly Dictionary<string, Type> _globalPublishers;
+
     private const string PublisherMethodName = nameof(IEventPublisher<ISendEvent>.Publish);
     private static readonly int TryAfterOneDay = (int)TimeSpan.FromDays(1).TotalMinutes;
     
@@ -33,15 +35,28 @@ internal class EventsPublisherManager : IEventsPublisherManager
         _logger = serviceProvider.GetRequiredService<ILogger<EventsPublisherManager>>();
         _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
         _publishers = new();
+        _globalPublishers = new();
     }
 
     /// <summary>
-    /// Registers a subscriber 
+    /// Registers a publisher as global 
+    /// </summary>
+    /// <param name="typeOfEventPublisher">Publisher type for publishing all events with the same provider</param>
+    /// <param name="providerType">Provider type of event publisher</param>
+    public void AddGlobalPublisher(Type typeOfEventPublisher, EventProviderType providerType)
+    {
+        var providerTypeName = providerType.ToString();
+        _globalPublishers.TryAdd(providerTypeName, typeOfEventPublisher);
+    }
+
+    /// <summary>
+    /// Registers a publisher 
     /// </summary>
     /// <param name="typeOfEventSender">Event type which we want to use to send</param>
     /// <param name="typeOfEventPublisher">Publisher type of the event which we want to publish event</param>
     /// <param name="providerType">Provider type of event publisher</param>
-    public void AddPublisher(Type typeOfEventSender, Type typeOfEventPublisher, EventProviderType providerType)
+    /// <param name="ownPublisher">If the event has own publisher, it should be true</param>
+    public void AddPublisher(Type typeOfEventSender, Type typeOfEventPublisher, EventProviderType providerType, bool ownPublisher)
     {
         var eventName = typeOfEventSender.Name;
         if (!_publishers.ContainsKey(eventName))
