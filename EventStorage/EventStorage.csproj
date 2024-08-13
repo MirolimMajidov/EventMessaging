@@ -13,7 +13,8 @@
         <Company>Alif Bank</Company>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Mirolim.EventStorage</AssemblyName>
-        <Version>1.0.1</Version>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>1.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,6 +25,10 @@
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0"/>
         <PackageReference Include="Npgsql" Version="8.0.3" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>

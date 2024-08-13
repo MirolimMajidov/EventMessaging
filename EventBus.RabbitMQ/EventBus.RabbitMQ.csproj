@@ -13,7 +13,8 @@
         <Company>Alif Bank</Company>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Mirolim.EventBus.RabbitMQ</AssemblyName>
-        <Version>1.5.0</Version>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>1.5.2</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -27,6 +28,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\EventStorage\EventStorage.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>
