@@ -309,17 +309,35 @@ public class UserController : ControllerBase
         //_eventPublisherManager.Publish(userCreated);
         
         var eventPath = userCreated.GetType().Name;
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, eventPath);
         
         return Ok(item);
     }
 }
 ```
 
-Next, add an event publisher to manage a publishing event. Since the event storage functionality is designed as a separate library, it doesn't know about the actual sending of events. Therefore, we'll need to create an event publisher specific to the type of event we want to publish.
+Next, add an event publisher to manage a publishing event with the MessageBroker provider. Since the event storage functionality is designed as a separate library, it doesn't know about the actual sending of events. Therefore, we need to create single an event publisher to the specific provider, in our use case is for a MessageBroker.
 
 ```
-public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
+public class MessageBrokerEventPublisher : IMessageBrokerEventPublisher
+{
+    private readonly IEventPublisherManager _eventPublisher;
+    
+    public MessageBrokerEventPublisher(IEventPublisherManager eventPublisher)
+    {
+        _eventPublisher = eventPublisher;
+    }
+    
+    public async Task<bool> Publish(ISendEvent @event, string eventPath)
+    {
+        _eventPublisher.Publish((IPublishEvent)@event);
+        return await Task.FromResult(true);
+    }
+}
+```
+The MessageBrokerEventPublisher is serve for all kinds of events those are sending to the MessageBroker provider. But if you want to create event publisher for the event type for being able to use properties of event without casting, you need to just create event publisher by using generic interface of necessary publisher. In our use case is IMessageBrokerEventPublisher<UserCreated>.  
+```
+public class CreatedUserMessageBrokerEventPublisher : IMessageBrokerEventPublisher<UserCreated>
 {
     private readonly IEventPublisherManager _eventPublisher;
 
@@ -336,8 +354,9 @@ public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
     }
 }
 ```
-Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event we want to publish. And, inject the `IEventPublisherManager` interface to publish the publishing `UserCreated` event to the `RabbitMQ`.
-When we use the `Send` method of the `IEventSenderManager` to send an event, the event is first stored in the database. Based on our configuration (_by default, after one second_), the event will then be automatically execute the `Publish` method of created the `CreatedUserPublisher` event publisher.
+
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IMessageBrokerEventPublisher` by passing the type of event we want to publish. And, inject the `IEventPublisherManager` interface to publish the publishing `UserCreated` event to the `RabbitMQ`.
+When we use the `Send` method of the `IEventSenderManager` to send an event, the event is first stored in the database. Based on our configuration (_by default, after one second_), the event will then be automatically execute the `Publish` method of created the `CreatedUserMessageBrokerEventPublisher` event publisher.
 
 If an event fails for any reason, the server will automatically retry publishing it, with delays based on the configuration you set in the [Outbox section](https://github.com/MirolimMajidov/EventMessaging?tab=readme-ov-file#options-of-inbox-and-outbox-sections).
 
@@ -478,8 +497,8 @@ public class DeletedUserPublisher : IWebHookEventPublisher<UserDeleted>
     }
 }
 ```
-The event provider support a few types: `RabbitMq`-for RabbitMQ message, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages.
-Depend on the event provider, the event subscriber must implement the necessary publisher interface: `IRabbitMqEventPublisher`, `ISmsEventPublisher`, `IWebHookEventPublisher`, `IEmailEventPublisher` and `IEventPublisher`- for `Unknown` provider type.
+The event provider support a few types: `MessageBroker`-for RabbitMQ message or any other message broker, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages.
+Depend on the event provider, the event subscriber must implement the necessary publisher interface: `IMessageBrokerEventPublisher`, `ISmsEventPublisher`, `IWebHookEventPublisher`, `IEmailEventPublisher` and `IUnknownEventPublisher`- for `Unknown` provider type.
 
 Now you can inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your event.
 
@@ -530,14 +549,34 @@ public record UserCreated : ISendEvent
 }
 ```
 
-Next, add an event publisher to manage a publishing RabbitMQ event.
+Next, add an event publisher to manage a publishing event with the MessageBroker provider. Since the event storage functionality is designed as a separate library, it doesn't know about the actual sending of events. Therefore, we need to create single an event publisher to the specific provider, in our use case is for a MessageBroker.
 
 ```
-public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
+public class MessageBrokerEventPublisher : IMessageBrokerEventPublisher
+{
+    // private readonly IEventPublisherManager _eventPublisher;
+    
+    // public MessageBrokerEventPublisher(IEventPublisherManager eventPublisher)
+    // {
+    //     _eventPublisher = eventPublisher;
+    // }
+    
+    public async Task<bool> Publish(ISendEvent @event, string eventPath)
+    {
+        // _eventPublisher.Publish((IPublishEvent)@event);
+        return await Task.FromResult(true);
+    }
+}
+```
+
+The MessageBrokerEventPublisher is serve for all kinds of events, those are sending to the MessageBroker provider. But if you want to create event publisher for the event type for being able to use properties of event without casting, you need to just create event publisher by using generic interface of necessary publisher. In our use case is IMessageBrokerEventPublisher<UserCreated>.
+
+```
+public class CreatedUserMessageBrokerEventPublisher : IMessageBrokerEventPublisher<UserCreated>
 {
     // private readonly IEventPublisherManager _eventPublisher;
     //
-    // public CreatedUserPublisher(IEventPublisherManager eventPublisher)
+    // public CreatedUserMessageBrokerEventPublisher(IEventPublisherManager eventPublisher)
     // {
     //     _eventPublisher = eventPublisher;
     // }
@@ -552,7 +591,7 @@ public class CreatedUserPublisher : IRabbitMqEventPublisher<UserCreated>
 }
 ```
 
-Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IRabbitMqEventPublisher` by passing the type of event (`UserCreated`), we want to publish.
+Since we want to publish our an event to the RabbitMQ, the event subscriber must implement the `IMessageBrokerEventPublisher` by passing the type of event (`UserCreated`), we want to publish.
 Your application is now ready to use this publisher. Inject the `IEventSenderManager` interface from anywhere in your application, and use the `Send` method to publish your `UserCreated` event.
 
 ```
@@ -572,9 +611,55 @@ public class UserController : ControllerBase
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
         var routingKey = "usser.created";
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, routingKey);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, routingKey);
         
         return Ok(item);
+    }
+}
+```
+
+##### Is there any way to add some additional data to the event while sending and use that while publishing event?
+
+Yes, there is a way to do that. For that, we need to just implement `IHasAdditionalData` interface to the event structure of our sending event:
+
+```
+public record UserCreated : ISendEvent, IHasAdditionalData
+{
+    public Guid EventId { get; }= Guid.NewGuid();
+    
+    public Guid UserId { get; init; } 
+    
+    public string UserName { get; init; }
+    
+    public Dictionary<string, string> AdditionalData { get; set; }
+}
+```
+
+When we implement the implement `IHasAdditionalData` interface, it requires us to add collection property named `AdditionalData`. Now it is ready to use that:
+
+```
+var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+userCreated.AdditionalData = new();
+userCreated.AdditionalData.Add("login", "admin");
+userCreated.AdditionalData.Add("password", "123");
+var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, eventPath);
+```
+
+While publishing event, now you are able to read and use the added property from the your event:
+
+```
+public class CreatedUserMessageBrokerEventPublisher : IMessageBrokerEventPublisher<UserCreated>
+{
+    //Your logic
+    
+    public async Task<bool> Publish(UserCreated @event, string eventPath)
+    {
+        var login = @event.AdditionalData["login"];
+        var password = @event.AdditionalData["password"];
+        //Your logic
+        _eventPublisher.Publish(@event);
+        
+        return await Task.FromResult(true);
     }
 }
 ```
@@ -645,8 +730,8 @@ catch (Exception ex)
 }
 ```
 
-That's all. As we mentioned in above, the event provider support a few types: `RabbitMq`-for RabbitMQ message, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages.
-Depend on the event provider, the event receiver must implement the necessary receiver interface: `IRabbitMqEventReceiver`, `ISmsEventReceiver`, `IWebHookEventReceiver`, `IEmailEventReceiver` and `IEventReceiver`- for `Unknown` provider type.
+That's all. As we mentioned in above, the event provider support a few types: `MessageBroker`-for RabbitMQ message or any other message broker, `Sms`-for SMS message, `WebHook`- for WebHook call, `Email` for sending email, `Unknown` for other unknown type messages.
+Depend on the event provider, the event receiver must implement the necessary receiver interface: `IMessageBrokerEventReceiver`, `ISmsEventReceiver`, `IWebHookEventReceiver`, `IEmailEventReceiver` and `IUnknownEventReceiver`- for `Unknown` provider type.
 
 ### Options of Inbox and Outbox sections
 
