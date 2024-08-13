@@ -3,7 +3,7 @@ using EventStorage.Inbox.Models;
 namespace EventStorage.Inbox.Providers;
 
 /// <summary>
-/// An interface for determine a receiver of events. It may use for Unknown type.
+/// Base interface to implement receiving events functionality for all providers
 /// </summary>
 public interface IEventReceiver<TReceiveEvent>
     where TReceiveEvent : class, IReceiveEvent

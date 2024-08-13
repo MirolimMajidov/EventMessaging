@@ -1,12 +1,8 @@
-using EventStorage.Outbox.Models;
-
 namespace EventStorage.Outbox.Providers;
 
 /// <summary>
-/// An interface to define an event publisher of type SMS
+/// An interface to implement publishing events functionality with the SMS provider
 /// </summary>
-public interface ISmsEventPublisher<TSendEvent> : IEventPublisher<TSendEvent>
-    where TSendEvent : class, ISendEvent
+public interface ISmsEventPublisher : IEventPublisher
 {
-    
 }

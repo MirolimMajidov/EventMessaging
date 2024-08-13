@@ -1,5 +1,4 @@
 using EventBus.RabbitMQ.Extensions;
-using EventStorage.Extensions;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Messaging.Subscribers;
 using UsersService.Repositories;

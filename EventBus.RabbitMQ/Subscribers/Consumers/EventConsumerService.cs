@@ -114,7 +114,7 @@ internal class EventConsumerService : IEventConsumerService
                     {
                         string _headers = headers is null ? null : SerializeData(headers);
                         var succussfullyReceived = eventReceiverManager.Received(receivedEvent, eventArgs.RoutingKey,
-                            EventProviderType.RabbitMq, _headers);
+                            EventProviderType.MessageBroker, _headers);
 
                         //TODO: Do we need to do something if it is not succussfully entered?
                         MarkEventIsDelivered();

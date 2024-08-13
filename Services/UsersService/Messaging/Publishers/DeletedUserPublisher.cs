@@ -1,6 +1,5 @@
-using EventStorage.Outbox.Providers;
+using EventStorage.Outbox.Providers.EventProviders;
 using UsersService.Messaging.Events.Publishers;
-using UsersService.Services;
 
 namespace UsersService.Messaging.Publishers;
 

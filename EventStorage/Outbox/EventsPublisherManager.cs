@@ -18,15 +18,12 @@ internal class EventsPublisherManager : IEventsPublisherManager
     private readonly ILogger<EventsPublisherManager> _logger;
     private readonly InboxOrOutboxStructure _settings;
 
-    private readonly Dictionary<string, (Type eventType, Type eventHandlerType, string providerType, bool
-        hasHeaders, bool hasAdditionalData)> _publishers;
+    private readonly Dictionary<string, (Type typeOfEvent, Type typeOfPublisher, string provider, bool hasHeaders, bool
+        hasAdditionalData, bool isGlobalPublisher)> _publishers;
 
-    private const string PublisherMethodName = nameof(IEventPublisher<ISendEvent>.Publish);
+    private const string PublisherMethodName = nameof(IEventPublisher.Publish);
     private static readonly int TryAfterOneDay = (int)TimeSpan.FromDays(1).TotalMinutes;
-    
-    private static readonly Type HasHeadersType = typeof(IHasHeaders);
-    private static readonly Type HasAdditionalDataType = typeof(IHasAdditionalData);
-    
+
     public EventsPublisherManager(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -36,22 +33,26 @@ internal class EventsPublisherManager : IEventsPublisherManager
     }
 
     /// <summary>
-    /// Registers a subscriber 
+    /// Registers a publisher 
     /// </summary>
     /// <param name="typeOfEventSender">Event type which we want to use to send</param>
     /// <param name="typeOfEventPublisher">Publisher type of the event which we want to publish event</param>
     /// <param name="providerType">Provider type of event publisher</param>
-    public void AddPublisher(Type typeOfEventSender, Type typeOfEventPublisher, EventProviderType providerType)
+    /// <param name="hasHeaders">The event may have headers</param>
+    /// <param name="hasAdditionalData">The event may have AdditionalData</param>
+    /// <param name="isGlobalPublisher">Publisher of event is global publisher</param>
+    public void AddPublisher(Type typeOfEventSender, Type typeOfEventPublisher, EventProviderType providerType,
+        bool hasHeaders, bool hasAdditionalData, bool isGlobalPublisher)
     {
-        var eventName = typeOfEventSender.Name;
-        if (!_publishers.ContainsKey(eventName))
-        {
-            var hasHeaders = HasHeadersType.IsAssignableFrom(typeOfEventSender);
-            var hasAdditionalData = HasAdditionalDataType.IsAssignableFrom(typeOfEventSender);
+        var providerName = providerType.ToString();
+        var publisherKey = GetPublisherKey(typeOfEventSender.Name, providerName);
+        _publishers[publisherKey] = (typeOfEventSender, typeOfEventPublisher, providerName, hasHeaders,
+            hasAdditionalData, isGlobalPublisher);
+    }
 
-            _publishers.Add(eventName,
-                (typeOfEventSender, typeOfEventPublisher, providerType.ToString(), hasHeaders, hasAdditionalData));
-        }
+    private string GetPublisherKey(string eventName, string providerName)
+    {
+        return $"{eventName}-{providerName}";
     }
 
     public async Task ExecuteUnprocessedEvents(CancellationToken stoppingToken)
@@ -89,50 +90,41 @@ internal class EventsPublisherManager : IEventsPublisherManager
     {
         try
         {
-            if (_publishers.TryGetValue(@event.EventName,
-                    out (Type eventType, Type eventHandlerType, string providerType, bool hasHeaders, bool
-                    hasAdditionalData) info))
+            var publisherKey = GetPublisherKey(@event.EventName, @event.Provider);
+            if (_publishers.TryGetValue(publisherKey,
+                    out (Type typeOfEvent, Type typeOfPublisher, string provider, bool hasHeaders, bool
+                    hasAdditionalData, bool isGlobalPublisher) info))
             {
-                if (@event.Provider == info.providerType)
-                {
-                    _logger.LogTrace("Executing the {EventType} outbox event with ID {EventId} to publish.",
-                        @event.EventName, @event.Id);
+                _logger.LogTrace("Executing the {EventType} outbox event with ID {EventId} to publish.",
+                    @event.EventName, @event.Id);
 
-                    var eventToPublish = JsonSerializer.Deserialize(@event.Payload, info.eventType) as ISendEvent;
-                    if (info.hasHeaders && @event.Headers is not null)
-                        ((IHasHeaders)eventToPublish).Headers =
-                            JsonSerializer.Deserialize<Dictionary<string, string>>(@event.Headers);
+                var eventToPublish = JsonSerializer.Deserialize(@event.Payload, info.typeOfEvent) as ISendEvent;
+                if (info.hasHeaders && @event.Headers is not null)
+                    ((IHasHeaders)eventToPublish).Headers =
+                        JsonSerializer.Deserialize<Dictionary<string, string>>(@event.Headers);
 
-                    if (info.hasAdditionalData && @event.AdditionalData is not null)
-                        ((IHasAdditionalData)eventToPublish).AdditionalData =
-                            JsonSerializer.Deserialize<Dictionary<string, string>>(@event!.AdditionalData);
+                if (info.hasAdditionalData && @event.AdditionalData is not null)
+                    ((IHasAdditionalData)eventToPublish).AdditionalData =
+                        JsonSerializer.Deserialize<Dictionary<string, string>>(@event!.AdditionalData);
 
-                    var eventHandlerSubscriber = serviceScope.ServiceProvider.GetRequiredService(info.eventHandlerType);
+                var eventHandlerSubscriber = serviceScope.ServiceProvider.GetRequiredService(info.typeOfPublisher);
 
-                    var publisherMethod = info.eventHandlerType.GetMethod(PublisherMethodName);
-                    var executedSuccessfully = await (Task<bool>)publisherMethod.Invoke(eventHandlerSubscriber,
-                        [eventToPublish, @event.EventPath]);
-                    if (executedSuccessfully)
-                        @event.Processed();
-                    else
-                        @event.IncreaseTryCount();
-
-                    return executedSuccessfully;
-                }
+                var publisherMethod = info.typeOfPublisher.GetMethod(PublisherMethodName);
+                var executedSuccessfully = await (Task<bool>)publisherMethod.Invoke(eventHandlerSubscriber,
+                    [eventToPublish, @event.EventPath]);
+                if (executedSuccessfully)
+                    @event.Processed();
                 else
-                {
-                    @event.Failed(0, TryAfterOneDay);
-                    _logger.LogError(
-                        "The {EventType} outbox event with ID {EventId} requested to publish with {ProviderType} provider, but that is configured to publish with the {ConfiguredProviderType} provider.",
-                        @event.EventName, @event.Id, @event.Provider, info.providerType);
-                }
+                    @event.IncreaseTryCount();
+
+                return executedSuccessfully;
             }
             else
             {
                 @event.Failed(0, TryAfterOneDay);
                 _logger.LogWarning(
-                    "No publish provider configured for the {EventType} outbox event with ID: {EventId}.",
-                    @event.EventName, @event.Id);
+                    "The {EventType} outbox event with ID {EventId} requested to publish with {ProviderType} provider, but no publisher configured for this event.",
+                    @event.EventName, @event.Id, @event.Provider);
             }
 
             return false;

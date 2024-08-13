@@ -5,9 +5,13 @@ namespace EventStorage.Models;
 /// </summary>
 public enum EventProviderType
 {
-    RabbitMq,
-    Sms,
+    MessageBroker,
     WebHook,
+    Sms,
     Email,
+    /// <summary>
+    /// R
+    /// </summary>
+    gRPC,
     Unknown
 }

@@ -1,10 +1,9 @@
 using EventStorage.Inbox.Models;
-using EventStorage.Inbox.Providers;
 
-namespace EventStorage.Models.Inbox.Providers;
+namespace EventStorage.Inbox.Providers;
 
 /// <summary>
-/// An interface to define an event receiver of type WebHook
+/// An interface for determine a receiver of events and implement receiving events functionality with the WebHook provider
 /// </summary>
 public interface IWebHookEventReceiver<TReceiveEvent> : IEventReceiver<TReceiveEvent>
     where TReceiveEvent : class, IReceiveEvent

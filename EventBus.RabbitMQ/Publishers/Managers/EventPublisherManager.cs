@@ -155,8 +155,8 @@ internal class EventPublisherManager : IEventPublisherManager
     {
         try
         {
-            var publisherName = @event.GetType().Name;
-            var eventSettings = GetPublisherSettings(publisherName);
+            var publisherType = @event.GetType();
+            var eventSettings = GetPublisherSettings(publisherType.Name);
             using var channel = CreateRabbitMqChannel(eventSettings);
 
             var properties = channel.CreateBasicProperties();
@@ -171,7 +171,7 @@ internal class EventPublisherManager : IEventPublisherManager
             }
 
             var jsonSerializerSetting = eventSettings.GetJsonSerializer();
-            var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event, jsonSerializerSetting));
+            var messageBody = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(@event, publisherType, jsonSerializerSetting));
             channel.BasicPublish(eventSettings.ExchangeName, eventSettings.RoutingKey, properties, messageBody);
         }
         catch (Exception ex)

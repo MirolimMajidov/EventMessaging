@@ -46,10 +46,12 @@ public class UserController : ControllerBase
         Items.Add(item.Id, item);
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
+        var userDeleted= new UserDeleted { UserId = item.Id, UserName = item.Name };
         //_eventPublisherManager.Publish(userCreated);
         
         var eventPath = userCreated.GetType().Name;
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.RabbitMq, eventPath);
+        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, eventPath);
+        var succussfullySent1 = _eventSenderManager.Send(userDeleted, EventProviderType.MessageBroker, eventPath);
         
         return Ok();
     }

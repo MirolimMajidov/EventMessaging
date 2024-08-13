@@ -6,11 +6,12 @@ using EventStorage.Inbox.Managers;
 using EventStorage.Inbox.Providers;
 using EventStorage.Inbox.Repositories;
 using EventStorage.Models;
-using EventStorage.Models.Inbox.Providers;
 using EventStorage.Outbox;
 using EventStorage.Outbox.BackgroundServices;
 using EventStorage.Outbox.Managers;
+using EventStorage.Outbox.Models;
 using EventStorage.Outbox.Providers;
+using EventStorage.Outbox.Providers.EventProviders;
 using EventStorage.Outbox.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -127,65 +128,119 @@ public static class EventStoreExtensions
 
     private static void RegisterAllEventsOfOutbox(EventsPublisherManager publisherManager, Assembly[] assemblies)
     {
-        var outboxEventTypes = GetPublisherHandlerTypes(assemblies);
+        var (globalPublisherHandlers, publisherHandlers) = GetPublisherHandlerTypes(assemblies);
 
-        foreach (var (eventType, publisherType, provider) in outboxEventTypes)
-            publisherManager.AddPublisher(eventType, publisherType, provider);
+        var allSendTypes = GetSendTypes(assemblies);
+        foreach ((Type sendType, bool hasHeaders, bool hasAdditionalData) in allSendTypes)
+        {
+            foreach (var (publisherType, provider) in globalPublisherHandlers)
+                publisherManager.AddPublisher(sendType, publisherType, provider, hasHeaders, hasAdditionalData,
+                    isGlobalPublisher: true);
+
+            if (publisherHandlers.TryGetValue(sendType.Name,
+                    out (Type publisherType, EventProviderType provider) publisher))
+                publisherManager.AddPublisher(sendType, publisher.publisherType, publisher.provider, hasHeaders,
+                    hasAdditionalData, isGlobalPublisher: false);
+        }
     }
 
     private static void RegisterAllEventsOfOutboxToDI(IServiceCollection services, Assembly[] assemblies)
     {
-        var outboxEventTypes = GetPublisherHandlerTypes(assemblies);
-        foreach (var (_, publisherType, _) in outboxEventTypes)
+        var (globalPublisherHandlers, publisherHandlers) = GetPublisherHandlerTypes(assemblies);
+        foreach (var (publisherType, _) in globalPublisherHandlers)
             services.AddTransient(publisherType);
+
+        foreach (var publisher in publisherHandlers)
+            services.AddTransient(publisher.Value.publisherType);
     }
 
-    static readonly Type PublishEventType = typeof(IEventPublisher<>);
-    static readonly Type RabbitMqEventType = typeof(IRabbitMqEventPublisher<>);
-    static readonly Type EmailEventType = typeof(IEmailEventPublisher<>);
-    static readonly Type SmsEventType = typeof(ISmsEventPublisher<>);
-    static readonly Type WebHookEventType = typeof(IWebHookEventPublisher<>);
+    private static readonly Type SendEventType = typeof(ISendEvent);
+    private static readonly Type HasHeadersType = typeof(IHasHeaders);
+    private static readonly Type HasAdditionalDataType = typeof(IHasAdditionalData);
 
-    private static List<(Type eventType, Type publisherType, EventProviderType provider)> GetPublisherHandlerTypes(
+    private static List<(Type sendType, bool hasHeaders, bool hasAdditionalData)> GetSendTypes(
         Assembly[] assemblies)
     {
-        List<(Type eventType, Type publisherType, EventProviderType provider)> subscriberHandlerTypes = new();
-        if (assemblies is not null)
+        var sentTypes = new List<(Type sendType, bool hasHeaders, bool hasAdditionalData)>();
+
+        if (assemblies != null)
         {
             var allTypes = assemblies
                 .SelectMany(a => a.GetTypes())
-                .Where(t => t is { IsClass: true, IsAbstract: false });
+                .Where(t => t.IsClass && !t.IsAbstract);
+
+            foreach (var type in allTypes)
+            {
+                if (SendEventType.IsAssignableFrom(type))
+                {
+                    var hasHeaders = HasHeadersType.IsAssignableFrom(type);
+                    var hasAdditionalData = HasAdditionalDataType.IsAssignableFrom(type);
+                    sentTypes.Add((type, hasHeaders, hasAdditionalData));
+                }
+            }
+        }
+
+        return sentTypes;
+    }
+
+    private static readonly Dictionary<Type, EventProviderType> GlobalEventProviderTypes = new()
+    {
+        { typeof(IMessageBrokerEventPublisher), EventProviderType.MessageBroker },
+        { typeof(ISmsEventPublisher), EventProviderType.Sms },
+        { typeof(IEmailEventPublisher), EventProviderType.Email },
+        { typeof(IWebHookEventPublisher), EventProviderType.WebHook },
+        { typeof(IGrpcEventPublisher), EventProviderType.gRPC },
+        { typeof(IUnknownEventPublisher), EventProviderType.Unknown }
+    };
+
+    private static readonly Dictionary<Type, EventProviderType> EventProviderTypes = new()
+    {
+        { typeof(IMessageBrokerEventPublisher<>), EventProviderType.MessageBroker },
+        { typeof(ISmsEventPublisher<>), EventProviderType.Sms },
+        { typeof(IEmailEventPublisher<>), EventProviderType.Email },
+        { typeof(IWebHookEventPublisher<>), EventProviderType.WebHook },
+        { typeof(IGrpcEventPublisher<>), EventProviderType.gRPC },
+        { typeof(IUnknownEventPublisher<>), EventProviderType.Unknown }
+    };
+
+    private static (List<(Type publisherType, EventProviderType provider)> globalPublisherHandlers,
+        Dictionary<string, (Type publisherType, EventProviderType provider)> publisherHandlers)
+        GetPublisherHandlerTypes(
+            Assembly[] assemblies)
+    {
+        var globalPublisherHandlerTypes = new List<(Type publisherType, EventProviderType provider)>();
+        var publisherHandlerTypes = new Dictionary<string, (Type publisherType, EventProviderType provider)>();
+
+        if (assemblies != null)
+        {
+            var allTypes = assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.IsClass && !t.IsAbstract);
+
             foreach (var publisherType in allTypes)
             {
                 foreach (var implementedInterface in publisherType.GetInterfaces())
                 {
                     if (implementedInterface.IsGenericType)
                     {
-                        EventProviderType provider;
                         var genericType = implementedInterface.GetGenericTypeDefinition();
-                        if (genericType == RabbitMqEventType)
-                            provider = EventProviderType.RabbitMq;
-                        else if (genericType == EmailEventType)
-                            provider = EventProviderType.Email;
-                        else if (genericType == SmsEventType)
-                            provider = EventProviderType.Email;
-                        else if (genericType == WebHookEventType)
-                            provider = EventProviderType.WebHook;
-                        else if (genericType == PublishEventType)
-                            provider = EventProviderType.Unknown;
-                        else
-                            continue;
 
-                        var eventType = implementedInterface.GetGenericArguments().Single();
-                        subscriberHandlerTypes.Add((eventType, publisherType, provider));
-
-                        break;
+                        if (EventProviderTypes.TryGetValue(genericType, out var provider))
+                        {
+                            var eventType = implementedInterface.GetGenericArguments().Single();
+                            publisherHandlerTypes.Add(eventType.Name, (publisherType, provider));
+                            break;
+                        }
+                    }
+                    else if (GlobalEventProviderTypes.TryGetValue(implementedInterface, out var provider))
+                    {
+                        globalPublisherHandlerTypes.Add((publisherType, provider));
                     }
                 }
             }
         }
 
-        return subscriberHandlerTypes;
+        return (globalPublisherHandlerTypes, publisherHandlerTypes);
     }
 
     #endregion
@@ -207,46 +262,41 @@ public static class EventStoreExtensions
             services.AddTransient(receiverType);
     }
 
-    static readonly Type EventReceiveType = typeof(IEventReceiver<>);
-    static readonly Type RabbitMqReceiveEventType = typeof(IRabbitMqEventReceiver<>);
-    static readonly Type EmailReceiveEventType = typeof(IEmailEventReceiver<>);
-    static readonly Type SmsReceiveEventType = typeof(ISmsEventReceiver<>);
-    static readonly Type WebHookReceiveEventType = typeof(IWebHookEventReceiver<>);
+    private static readonly Dictionary<Type, EventProviderType> ReceiveEventTypesMap = new()
+    {
+        { typeof(IMessageBrokerEventReceiver<>), EventProviderType.MessageBroker },
+        { typeof(IEmailEventReceiver<>), EventProviderType.Email },
+        { typeof(ISmsEventReceiver<>), EventProviderType.Sms },
+        { typeof(IWebHookEventReceiver<>), EventProviderType.WebHook },
+        { typeof(IGrpcEventReceiver<>), EventProviderType.gRPC },
+        { typeof(IUnknownEventReceiver<>), EventProviderType.Unknown }
+    };
 
     private static List<(Type eventType, Type receiverType, EventProviderType provider)> GetReceiverHandlerTypes(
         Assembly[] assemblies)
     {
-        List<(Type eventType, Type receiverType, EventProviderType provider)> receiverHandlerTypes = new();
-        if (assemblies is not null)
+        var receiverHandlerTypes = new List<(Type eventType, Type receiverType, EventProviderType provider)>();
+
+        if (assemblies != null)
         {
             var allTypes = assemblies
                 .SelectMany(a => a.GetTypes())
-                .Where(t => t is { IsClass: true, IsAbstract: false });
-            foreach (var publisherType in allTypes)
+                .Where(t => t.IsClass && !t.IsAbstract);
+
+            foreach (var receiverType in allTypes)
             {
-                foreach (var implementedInterface in publisherType.GetInterfaces())
+                foreach (var implementedInterface in receiverType.GetInterfaces())
                 {
                     if (implementedInterface.IsGenericType)
                     {
-                        EventProviderType provider;
                         var genericType = implementedInterface.GetGenericTypeDefinition();
-                        if (genericType == RabbitMqReceiveEventType)
-                            provider = EventProviderType.RabbitMq;
-                        else if (genericType == EmailReceiveEventType)
-                            provider = EventProviderType.Email;
-                        else if (genericType == SmsReceiveEventType)
-                            provider = EventProviderType.Email;
-                        else if (genericType == WebHookReceiveEventType)
-                            provider = EventProviderType.WebHook;
-                        else if (genericType == EventReceiveType)
-                            provider = EventProviderType.Unknown;
-                        else
-                            continue;
 
-                        var eventType = implementedInterface.GetGenericArguments().Single();
-                        receiverHandlerTypes.Add((eventType, publisherType, provider));
-
-                        break;
+                        if (ReceiveEventTypesMap.TryGetValue(genericType, out var provider))
+                        {
+                            var eventType = implementedInterface.GetGenericArguments().Single();
+                            receiverHandlerTypes.Add((eventType, receiverType, provider));
+                            break;
+                        }
                     }
                 }
             }
