@@ -1,4 +1,6 @@
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Subscribers.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +27,10 @@ internal class RabbitMQConnection : IRabbitMQConnection
     public RabbitMQConnection(BaseEventOptions connectionOptions, IServiceProvider serviceProvider)
     {
         _connectionOptions = connectionOptions;
-        _connectionFactory = new ConnectionFactory
+        var connectionFactory = new ConnectionFactory
         {
             HostName = connectionOptions.HostName,
-            Port = (int)connectionOptions.HostPort!,
+            Port = connectionOptions.HostPort!.Value,
             VirtualHost = connectionOptions.VirtualHost,
             UserName = connectionOptions.UserName,
             Password = connectionOptions.Password,
@@ -36,6 +38,34 @@ internal class RabbitMQConnection : IRabbitMQConnection
         };
 
         _logger = serviceProvider.GetRequiredService<ILogger<RabbitMQConnection>>();
+        if (connectionOptions.UseTls == true)
+        {
+            connectionFactory.Ssl = new SslOption()
+            {
+                Enabled = true,
+                ServerName = connectionOptions.HostName,
+                CertificateValidationCallback = (_, _, _, _) => true,
+                Version = SslProtocols.Tls,
+                Certs =
+                [
+                    X509Certificate2.CreateFromPemFile(connectionOptions.ClientCertPath,
+                        connectionOptions.ClientKeyPath)
+                ]
+            };
+
+            if (string.IsNullOrEmpty(connectionOptions.ClientCertPath))
+                _logger.LogError(
+                    "Using the UseTls (TLS protocol) is enabled for the {VirtualHost} virtual host of {HostName} host, but the ClientCertPath is not set.",
+                    connectionOptions.VirtualHost, connectionOptions.HostName);
+            
+            if (string.IsNullOrEmpty(connectionOptions.ClientKeyPath))
+                _logger.LogError(
+                    "Using the UseTls (TLS protocol) is enabled for the {VirtualHost} virtual host of {HostName} host, but the ClientKeyPath is not set.",
+                    connectionOptions.VirtualHost, connectionOptions.HostName);
+        }
+
+        _connectionFactory = connectionFactory;
+
         RetryConnectionCount = (int)connectionOptions.RetryConnectionCount!;
 
         string connectionDetail;
@@ -43,8 +73,9 @@ internal class RabbitMQConnection : IRabbitMQConnection
             connectionDetail = $"'{subscriberOptions.QueueName}' queue of subscribers/receivers";
         else
             connectionDetail = $"'{connectionOptions.ExchangeName}' exchange of publishers";
-        
-        _connectTitle = $"The RabbitMQ connection is opened for the {connectionDetail} on the '{connectionOptions.HostName}' host's '{connectionOptions.VirtualHost}' virtual host.";
+
+        _connectTitle =
+            $"The RabbitMQ connection is opened for the {connectionDetail} on the '{connectionOptions.HostName}' host's '{connectionOptions.VirtualHost}' virtual host.";
     }
 
     readonly object _lockOpenConnection = new();
@@ -55,7 +86,9 @@ internal class RabbitMQConnection : IRabbitMQConnection
         {
             if (IsConnected) return true;
 
-            _logger.LogTrace("RabbitMQ Client is trying to connect to the {VirtualHost} virtual host of {HostName} RabbitMQ host", _connectionOptions.VirtualHost, _connectionOptions.HostName);
+            _logger.LogTrace(
+                "RabbitMQ Client is trying to connect to the {VirtualHost} virtual host of {HostName} RabbitMQ host",
+                _connectionOptions.VirtualHost, _connectionOptions.HostName);
 
             var policy = Policy.Handle<SocketException>()
                 .Or<BrokerUnreachableException>()
@@ -64,7 +97,8 @@ internal class RabbitMQConnection : IRabbitMQConnection
                     {
                         _logger.LogWarning(ex,
                             "RabbitMQ client could not connect to the {VirtualHost} virtual host of {HostName} RabbitMQ host after {TimeOut}s ({ExceptionMessage})",
-                            _connectionOptions.VirtualHost, _connectionOptions.HostName, $"{time.TotalSeconds:n1}", ex.Message);
+                            _connectionOptions.VirtualHost, _connectionOptions.HostName, $"{time.TotalSeconds:n1}",
+                            ex.Message);
                     }
                 );
 
@@ -81,7 +115,9 @@ internal class RabbitMQConnection : IRabbitMQConnection
                 return true;
             }
 
-            _logger.LogCritical("FATAL ERROR: Connection to the {VirtualHost} virtual host of {HostName} RabbitMQ host could not be created and opened", _connectionOptions.VirtualHost, _connectionOptions.HostName);
+            _logger.LogCritical(
+                "FATAL ERROR: Connection to the {VirtualHost} virtual host of {HostName} RabbitMQ host could not be created and opened",
+                _connectionOptions.VirtualHost, _connectionOptions.HostName);
             return false;
         }
     }
@@ -110,7 +146,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
     public IModel CreateChannel()
     {
         TryConnect();
-        
+
         if (!IsConnected)
             throw new InvalidOperationException(
                 $"RabbitMQ connection is not opened yet to the {_connectionOptions.VirtualHost} virtual host of {_connectionOptions.HostName}.");

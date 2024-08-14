@@ -59,6 +59,12 @@ internal static class RabbitMQOptionsConstant
     const string PropertyNamingPolicy = "PascalCase";
 
     /// <summary>
+    /// Indicates whether TLS/SSL should be used for the connection.
+    /// When set to true, the connection will be secured using TLS/SSL.
+    /// </summary>
+    const bool UseTls = false;
+
+    /// <summary>
     /// Clone/Copying settings
     /// </summary>
     /// <returns>Returns a new copy of settings</returns>
@@ -77,6 +83,7 @@ internal static class RabbitMQOptionsConstant
             RoutingKey = RoutingKey,
             RetryConnectionCount = RetryConnectionCount,
             PropertyNamingPolicy = PropertyNamingPolicy,
+            UseTls = UseTls
         };
     }
 }

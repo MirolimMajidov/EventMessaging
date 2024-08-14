@@ -166,8 +166,39 @@ A section may have the following subsections: <br/>
 `Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
 
+##### Can we use the TLS protocol while publishing events or subscribing to the events?
+Yes, we can. For that we need to just enable the using the TLS protocol by adding the options below to the `DefaultSettings` if we want to use that in all events, or add them to the specific publishing or subscribing event:
+
+```
+"RabbitMQSettings": {
+    "DefaultSettings": {
+      //your settings
+      "UseTls": true,
+      "ClientCertPath": "path/to/client-cert.pem",
+      "ClientKeyPath": "path/to/client-key.pem",
+    },
+    "Publishers": {
+      "UserUpdated": {
+          //your settings
+          "UseTls": true,
+          "ClientCertPath": "path/to/client-cert.pem",
+          "ClientKeyPath": "path/to/client-key.pem",
+      }
+    },
+    "Subscribers": {
+      "UserDeleted": {
+          //your settings
+          "UseTls": true,
+          "ClientCertPath": "path/to/client-cert.pem",
+          "ClientKeyPath": "path/to/client-key.pem",
+      }
+    }
+  }
+```
+
 #### Customizing the event type of publishing/subscribing event:
 While publishing or subscribing an event by default it uses the Name of event structure. For example, if you add an event named `UserUpdated`, while publishing or subscribing/receiving that `UserUpdated` name as event type will be used. But if you want you can overwrite the event type by added event type name to the config file:
+
 ```
 "RabbitMQSettings": {
     "DefaultSettings": {

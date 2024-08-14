@@ -55,6 +55,24 @@ public abstract class BaseEventOptions
     /// Naming police for serializing and deserializing properties of Event. Default value is "PascalCase". It can be one of "PascalCase", "CamelCase", "SnakeCaseLower", "SnakeCaseUpper", "KebabCaseLower", or "KebabCaseUpper".
     /// </summary>
     public string PropertyNamingPolicy { get; set; }
+    
+    /// <summary>
+    /// Indicates whether TLS/SSL should be used for the connection.
+    /// When set to true, the connection will be secured using TLS/SSL.
+    /// </summary>
+    public bool? UseTls { get; set; }
+
+    /// <summary>
+    /// The file path to the client's certificate used for TLS/SSL authentication.
+    /// This certificate is typically used to prove the identity of the client to the server.
+    /// </summary>
+    public string ClientCertPath { get; set; }
+
+    /// <summary>
+    /// The file path to the client's private key associated with the client certificate.
+    /// This key is used to establish a secure TLS/SSL connection and must correspond to the certificate specified in <see cref="ClientCertPath"/>.
+    /// </summary>
+    public string ClientKeyPath { get; set; }
 
     /// <summary>
     /// Overwriting settings
