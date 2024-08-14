@@ -22,7 +22,6 @@ internal class EventsReceiverManager : IEventsReceiverManager
     private readonly Dictionary<string, (Type eventType, Type eventReceiverType, string providerType, bool hasHeaders, bool hasAdditionalData)> _receivers;
 
     private const string ReceiverMethodName = nameof(IEventReceiver<IReceiveEvent>.Receive);
-    private static readonly int TryAfterMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
     
     private static readonly Type HasHeadersType = typeof(IHasHeaders);
     private static readonly Type HasAdditionalDataType = typeof(IHasAdditionalData);
@@ -120,7 +119,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
                 }
                 else
                 {
-                    @event.Failed(0, TryAfterMinutes);
+                    @event.Failed(0, _settings.TryAfterMinutesIfEventNotFound);
                     _logger.LogError(
                         "The {EventType} inbox event with ID {EventId} requested to receive with {ProviderType} provider, but that is configured to receive with the {ConfiguredProviderType} provider.",
                         @event.EventName, @event.Id, @event.Provider, info.providerType);
@@ -128,7 +127,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
             }
             else
             {
-                @event.Failed(0, TryAfterMinutes);
+                @event.Failed(0, _settings.TryAfterMinutesIfEventNotFound);
                 _logger.LogWarning(
                     "No publish provider configured for the {EventType} inbox event with ID: {EventId}.",
                     @event.EventName, @event.Id);

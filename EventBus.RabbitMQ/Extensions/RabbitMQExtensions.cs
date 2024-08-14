@@ -32,12 +32,11 @@ public static class RabbitMQExtensions
         Action<EventSubscriberManagerOptions> eventSubscriberManagerOptions = null,
         Action<InboxAndOutboxOptions> eventStoreOptions = null)
     {
+        services.AddEventStore(configuration, assemblies: assemblies, options: eventStoreOptions);
+        
         var settings = configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>();
         var defaultSettings = GetDefaultRabbitMQOptions(settings);
         defaultOptions?.Invoke(defaultSettings);
-        
-        services.AddEventStore(configuration, assemblies: assemblies, options: eventStoreOptions);
-        
         if(!defaultSettings.IsEnabled) return;
         
         services.AddSingleton(defaultSettings);

@@ -121,7 +121,7 @@ internal class EventsPublisherManager : IEventsPublisherManager
             }
             else
             {
-                @event.Failed(0, TryAfterOneDay);
+                @event.Failed(0, _settings.TryAfterMinutesIfEventNotFound);
                 _logger.LogWarning(
                     "The {EventType} outbox event with ID {EventId} requested to publish with {ProviderType} provider, but no publisher configured for this event.",
                     @event.EventName, @event.Id, @event.Provider);

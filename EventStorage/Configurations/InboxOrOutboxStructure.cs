@@ -28,6 +28,11 @@ public record InboxOrOutboxStructure
     public int TryAfterMinutes { get; set; } = 5;
 
     /// <summary>
+    /// For increasing the TryAfterAt to amount of minutes if the event not found to publish or receive. Default value is "60".
+    /// </summary>
+    public int TryAfterMinutesIfEventNotFound { get; set; } = 60;
+
+    /// <summary>
     /// Seconds to delay for processing events. Default value is "1".
     /// </summary>
     public int SecondsToDelayProcessEvents { get; set; } = 1;
