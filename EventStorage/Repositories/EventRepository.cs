@@ -39,9 +39,6 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     ""ProcessedAt"" TIMESTAMP(0) DEFAULT NULL
                 );
 
-                ALTER TABLE public.""{_tableName}""
-                    OWNER TO admin;
-
                 CREATE INDEX IF NOT EXISTS idx_for_get_unprocessed_events
                     ON public.""{_tableName}"" (""ProcessedAt"", ""TryAfterAt"");
 
