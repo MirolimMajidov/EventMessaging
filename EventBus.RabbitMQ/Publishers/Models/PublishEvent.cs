@@ -9,11 +9,11 @@ public abstract record PublishEvent : IPublishEvent
 {
     public PublishEvent(Guid? id = null)
     {
-        EventId = id ?? Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
         CreatedAt = DateTime.Now;
     }
 
-    public Guid EventId { get; }
+    public Guid Id { get; }
 
     public DateTime CreatedAt { get; }
 

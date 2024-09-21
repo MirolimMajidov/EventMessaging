@@ -44,14 +44,14 @@ internal class EventReceiverManager : IEventReceiverManager
 
             var payload = SerializeData(receivedEvent);
 
-            return Received(receivedEventType, eventPath, receivedEvent.EventId, eventProvider, payload, headers,
+            return Received(receivedEvent.Id, receivedEventType, eventPath, eventProvider, payload, headers,
                 additionalData);
         }
         catch (Exception e) when (e is not EventStoreException)
         {
             _logger.LogError(e,
                 "Error while serializing data of the {EventType} received event with the {EventId} id to store to the the table of Inbox.",
-                receivedEventType, receivedEvent.EventId);
+                receivedEventType, receivedEvent.Id);
             throw;
         }
 
@@ -70,19 +70,19 @@ internal class EventReceiverManager : IEventReceiverManager
         {
             var payload = SerializeData(receivedEvent);
 
-            return Received(receivedEventType, eventPath, receivedEvent.EventId, eventProvider, payload, headers,
+            return Received(receivedEvent.Id, receivedEventType, eventPath, eventProvider, payload, headers,
                 additionalData);
         }
         catch (Exception e) when (e is not EventStoreException)
         {
             _logger.LogError(e,
                 "Error while serializing data of the {EventType} received event with the {EventId} id to store to the the table of Inbox.",
-                receivedEventType, receivedEvent.EventId);
+                receivedEventType, receivedEvent.Id);
             throw;
         }
     }
 
-    public bool Received(string eventName, string eventPath, Guid eventId, EventProviderType eventProvider,
+    public bool Received(Guid eventId, string eventTypeName, string eventPath, EventProviderType eventProvider,
         string payload, string headers, string additionalData = null)
     {
         try
@@ -91,7 +91,7 @@ internal class EventReceiverManager : IEventReceiverManager
             {
                 Id = eventId,
                 Provider = eventProvider.ToString(),
-                EventName = eventName,
+                EventName = eventTypeName,
                 EventPath = eventPath,
                 Payload = payload,
                 Headers = headers,
@@ -102,7 +102,7 @@ internal class EventReceiverManager : IEventReceiverManager
             if (!successfullyInserted)
                 _logger.LogWarning(
                     "The {EventType} event type with the {EventId} id is already added to the table of Inbox.",
-                    eventName, eventId);
+                    eventTypeName, eventId);
 
             return successfullyInserted;
         }
@@ -110,7 +110,7 @@ internal class EventReceiverManager : IEventReceiverManager
         {
             _logger.LogError(e,
                 "Error while entering the {EventType} event type with the {EventId} id to the table of Inbox.",
-                eventName, eventId);
+                eventTypeName, eventId);
             throw;
         }
     }

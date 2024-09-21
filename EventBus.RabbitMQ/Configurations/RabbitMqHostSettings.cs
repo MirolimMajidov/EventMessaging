@@ -44,14 +44,14 @@ public class RabbitMqHostSettings
     public string ExchangeType { get; set; } = null;
 
     /// <summary>
-    /// The routing key to use for message routing in RabbitMQ. Default value is "DefaultRoutingKey".
-    /// </summary>
-    public string RoutingKey { get; set; } = null;
-
-    /// <summary>
-    /// The name of the queue to use in RabbitMQ. Default value is "DefaultQueue".
+    /// The name of the queue to use in RabbitMQ.
     /// </summary>
     public string QueueName { get; set; } = null;
+
+    /// <summary>
+    /// The routing key to use for message routing in RabbitMQ.
+    /// </summary>
+    public string RoutingKey { get; set; } = null;
 
     /// <summary>
     /// Optional queue arguments, also known as "x-arguments" because of their field name in the AMQP 0-9-1 protocol, is a map (dictionary) of arbitrary key/value pairs that can be provided by clients when a queue is declared.

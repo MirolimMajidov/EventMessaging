@@ -64,7 +64,7 @@ Start creating a structure of event to send. Your record must implement the `ISe
 ```
 public record UserDeleted : ISendEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid Id { get; } = Guid.NewGuid();
     
     public Guid UserId { get; init; }
     
@@ -134,7 +134,7 @@ Start creating a structure of event to send. Your record must implement the `ISe
 ```
 public record UserCreated : ISendEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid Id { get; } = Guid.NewGuid();
     
     public Guid UserId { get; init; }
     
@@ -220,7 +220,7 @@ Yes, there is a way to do that. For that, we need to just implement `IHasAdditio
 ```
 public record UserCreated : ISendEvent, IHasAdditionalData
 {
-    public Guid EventId { get; }= Guid.NewGuid();
+    public Guid Id { get; }= Guid.NewGuid();
     
     public Guid UserId { get; init; } 
     
@@ -266,7 +266,7 @@ Start creating a structure of event to receive. Your record must implement the `
 ```
 public record UserCreated : IReceiveEvent
 {
-    public Guid EventId { get; init; }
+    public Guid Id { get; init; }
     
     public Guid UserId { get; init; }
     

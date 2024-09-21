@@ -32,7 +32,7 @@ internal class EventSenderManager : IEventSenderManager
         {
             var _event = new OutboxEvent
             {
-                Id = @event.EventId,
+                Id = @event.Id,
                 Provider = eventProvider.ToString(),
                 EventName = @event.GetType().Name,
                 EventPath = eventPath,
@@ -60,7 +60,7 @@ internal class EventSenderManager : IEventSenderManager
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while collecting the {EventType} event type with the {EventId} id to store the Outbox table.",  eventName, @event.EventId);
+            _logger.LogError(e, "Error while collecting the {EventType} event type with the {EventId} id to store the Outbox table.",  eventName, @event.Id);
             throw;
         }
     }

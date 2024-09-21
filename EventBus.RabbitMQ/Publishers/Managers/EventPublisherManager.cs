@@ -146,7 +146,7 @@ internal class EventPublisherManager : IEventPublisherManager
             using var channel = CreateRabbitMqChannel(eventSettings);
 
             var properties = channel.CreateBasicProperties();
-            properties.MessageId = @event.EventId.ToString();
+            properties.MessageId = @event.Id.ToString();
             properties.Type = eventSettings.EventTypeName;
             if (@event.Headers?.Any() == true)
             {

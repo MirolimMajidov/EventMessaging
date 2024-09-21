@@ -4,7 +4,7 @@ namespace EventStorage.Tests.Domain;
 
 public class SimpleEntityWasCreated : IReceiveEvent
 {
-    public Guid EventId { get; set; }
+    public Guid Id { get; set; }
 
     public string Type { get; set; }
     public DateTime Date { get; set; }
