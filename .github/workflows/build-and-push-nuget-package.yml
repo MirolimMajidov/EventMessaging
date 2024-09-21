@@ -1,0 +1,27 @@
+name: Build abd publish NuGet package
+
+on:
+  workflow_call:
+    inputs:
+      package_name:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      project_file_path:
+        required: true
+        type: string
+
+    secrets:
+      dockerhub_username:
+        required: true
+      dockerhub_token:
+        required: true
+
+jobs:
+  Staging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
