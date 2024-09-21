@@ -38,7 +38,7 @@ public class EventSenderManagerTests
         // Arrange
         var senderEvent = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -63,7 +63,7 @@ public class EventSenderManagerTests
         // Arrange
         var senderEvent = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -94,7 +94,7 @@ public class EventSenderManagerTests
         };
         var senderEvent = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now,
@@ -126,14 +126,14 @@ public class EventSenderManagerTests
         // Arrange/Given
         var senderEvent1 = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
         };
         var senderEvent2 = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -169,14 +169,14 @@ public class EventSenderManagerTests
         // Arrange/Given
         var senderEvent1 = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
         };
         var senderEvent2 = new SimpleSendEventCreated
         {
-            EventId = Guid.NewGuid(),
+            Id = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now

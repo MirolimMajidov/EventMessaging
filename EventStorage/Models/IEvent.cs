@@ -3,7 +3,7 @@ namespace EventStorage.Models;
 public interface IEvent
 {
     /// <summary>
-    /// Id of event
+    /// The id of event
     /// </summary>
-    public Guid EventId { get; }
+    public Guid Id { get; }
 }

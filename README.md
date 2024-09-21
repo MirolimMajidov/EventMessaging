@@ -104,7 +104,7 @@ public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
 
     public async Task<bool> Receive(UserCreated @event)
     {
-        _logger.LogInformation("EventId ({EventId}): '{UserName}' user is created with the {UserId} id", @event.EventId,
+        _logger.LogInformation("Id ({Id}): '{UserName}' user is created with the {UserId} id", @event.Id,
             @event.UserName, @event.UserId);
 
         return await Task.FromResult(true);
@@ -556,14 +556,14 @@ Start creating a structure of event to send. Your record must implement the `ISe
 ```
 public record UserDeleted : ISendEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid Id { get; } = Guid.NewGuid();
     
     public Guid UserId { get; init; }
     
     public string UserName { get; init; }
 }
 ```
-The `EventId` property is required, the other property can be added based on your business logic.<br/>
+The `Id` property is required, the other property can be added based on your business logic.<br/>
 
 Since the library doesn't know about the actual sending of events, we need to create an event publisher specific to the type of event we want to publish. Add an event publisher by inheriting `IWebHookEventPublisher` and your `UserDeleted` event to manage a publishing event using the WebHook.
 
@@ -626,7 +626,7 @@ Start creating a structure of event to send. Your record must implement the `ISe
 ```
 public record UserCreated : ISendEvent
 {
-    public Guid EventId { get; } = Guid.NewGuid();
+    public Guid Id { get; } = Guid.NewGuid();
     
     public Guid UserId { get; init; }
     
@@ -712,7 +712,7 @@ Yes, there is a way to do that. For that, we need to just implement `IHasAdditio
 ```
 public record UserCreated : ISendEvent, IHasAdditionalData
 {
-    public Guid EventId { get; }= Guid.NewGuid();
+    public Guid Id { get; }= Guid.NewGuid();
     
     public Guid UserId { get; init; } 
     
@@ -758,7 +758,7 @@ Start creating a structure of event to receive. Your record must implement the `
 ```
 public record UserCreated : IReceiveEvent
 {
-    public Guid EventId { get; init; }
+    public Guid Id { get; init; }
     
     public Guid UserId { get; init; }
     
@@ -782,7 +782,7 @@ public class UserCreatedReceiver : IRabbitMqEventReceiver<UserCreated>
 
     public async Task<bool> Receive(UserCreated @event)
     {
-        _logger.LogInformation("EventId ({EventId}): {UserName} user is created with the {UserId} id", @event.EventId,
+        _logger.LogInformation("Id ({Id}): {UserName} user is created with the {UserId} id", @event.Id,
             @event.UserName, @event.UserId);
         //Add your logic in here
         

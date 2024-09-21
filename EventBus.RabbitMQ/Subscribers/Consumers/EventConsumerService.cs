@@ -92,6 +92,7 @@ internal class EventConsumerService : IEventConsumerService
     private async Task Consumer_Received(object sender, BasicDeliverEventArgs eventArgs)
     {
         var eventType = eventArgs.BasicProperties.Type ?? eventArgs.RoutingKey;
+        var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
         try
         {
             if (_subscribers.TryGetValue(eventType,
@@ -100,7 +101,6 @@ internal class EventConsumerService : IEventConsumerService
                 _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType,
                     eventArgs.BasicProperties.MessageId);
                 var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
-                var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var receivedEvent =
                     JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as ISubscribeEvent;
                 var headers = GetEventHeaders();
@@ -122,7 +122,7 @@ internal class EventConsumerService : IEventConsumerService
 
                     _logger.LogWarning(
                         "The RabbitMQ is configured to use the Inbox for received events, but the Inbox functionality of the EventStorage is not enabled. So, the {EventSubscriber} event subscriber of an event will be executed immediately for the event id: {EventId};",
-                        info.eventHandlerType.Name, receivedEvent!.EventId);
+                        info.eventHandlerType.Name, receivedEvent!.Id);
                 }
 
                 receivedEvent!.Headers = headers;
@@ -135,15 +135,15 @@ internal class EventConsumerService : IEventConsumerService
             else
             {
                 _logger.LogWarning(
-                    "No subscription for RabbitMQ {EventType} event with the {RoutingKey} routing key and {EventId} event id.",
-                    eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
+                    "No subscription for '{EventType}' event with the '{RoutingKey}' routing key and '{EventId}' event id. Event body: '{EventMessage}'",
+                    eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId, message);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "----- ERROR on receiving {EventType} event type with the {RoutingKey} routing key and {EventId} event id.",
-                eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId);
+                "----- ERROR on receiving '{EventType}' event type with the '{RoutingKey}' routing key and '{EventId}' event id. Event body: '{EventMessage}'",
+                eventType, eventArgs.RoutingKey, eventArgs.BasicProperties.MessageId, message);
         }
 
         void MarkEventIsDelivered()

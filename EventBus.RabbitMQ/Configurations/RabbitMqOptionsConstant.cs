@@ -1,4 +1,3 @@
-
 using EventBus.RabbitMQ.Models;
 
 namespace EventBus.RabbitMQ.Configurations;
@@ -39,16 +38,11 @@ internal static class RabbitMqOptionsConstant
     /// The type of the exchange to use in RabbitMQ. Default value is "topic". It can be one of "direct", "fanout", or "topic".
     /// </summary>
     const string ExchangeType = "topic";
-    
-    /// <summary>
-    /// The name of the queue to use in RabbitMQ. Default value is "DefaultQueue".
-    /// </summary>
-    const string QueueName = "DefaultQueue";
 
     /// <summary>
-    /// The routing key to use for message routing in RabbitMQ. Default value is "DefaultRoutingKey".
+    /// The name of the queue to use in RabbitMQ.
     /// </summary>
-    const string RoutingKey = "DefaultRoutingKey";
+    public const string QueueName = "DefaultQueue";
 
     /// <summary>
     /// Retry count to connect to the RabbitMQ. Default value is "3".
@@ -76,8 +70,6 @@ internal static class RabbitMqOptionsConstant
             Password = Password,
             ExchangeName = ExchangeName,
             ExchangeType = ExchangeType,
-            QueueName = QueueName,
-            RoutingKey = RoutingKey,
             RetryConnectionCount = RetryConnectionCount,
             PropertyNamingPolicy = PropertyNamingPolicyType.PascalCase,
             UseTls = UseTls
