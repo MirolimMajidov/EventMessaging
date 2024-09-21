@@ -23,10 +23,10 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore EventMessaging.sln
         
-      - name: Build the CBS solution in Debug mode
+      - name: Build the Event messaging solution in Debug mode
         if: github.event_name == 'pull_request'
         run: dotnet build EventMessaging.sln --configuration Debug --no-restore
         
-      - name: Build the CBS solution in Release mode
+      - name: Build the Event messaging solution in Release mode
         if: github.event_name != 'pull_request'
         run: dotnet build EventMessaging.sln --configuration Release --no-restore
