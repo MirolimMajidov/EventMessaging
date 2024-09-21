@@ -2,12 +2,12 @@ name: Release Event storage
 
 on:
   push:
-    branches: [ "deploy-dev" ]
+    branches: [ "main" ]
     paths:
       - EventStorage/**
       - .github/workflows/release-event-storage.yml
       - .github/workflows/service-versioning.yml
-      - .github/workflows/service-build-and-push-docker-image.yml
+      - .github/workflows/build-and-push-nuget-package.yml
   workflow_dispatch:
 
 permissions:
