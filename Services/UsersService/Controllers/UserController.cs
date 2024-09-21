@@ -46,12 +46,10 @@ public class UserController : ControllerBase
         Items.Add(item.Id, item);
 
         var userCreated = new UserCreated { UserId = item.Id, UserName = item.Name };
-        var userDeleted= new UserDeleted { UserId = item.Id, UserName = item.Name };
         //_eventPublisherManager.Publish(userCreated);
         
         var eventPath = userCreated.GetType().Name;
-        var succussfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, eventPath);
-        var succussfullySent1 = _eventSenderManager.Send(userDeleted, EventProviderType.MessageBroker, eventPath);
+        var successfullySent = _eventSenderManager.Send(userCreated, EventProviderType.MessageBroker, eventPath);
         
         return Ok();
     }
@@ -79,7 +77,10 @@ public class UserController : ControllerBase
 
         var userDeleted = new UserDeleted { UserId = item.Id, UserName = item.Name };
         var url = "https:example.com/api/users";
-        var succussfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.WebHook, url);
+        var successfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.WebHook, url);
+        
+        var eventPath = userDeleted.GetType().Name;
+        successfullySent = _eventSenderManager.Send(userDeleted, EventProviderType.MessageBroker, eventPath);
         
         Items.Remove(id);
         return Ok(item);
