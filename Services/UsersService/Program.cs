@@ -1,18 +1,36 @@
+using EventBus.RabbitMQ.Configurations;
 using EventBus.RabbitMQ.Extensions;
+using Microsoft.EntityFrameworkCore;
+using UsersService.Infrastructure;
 using UsersService.Messaging.Events.Publishers;
 using UsersService.Messaging.Subscribers;
 using UsersService.Repositories;
 using UsersService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<UserContext>(op => op.UseNpgsql(connectionString));
 
 // Add services to the container.
-builder.Services.AddRabbitMQEventBus(builder.Configuration,
+builder.Services.AddRabbitMqEventBus(builder.Configuration,
     assemblies: [typeof(Program).Assembly],
     defaultOptions: options =>
     {
         options.HostName = "localhost";
         options.QueueArguments.Add("x-priority", 10);
+    },
+    virtualHostSettingsOptions: settings =>
+    {
+        settings.Add("users_test", new RabbitMqHostSettings
+        {
+            HostName = "localhost",
+            VirtualHost = "users/test",
+            UserName = "admin",
+            Password = "admin123",
+            HostPort = 5672
+        });
     },
     eventPublisherManagerOptions: publisherManager =>
     {
@@ -21,17 +39,20 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     },
     eventSubscriberManagerOptions: subscriberManager =>
     {
-        subscriberManager.AddSubscriber<UsersService.Messaging.Events.Subscribers.PaymentCreated, PaymentCreatedSubscriber>(op =>
-        {
-            op.VirtualHost = "users/test";
-        });
+        subscriberManager
+            .AddSubscriber<UsersService.Messaging.Events.Subscribers.PaymentCreated, PaymentCreatedSubscriber>(op =>
+            {
+                op.VirtualHostKey = "users_test";
+            });
     },
     eventStoreOptions: options =>
     {
         options.Inbox.IsEnabled = true;
         options.Inbox.TableName = "ReceivedEvents";
+        options.Inbox.ConnectionString = connectionString;
         options.Outbox.IsEnabled = true;
         options.Outbox.TableName = "SentEvents";
+        options.Outbox.ConnectionString = connectionString;
     }
 );
 
@@ -58,6 +79,10 @@ builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IWebHookProvider, WebHookProvider>();
 
 var app = builder.Build();
+
+using var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<UserContext>();
+context.Database.EnsureCreated();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

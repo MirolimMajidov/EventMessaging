@@ -3,18 +3,6 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Title>EventStorage</Title>
-        <Authors>MirolimMajidov</Authors>
-        <Description>EventStorage is a library designed to simplify the implementation of the Inbox and Outbox patterns.</Description>
-        <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
-        <RepositoryType>public</RepositoryType>
-        <PackageTags>EventBus.RabbitMQ, RabbitMQ, EventBus, EventStorage, Inbox, Otbox</PackageTags>
-        <Company>Alif Bank</Company>
-        <NeutralLanguage>en</NeutralLanguage>
-        <AssemblyName>Mirolim.EventStorage</AssemblyName>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Version>1.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -28,7 +16,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\"/>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>EventStorage.Tests</_Parameter1>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Shared.Tests</_Parameter1>
+        </AssemblyAttribute>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     </ItemGroup>
-
 </Project>

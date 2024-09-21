@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EventStorage.Models;
@@ -11,8 +12,13 @@ internal class EventSenderManager : IEventSenderManager
 {
     private readonly IOutboxRepository _repository;
     private readonly ILogger<EventSenderManager> _logger;
+    private readonly ConcurrentBag<OutboxEvent> _eventsToSend = new();
+    private bool _disposed;
 
-    public EventSenderManager(IOutboxRepository repository, ILogger<EventSenderManager> logger)
+    /// <summary>
+    /// The EventSenderManager class will keep injecting itself even the outbox pattern is off, but the repository will be null since that is not registered in the DI container.
+    /// </summary>
+    public EventSenderManager(ILogger<EventSenderManager> logger, IOutboxRepository repository = null)
     {
         _repository = repository;
         _logger = logger;
@@ -24,7 +30,7 @@ internal class EventSenderManager : IEventSenderManager
         var eventName = @event.GetType().Name;
         try
         {
-            var _event = new OutboxEvent()
+            var _event = new OutboxEvent
             {
                 Id = @event.EventId,
                 Provider = eventProvider.ToString(),
@@ -48,24 +54,74 @@ internal class EventSenderManager : IEventSenderManager
 
             _event.Payload = SerializeData(@event);
 
-            var successfullyInserted = _repository.InsertEvent(_event);
-            if(!successfullyInserted)
-                _logger.LogWarning("The {EventType} event type with the {EventId} id is already added to the table of Outbox.", eventName, @event.EventId);
-
-            return successfullyInserted;
+            _eventsToSend.Add(_event);
+            
+            return true;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while entering the {EventType} event type with the {EventId} id to the table of Outbox.",  eventName, @event.EventId);
+            _logger.LogError(e, "Error while collecting the {EventType} event type with the {EventId} id to store the Outbox table.",  eventName, @event.EventId);
             throw;
         }
     }
 
-    private static readonly JsonSerializerOptions _serializerSettings = new JsonSerializerOptions
-        { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+    #region SerializeData
 
-    static string SerializeData<TValue>(TValue data)
+    private static readonly JsonSerializerOptions SerializerSettings = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+
+    private static string SerializeData<TValue>(TValue data)
     {
-        return JsonSerializer.Serialize(data, _serializerSettings);
+        return JsonSerializer.Serialize(data, SerializerSettings);
     }
+
+    #endregion
+
+    #region PublishCollectedEvents
+    
+    /// <summary>
+    /// Store all collected events to the database and clear the memory.
+    /// </summary>
+    private void PublishCollectedEvents()
+    {
+        _repository?.BulkInsertEvents(_eventsToSend);
+        _eventsToSend.Clear();
+    }
+
+    #endregion
+
+    #region CleanCollectedEvents
+
+    void IEventSenderManager.CleanCollectedEvents()
+    {
+        _eventsToSend.Clear();
+    }
+
+    #endregion
+
+    #region Dispose
+
+    public void Dispose()
+    {
+        Disposing();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Add all collected activity logs to the activity log collector.
+    /// </summary>
+    private void Disposing()
+    {
+        if (_disposed) return;
+
+        PublishCollectedEvents();
+
+        _disposed = true;
+    }
+
+    ~EventSenderManager()
+    {
+        Disposing();
+    }
+
+    #endregion
 }

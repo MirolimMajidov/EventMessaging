@@ -198,7 +198,6 @@ Yes, we can. For that we need to just enable the using the TLS protocol by addin
 
 #### Customizing the event type of publishing/subscribing event:
 While publishing or subscribing an event by default it uses the Name of event structure. For example, if you add an event named `UserUpdated`, while publishing or subscribing/receiving that `UserUpdated` name as event type will be used. But if you want you can overwrite the event type by added event type name to the config file:
-
 ```
 "RabbitMQSettings": {
     "DefaultSettings": {

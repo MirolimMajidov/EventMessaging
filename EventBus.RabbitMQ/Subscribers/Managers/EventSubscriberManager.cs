@@ -5,7 +5,7 @@ using EventBus.RabbitMQ.Subscribers.Options;
 
 namespace EventBus.RabbitMQ.Subscribers.Managers;
 
-internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceProvider serviceProvider)
+internal class EventSubscriberManager(RabbitMqOptions defaultSettings, IServiceProvider serviceProvider)
     : IEventSubscriberManager
 {
     /// <summary>
@@ -30,7 +30,7 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
         }
         else
         {
-            var settings = defaultSettings.Clone<EventSubscriberOptions>();
+            var settings = new EventSubscriberOptions();
             options?.Invoke(settings);
 
             var handlerType = typeof(TEventHandler);
@@ -46,40 +46,21 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
     /// <param name="subscriberSettings">Settings of subscriber</param>
     public void AddSubscriber(Type typeOfSubscriber, Type typeOfHandler, EventSubscriberOptions subscriberSettings)
     {
-        var subscriberName = typeOfSubscriber.Name;
-        EventSubscriberOptions settings;
-        if (_subscribers.TryGetValue(subscriberName, out var info))
-        {
-            settings = info.eventSettings;
-        }
+        if (_subscribers.TryGetValue(typeOfSubscriber.Name, out var info))
+            info.eventSettings = subscriberSettings;
         else
-        {
-            settings = defaultSettings.Clone<EventSubscriberOptions>();
-            _subscribers.Add(subscriberName, (typeOfSubscriber, typeOfHandler, settings));
-        }
-
-        settings.OverwriteSettings(subscriberSettings);
+            _subscribers.Add(typeOfSubscriber.Name, (typeOfSubscriber, typeOfHandler, subscriberSettings));
     }
 
     /// <summary>
-    /// Registers a subscriber 
+    /// Setting the virtual host and other unassigned settings of subscribers
     /// </summary>
-    /// <param name="typeOfSubscriber">Event type which we want to subscribe</param>
-    /// <param name="typeOfHandler">Handler type of the event which we want to receive event</param>
-    public void AddSubscriber(Type typeOfSubscriber, Type typeOfHandler)
+    public void SetVirtualHostAndOwnSettingsOfSubscribers(Dictionary<string, RabbitMqHostSettings> virtualHostsSettings)
     {
-        AddSubscriber(typeOfSubscriber, typeOfHandler, defaultSettings.Clone<EventSubscriberOptions>());
-    }
-
-    /// <summary>
-    /// Setting an event name of subscriber if empty
-    /// </summary>
-    public void SetEventNameOfSubscribers()
-    {
-        foreach (var (subscriberName, (_, _, eventSettings)) in _subscribers)
+        foreach (var (eventTypeName, (_, _, eventSettings)) in _subscribers)
         {
-            if (string.IsNullOrEmpty(eventSettings.EventTypeName))
-                eventSettings.EventTypeName = subscriberName;
+            var virtualHostSettings = string.IsNullOrEmpty(eventSettings.VirtualHostKey) ? defaultSettings : virtualHostsSettings.GetValueOrDefault(eventSettings.VirtualHostKey, defaultSettings);
+            eventSettings.SetVirtualHostAndUnassignedSettings(virtualHostSettings, eventTypeName);
         }
     }
 
@@ -87,7 +68,7 @@ internal class EventSubscriberManager(RabbitMQOptions defaultSettings, IServiceP
     {
         foreach (var (_, eventInfo) in _subscribers)
         {
-            var consumerId = $"{eventInfo.eventSettings.VirtualHost}-{eventInfo.eventSettings.QueueName}";
+            var consumerId = $"{eventInfo.eventSettings.VirtualHostSettings.VirtualHost}-{eventInfo.eventSettings.QueueName}";
             if (!_eventConsumers.TryGetValue(consumerId, value: out IEventConsumerService eventConsumer))
             {
                 eventConsumer = new EventConsumerService(eventInfo.eventSettings, serviceProvider, defaultSettings.UseInbox);

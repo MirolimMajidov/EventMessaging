@@ -30,7 +30,7 @@ internal class EventsReceiverManager : IEventsReceiverManager
     {
         _serviceProvider = serviceProvider;
         _logger = serviceProvider.GetRequiredService<ILogger<EventsReceiverManager>>();
-        _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Outbox;
+        _settings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>().Inbox;
         _receivers = new();
     }
 
