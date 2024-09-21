@@ -124,7 +124,7 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
       "IsEnabled": true,
       "HostName": "localhost",
       "HostPort": 5672,
-      "VirtualHost": "users/pro",
+      "VirtualHost": "users",
       "UserName": "admin",
       "Password": "admin123",
       "ExchangeName": "users_exchange",
@@ -138,7 +138,7 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
     },
     "Publishers": {
       "UserDeleted": {
-        "VirtualHost": "users/test",
+        "VirtualHostKey": "users_test",
         "RoutingKey": "users.deleted",
         "PropertyNamingPolicy": "KebabCaseLower"
       },
@@ -149,25 +149,36 @@ First you need to add a new section called `RabbitMQSettings` to your configurat
     },
     "Subscribers": {
       "PaymentCreated": {
+        "VirtualHostKey": "users_test",
+        "QueueName": "payments_queue_UserService",
+        "RoutingKey": "payments.created"
+      }
+    },
+    "VirtualHostSettings": {
+      "users_test": {
         "ExchangeName": "payments_exchange",
         "VirtualHost": "users/test",
-        "RoutingKey": "payments.created",
         "QueueArguments": {
           "x-queue-type": "classic",
           "max-length-bytes": 1048576
         }
+      },
+      "payments": {
+        "ExchangeName": "payments_exchange",
+        "VirtualHost": "payments"
       }
     }
-  },
+  }
 ```
 
 A section may have the following subsections: <br/>
 `DefaultSettings` - to set the default configuration/settings for connecting to the RabbitMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; The default settings has optional parameter named `QueueArguments` to pass the arguments to the queue. Another thing is that, by passing false to the `IsEnabled` option, we able to just disable using RabbitMQ.<br/>
-`Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
-`Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings. The subscriber event has optional parameter named `QueueArguments` to pass the arguments to the queue.
+`Publishers` - set custom settings for the publishers if needed. If you don't pass them, it will use the virtual host settings based on the `VirtualHostKey` which configured in the `VirtualHostSettings` section; <br/>
+`Subscribers` - set custom settings for the subscribers if needed. If you don't pass them, it will use the virtual host settings based on the `VirtualHostKey` which configured in the `VirtualHostSettings` section; <br/>
+`VirtualHostSettings` - adding virtual host configuration by given a key to use them from the publishers and subscribers. If we just add a new virtual host and not set all parameters, the not assigned properties automatically get/inherit a value from the default settings. If we don't want to use the default settings, we need to just set empty to the property to avoid auto-set. Then we can use the registered a virtual host from any subscribers or publishers by passing a `VirtualHostKey` value. <br/>
 
 ##### Can we use the TLS protocol while publishing events or subscribing to the events?
-Yes, we can. For that we need to just enable the using the TLS protocol by adding the options below to the `DefaultSettings` if we want to use that in all events, or add them to the specific publishing or subscribing event:
+Yes, we can. For that we need to just enable the using the TLS protocol by adding the options below to the `DefaultSettings` if we want to use that in all events, or add them to the specific virtual host to use from the publishing or subscribing event:
 
 ```
 "RabbitMQSettings": {
@@ -180,17 +191,31 @@ Yes, we can. For that we need to just enable the using the TLS protocol by addin
     "Publishers": {
       "UserUpdated": {
           //your settings
-          "UseTls": true,
-          "ClientCertPath": "path/to/client-cert.pem",
-          "ClientKeyPath": "path/to/client-key.pem",
+        "VirtualHostKey": "users_test",
       }
     },
     "Subscribers": {
       "UserDeleted": {
           //your settings
-          "UseTls": true,
-          "ClientCertPath": "path/to/client-cert.pem",
-          "ClientKeyPath": "path/to/client-key.pem",
+        "VirtualHostKey": "payments",
+      }
+    },
+    "VirtualHostSettings": {
+      "users_test": {
+        "ExchangeName": "payments_exchange",
+        "VirtualHost": "users/test",
+        "UseTls": false,
+        "QueueArguments": {
+          "x-queue-type": "classic",
+          "max-length-bytes": 1048576
+        }
+      },
+      "payments": {
+        "ExchangeName": "payments_exchange",
+        "VirtualHost": "payments",
+        "UseTls": true,
+        "ClientCertPath": "path/to/client-cert.pem",
+        "ClientKeyPath": "path/to/client-key.pem",
       }
     }
   }
@@ -213,13 +238,20 @@ While publishing or subscribing an event by default it uses the Name of event st
       "UserDeleted": {
         //your settings
         "EventTypeName": "MyUserDeletedEvent"
+        "QueueName": "deleted_users_queue",
+      }
+    },
+    "VirtualHostSettings": {
+      "users": {
+        "ExchangeName": "users_exchange",
+        "QueueName": "users_queue",
       }
     }
   }
 ```
 
 #### What if I want to subscribe to an event from another system that doesn't publish an event type?
-When RabbitMQ receives an event from a 'Consumer', it tries to read the event type from the received event, if it can't find it, it uses the 'routing key' instead to find the event subscriber.
+When RabbitMQ receives an event from a `Consumer`, it tries to read the event type from the received event, if it can't find it, it uses the `routing key` instead to find the event subscriber.
 
 ### Advanced configuration of publishers and subscribers while registering to the DI services.
 
@@ -231,6 +263,17 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     {
         options.HostName = "localhost";
     },
+    virtualHostSettingsOptions: settings =>
+    {
+        settings.Add("users_test", new RabbitMqHostSettings
+        {
+            HostName = "localhost",
+            VirtualHost = "users/test",
+            UserName = "admin",
+            Password = "admin123",
+            HostPort = 5672
+        });
+    },
     eventPublisherManagerOptions: publisherManager =>
     {
         publisherManager.AddPublisher<UserDeleted>(op => op.RoutingKey = "users.deleted");
@@ -240,13 +283,14 @@ builder.Services.AddRabbitMQEventBus(builder.Configuration,
     {
         subscriberManager.AddSubscriber<PaymentCreated, PaymentCreatedHandler>(op =>
         {
-            op.VirtualHost = "users/test";
+             op.VirtualHostKey = "users_test";
         });
     }
 );
 ```
 
 `defaultOptions` - it is an alternative way of overwriting `DefaultSettings` settings, to set the default configuration/settings for connecting to the RabbitMQ and publishing and receiving messages. If you don't pass them, it will use default settings of RabbitMQ; <br/>
+`virtualHostSettingsOptions` - it is an alternative way of overwriting `VirtualHostSettings` settings, to register and overwrite settings of specific virtual host to use that from the subscribers and publishers if needed; <br/>
 `eventPublisherManagerOptions` - it is an alternative way of overwriting `Publishers` settings, to register and set custom settings for the publishers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `eventSubscriberManagerOptions` - it is an alternative way of overwriting `Subscribers` settings, to register and set custom settings for the subscribers if needed. If you don't pass them, it will use the default settings configured in the `DefaultSettings` section or RabbitMQ's default settings; <br/>
 `assemblies` - as I mentioned in above, it is to find and load the publishers and subscribers and register them to the services of DI automatically. It can be multiple assemblies depend on your design.
@@ -277,7 +321,7 @@ public async Task<bool> Receive(UserCreated @event)
 
 ### Changing a naming police for serializing and deserializing properties of Event
 
-By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use it only for specific publisher or subscriber event. Example:
+By default, while serializing and deserializing properties of event, it will use the `PascalCase`, but you can also use `CamelCase`, `SnakeCaseLower`, `SnakeCaseUpper`, `KebabCaseLower`, or `KebabCaseUpper` if you want. For this you need to add `PropertyNamingPolicy` option to `RabbitMQSettings` section if you want to apply it for all publishers or subscribers, or you can use/overwrite it from the specific a virtual host, or use/overwrite it from the publisher or subscriber event too. Example:
 ```
 "RabbitMQSettings": {
     "DefaultSettings": {
@@ -294,6 +338,11 @@ By default, while serializing and deserializing properties of event, it will use
       "UserDeleted": {
         //your settings
         "PropertyNamingPolicy": "CamelCase"
+      }
+    },
+    "VirtualHostSettings": {
+      "users": {
+        "PropertyNamingPolicy": "KebabCaseUpper"
       }
     }
   }
@@ -416,10 +465,13 @@ And then, set `true` to the `UseInbox` option of the `RabbitMQSettings.DefaultSe
         //your settings
     },
     "Publishers": {
-        //your Subscribers
+        //your Publishers
     },
     "Subscribers": {
         //your Subscribers
+    },
+    "VirtualHostSettings": {
+        //your a virtual hosts settings
     }
   }
 ```
@@ -433,6 +485,10 @@ Since the library is designed to  from multiple places, there is a way to config
 builder.Services.AddRabbitMQEventBus(builder.Configuration,
     assemblies: [typeof(Program).Assembly],
     defaultOptions: options =>
+    {
+        //Your settings
+    },
+    virtualHostSettingsOptions: settings =>
     {
         //Your settings
     },
