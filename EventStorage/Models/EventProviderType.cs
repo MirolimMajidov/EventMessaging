@@ -9,9 +9,6 @@ public enum EventProviderType
     WebHook,
     Sms,
     Email,
-    /// <summary>
-    /// R
-    /// </summary>
     gRPC,
     Unknown
 }

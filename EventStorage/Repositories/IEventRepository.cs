@@ -15,6 +15,13 @@ internal interface IEventRepository<TBaseEvent> where TBaseEvent :  class, IBase
     /// <param name="event">The event to insert.</param>
     /// <returns>Returns true if it was entered successfully or false if the value is duplicated. It can throw an exception if something goes wrong.</returns>
     bool InsertEvent(TBaseEvent @event);
+    
+    /// <summary>
+    /// Inserts one or more new events into the database.
+    /// </summary>
+    /// <param name="events">Events to insert.</param>
+    /// <returns>Returns true if it was entered successfully or false if the value is duplicated. It can throw an exception if something goes wrong.</returns>
+    bool BulkInsertEvents(IEnumerable<TBaseEvent> events);
 
     /// <summary>
     /// Retrieves all unprocessed events based on Provider, and TryAfterAt.

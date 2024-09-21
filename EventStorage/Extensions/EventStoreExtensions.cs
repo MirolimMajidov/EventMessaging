@@ -21,7 +21,7 @@ namespace EventStorage.Extensions;
 public static class EventStoreExtensions
 {
     /// <summary>
-    /// Register the RabbitMQ settings as EventBus
+    /// Register the inbox and outbox settings as DI
     /// </summary>
     /// <param name="services">BackgroundServices of DI</param>
     /// <param name="configuration">Configuration to get config</param>
@@ -35,31 +35,29 @@ public static class EventStoreExtensions
         var isAlreadyRegistered = services.Any(serviceDescriptor =>
             serviceDescriptor.ServiceType == settingsType &&
             serviceDescriptor.Lifetime == ServiceLifetime.Singleton);
-        //If it is already registered from another place, we need to just skeep it to avoid of registering it twice.
+        //If it is already registered from another place, we need to just skip it to avoid of registering it twice.
         if (isAlreadyRegistered)
             return;
 
         var settings = GetDefaultSettings();
-        if (!settings.Inbox.IsEnabled && !settings.Outbox.IsEnabled)
-            return;
-
         if (settings.Inbox.TableName == settings.Outbox.TableName)
-            throw new ArgumentNullException("The table name for the index and outbox events cannot be the same.");
+            throw new Exception("The table name for the inbox and outbox events cannot be the same.");
 
         services.AddSingleton(settings);
+        services.AddScoped<IEventSenderManager, EventSenderManager>();
 
         if (settings.Outbox.IsEnabled)
         {
-            services.AddScoped<IEventSenderManager, EventSenderManager>();
+            services.AddHostedService<OutboxTableCreatorService>();
             services.AddScoped<IOutboxRepository>(serviceProvider =>
             {
-                var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
-                var _reporitory = new OutboxRepository(_defaultSettings.Outbox);
+                var defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
+                var reporitory = new OutboxRepository(defaultSettings.Outbox);
 
-                return _reporitory;
+                return reporitory;
             });
-
-            RegisterAllEventsOfOutboxToDI(services, assemblies);
+            
+            RegisterAllEventsOfOutboxToDependencyInjection(services, assemblies);
             services.AddSingleton<IEventsPublisherManager>(serviceProvider =>
             {
                 var publisherManager = new EventsPublisherManager(serviceProvider);
@@ -77,13 +75,13 @@ public static class EventStoreExtensions
             services.AddScoped<IEventReceiverManager, EventReceiverManager>();
             services.AddScoped<IInboxRepository>(serviceProvider =>
             {
-                var _defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
-                var _reporitory = new InboxRepository(_defaultSettings.Inbox);
+                var defaultSettings = serviceProvider.GetRequiredService<InboxAndOutboxSettings>();
+                var reporitory = new InboxRepository(defaultSettings.Inbox);
 
-                return _reporitory;
+                return reporitory;
             });
 
-            RegisterAllEventsOfInboxToDI(services, assemblies);
+            RegisterAllEventsOfInboxToDependencyInjection(services, assemblies);
             services.AddSingleton<IEventsReceiverManager>(serviceProvider =>
             {
                 var receiverManager = new EventsReceiverManager(serviceProvider);
@@ -99,26 +97,17 @@ public static class EventStoreExtensions
         InboxAndOutboxSettings GetDefaultSettings()
         {
             var defaultSettings = configuration.GetSection("InboxAndOutbox").Get<InboxAndOutboxSettings>() ?? new();
-            if (defaultSettings.Inbox is null)
-            {
-                defaultSettings.Inbox = new();
+            
+            defaultSettings.Inbox ??= new();
+            if(string.IsNullOrEmpty(defaultSettings.Inbox.TableName))
                 defaultSettings.Inbox.TableName = nameof(defaultSettings.Inbox);
-            }
 
-            if (defaultSettings.Outbox is null)
-            {
-                defaultSettings.Outbox = new();
+            defaultSettings.Outbox ??= new();
+            if(string.IsNullOrEmpty(defaultSettings.Outbox.TableName))
                 defaultSettings.Outbox.TableName = nameof(defaultSettings.Outbox);
-            }
 
             var inboxAndOutboxOptions = new InboxAndOutboxOptions(defaultSettings);
             options?.Invoke(inboxAndOutboxOptions);
-
-            if (defaultSettings.Inbox.IsEnabled && string.IsNullOrEmpty(defaultSettings.Inbox.TableName))
-                throw new ArgumentNullException("If the inbox is enabled, the table name cannot be empty");
-
-            if (defaultSettings.Outbox.IsEnabled && string.IsNullOrEmpty(defaultSettings.Outbox.TableName))
-                throw new ArgumentNullException("If the outbox is enabled, the table name cannot be empty");
 
             return defaultSettings;
         }
@@ -144,7 +133,7 @@ public static class EventStoreExtensions
         }
     }
 
-    private static void RegisterAllEventsOfOutboxToDI(IServiceCollection services, Assembly[] assemblies)
+    private static void RegisterAllEventsOfOutboxToDependencyInjection(IServiceCollection services, Assembly[] assemblies)
     {
         var (globalPublisherHandlers, publisherHandlers) = GetPublisherHandlerTypes(assemblies);
         foreach (var (publisherType, _) in globalPublisherHandlers)
@@ -255,7 +244,7 @@ public static class EventStoreExtensions
             receiverManager.AddReceiver(eventType, receiverType, provider);
     }
 
-    private static void RegisterAllEventsOfInboxToDI(IServiceCollection services, Assembly[] assemblies)
+    private static void RegisterAllEventsOfInboxToDependencyInjection(IServiceCollection services, Assembly[] assemblies)
     {
         var inboxEventTypes = GetReceiverHandlerTypes(assemblies);
         foreach (var (_, receiverType, _) in inboxEventTypes)

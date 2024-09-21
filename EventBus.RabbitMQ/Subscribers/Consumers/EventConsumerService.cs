@@ -18,7 +18,7 @@ internal class EventConsumerService : IEventConsumerService
     private readonly EventSubscriberOptions _connectionOptions;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventConsumerService> _logger;
-    private readonly IRabbitMQConnection _connection;
+    private readonly IRabbitMqConnection _connection;
     private IModel _consumerChannel;
 
     /// <summary>
@@ -34,7 +34,7 @@ internal class EventConsumerService : IEventConsumerService
         _serviceProvider = serviceProvider;
         _logger = _serviceProvider.GetRequiredService<ILogger<EventConsumerService>>();
 
-        _connection = new RabbitMQConnection(_connectionOptions, serviceProvider);
+        _connection = new RabbitMqConnection(_connectionOptions, serviceProvider);
         _useInbox = useInbox;
     }
 
@@ -64,12 +64,12 @@ internal class EventConsumerService : IEventConsumerService
 
         var channel = _connection.CreateChannel();
 
-        channel.ExchangeDeclare(exchange: _connectionOptions.ExchangeName, type: _connectionOptions.ExchangeType,
+        channel.ExchangeDeclare(exchange: _connectionOptions.VirtualHostSettings.ExchangeName, type: _connectionOptions.VirtualHostSettings.ExchangeType,
             durable: true, autoDelete: false);
         channel.QueueDeclare(_connectionOptions.QueueName, durable: true, exclusive: false, autoDelete: false,
-            _connectionOptions.QueueArguments);
+            _connectionOptions.VirtualHostSettings.QueueArguments);
         foreach (var eventSettings in _subscribers.Values.Select(s => s.eventSettings))
-            channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.ExchangeName,
+            channel.QueueBind(_connectionOptions.QueueName, _connectionOptions.VirtualHostSettings.ExchangeName,
                 eventSettings.RoutingKey);
 
         channel.CallbackException += (_, ea) =>
@@ -112,11 +112,9 @@ internal class EventConsumerService : IEventConsumerService
                         scope.ServiceProvider.GetService<IEventReceiverManager>();
                     if (eventReceiverManager is not null)
                     {
-                        string _headers = headers is null ? null : SerializeData(headers);
-                        var succussfullyReceived = eventReceiverManager.Received(receivedEvent, eventArgs.RoutingKey,
-                            EventProviderType.MessageBroker, _headers);
-
-                        //TODO: Do we need to do something if it is not succussfully entered?
+                        string headersAsJson = headers is null ? null : SerializeData(headers);
+                        _ = eventReceiverManager.Received(receivedEvent, eventArgs.RoutingKey,
+                            EventProviderType.MessageBroker, headersAsJson);
                         MarkEventIsDelivered();
 
                         return;
@@ -124,13 +122,13 @@ internal class EventConsumerService : IEventConsumerService
 
                     _logger.LogWarning(
                         "The RabbitMQ is configured to use the Inbox for received events, but the Inbox functionality of the EventStorage is not enabled. So, the {EventSubscriber} event subscriber of an event will be executed immediately for the event id: {EventId};",
-                        info.eventHandlerType.Name, receivedEvent.EventId);
+                        info.eventHandlerType.Name, receivedEvent!.EventId);
                 }
 
-                receivedEvent.Headers = headers;
+                receivedEvent!.Headers = headers;
                 var eventHandlerSubscriber = scope.ServiceProvider.GetRequiredService(info.eventHandlerType);
                 var handleMethod = info.eventHandlerType.GetMethod(HandlerMethodName);
-                await (Task)handleMethod!.Invoke(eventHandlerSubscriber, [receivedEvent]);
+                await ((Task)handleMethod!.Invoke(eventHandlerSubscriber, [receivedEvent]))!;
 
                 MarkEventIsDelivered();
             }

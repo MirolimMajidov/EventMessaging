@@ -12,70 +12,71 @@ using RabbitMQ.Client.Exceptions;
 
 namespace EventBus.RabbitMQ.Connections;
 
-internal class RabbitMQConnection : IRabbitMQConnection
+internal sealed class RabbitMqConnection : IRabbitMqConnection
 {
     public bool IsConnected => _connection?.IsOpen == true && !_disposed;
 
     public int RetryConnectionCount { get; }
 
     private readonly IConnectionFactory _connectionFactory;
-    private readonly BaseEventOptions _connectionOptions;
-    private readonly ILogger<RabbitMQConnection> _logger;
+    private readonly RabbitMqHostSettings _connectionOptions;
+    private readonly ILogger<RabbitMqConnection> _logger;
     private IConnection _connection;
     private static string _connectTitle;
 
-    public RabbitMQConnection(BaseEventOptions connectionOptions, IServiceProvider serviceProvider)
+    public RabbitMqConnection(BaseEventOptions eventSettings, IServiceProvider serviceProvider)
     {
-        _connectionOptions = connectionOptions;
+        _connectionOptions = eventSettings.VirtualHostSettings;
         var connectionFactory = new ConnectionFactory
         {
-            HostName = connectionOptions.HostName,
-            Port = connectionOptions.HostPort!.Value,
-            VirtualHost = connectionOptions.VirtualHost,
-            UserName = connectionOptions.UserName,
-            Password = connectionOptions.Password,
+            HostName = _connectionOptions.HostName,
+            Port = _connectionOptions.HostPort!.Value,
+            VirtualHost = _connectionOptions.VirtualHost,
+            UserName = _connectionOptions.UserName,
+            Password = _connectionOptions.Password,
             DispatchConsumersAsync = true
         };
 
-        _logger = serviceProvider.GetRequiredService<ILogger<RabbitMQConnection>>();
-        if (connectionOptions.UseTls == true)
+        _logger = serviceProvider.GetRequiredService<ILogger<RabbitMqConnection>>();
+        if (_connectionOptions.UseTls == true)
         {
             connectionFactory.Ssl = new SslOption()
             {
                 Enabled = true,
-                ServerName = connectionOptions.HostName,
+                ServerName = _connectionOptions.HostName,
                 CertificateValidationCallback = (_, _, _, _) => true,
+#pragma warning disable SYSLIB0039
                 Version = SslProtocols.Tls,
+#pragma warning restore SYSLIB0039
                 Certs =
                 [
-                    X509Certificate2.CreateFromPemFile(connectionOptions.ClientCertPath,
-                        connectionOptions.ClientKeyPath)
+                    X509Certificate2.CreateFromPemFile(_connectionOptions.ClientCertPath,
+                        _connectionOptions.ClientKeyPath)
                 ]
             };
 
-            if (string.IsNullOrEmpty(connectionOptions.ClientCertPath))
+            if (string.IsNullOrEmpty(_connectionOptions.ClientCertPath))
                 _logger.LogError(
                     "Using the UseTls (TLS protocol) is enabled for the {VirtualHost} virtual host of {HostName} host, but the ClientCertPath is not set.",
-                    connectionOptions.VirtualHost, connectionOptions.HostName);
+                    _connectionOptions.VirtualHost, _connectionOptions.HostName);
             
-            if (string.IsNullOrEmpty(connectionOptions.ClientKeyPath))
+            if (string.IsNullOrEmpty(_connectionOptions.ClientKeyPath))
                 _logger.LogError(
                     "Using the UseTls (TLS protocol) is enabled for the {VirtualHost} virtual host of {HostName} host, but the ClientKeyPath is not set.",
-                    connectionOptions.VirtualHost, connectionOptions.HostName);
+                    _connectionOptions.VirtualHost, _connectionOptions.HostName);
         }
-
+        
         _connectionFactory = connectionFactory;
-
-        RetryConnectionCount = (int)connectionOptions.RetryConnectionCount!;
+        RetryConnectionCount = (int)_connectionOptions.RetryConnectionCount!;
 
         string connectionDetail;
-        if (connectionOptions is EventSubscriberOptions subscriberOptions)
+        if (eventSettings is EventSubscriberOptions subscriberOptions)
             connectionDetail = $"'{subscriberOptions.QueueName}' queue of subscribers/receivers";
         else
-            connectionDetail = $"'{connectionOptions.ExchangeName}' exchange of publishers";
+            connectionDetail = $"'{_connectionOptions.ExchangeName}' exchange of publishers";
 
         _connectTitle =
-            $"The RabbitMQ connection is opened for the {connectionDetail} on the '{connectionOptions.HostName}' host's '{connectionOptions.VirtualHost}' virtual host.";
+            $"The RabbitMQ connection is opened for the {connectionDetail} on the '{_connectionOptions.HostName}' host's '{_connectionOptions.VirtualHost}' virtual host.";
     }
 
     readonly object _lockOpenConnection = new();
@@ -167,7 +168,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Disposing()
+    private void Disposing()
     {
         if (_disposed) return;
 
@@ -184,7 +185,7 @@ internal class RabbitMQConnection : IRabbitMQConnection
         }
     }
 
-    ~RabbitMQConnection()
+    ~RabbitMqConnection()
     {
         Disposing();
     }

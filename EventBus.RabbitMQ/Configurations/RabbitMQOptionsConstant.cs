@@ -1,7 +1,9 @@
 
+using EventBus.RabbitMQ.Models;
+
 namespace EventBus.RabbitMQ.Configurations;
 
-internal static class RabbitMQOptionsConstant
+internal static class RabbitMqOptionsConstant
 {
     /// <summary>
     /// The host name of the RabbitMQ server. Default value is "localhost".
@@ -37,7 +39,7 @@ internal static class RabbitMQOptionsConstant
     /// The type of the exchange to use in RabbitMQ. Default value is "topic". It can be one of "direct", "fanout", or "topic".
     /// </summary>
     const string ExchangeType = "topic";
-
+    
     /// <summary>
     /// The name of the queue to use in RabbitMQ. Default value is "DefaultQueue".
     /// </summary>
@@ -54,23 +56,18 @@ internal static class RabbitMQOptionsConstant
     const int RetryConnectionCount = 3;
 
     /// <summary>
-    /// Naming police for serializing and deserializing properties of Event. Default value is "PascalCase". It can be one of "PascalCase", "CamelCase", "SnakeCaseLower", "SnakeCaseUpper", "KebabCaseLower", or "KebabCaseUpper".
-    /// </summary>
-    const string PropertyNamingPolicy = "PascalCase";
-
-    /// <summary>
     /// Indicates whether TLS/SSL should be used for the connection.
     /// When set to true, the connection will be secured using TLS/SSL.
     /// </summary>
     const bool UseTls = false;
 
     /// <summary>
-    /// Clone/Copying settings
+    /// Create a default RabbitMQ virtual host settings
     /// </summary>
-    /// <returns>Returns a new copy of settings</returns>
-    public static RabbitMQOptions CreateDefaultRabbitMQOptions()
+    /// <returns>Returns a new virtual host settings</returns>
+    public static RabbitMqOptions CreateDefaultRabbitMqOptions()
     {
-        return new RabbitMQOptions
+        return new RabbitMqOptions
         {
             HostName = HostName,
             HostPort = HostPort,
@@ -82,7 +79,7 @@ internal static class RabbitMQOptionsConstant
             QueueName = QueueName,
             RoutingKey = RoutingKey,
             RetryConnectionCount = RetryConnectionCount,
-            PropertyNamingPolicy = PropertyNamingPolicy,
+            PropertyNamingPolicy = PropertyNamingPolicyType.PascalCase,
             UseTls = UseTls
         };
     }
