@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: ${{ inputs.postgres_image || 'postgres:16' }}
+        image: ${{ inputs.postgres_image }}
         env:
           POSTGRES_USER: ${{ inputs.postgres_user }}
           POSTGRES_PASSWORD: ${{ inputs.postgres_password }}
