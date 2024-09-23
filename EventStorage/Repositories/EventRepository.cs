@@ -66,7 +66,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     id, provider, event_name, event_path, payload, headers, 
                     additional_data, created_at, try_count, try_after_at
                 ) VALUES (
-                    @EventId, @Provider, @EventName, @EventPath, @Payload, @Headers, 
+                    @Id, @Provider, @EventName, @EventPath, @Payload, @Headers, 
                     @AdditionalData, @CreatedAt, @TryCount, @TryAfterAt
                 )";
 
@@ -97,7 +97,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     id, provider, event_name, event_path, payload, headers, 
                     additional_data, created_at, try_count, try_after_at
                 ) VALUES (
-                    @EventId, @Provider, @EventName, @EventPath, @Payload, @Headers, 
+                    @Id, @Provider, @EventName, @EventPath, @Payload, @Headers, 
                     @AdditionalData, @CreatedAt, @TryCount, @TryAfterAt
                 )";
 
@@ -168,7 +168,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     try_count = @TryCount,
                     try_after_at = @TryAfterAt,
                     processed_at = @ProcessedAt
-                WHERE id = @EventId";
+                WHERE id = @Id";
 
                 var affectedRows = await dbConnection.ExecuteAsync(sql, @event);
                 return affectedRows > 0;
@@ -194,7 +194,7 @@ internal abstract class EventRepository<TBaseEvent> : IEventRepository<TBaseEven
                     try_count = @TryCount,
                     try_after_at = @TryAfterAt,
                     processed_at = @ProcessedAt
-                WHERE id = @EventId";
+                WHERE id = @Id";
 
                 var affectedRows = await dbConnection.ExecuteAsync(sql, events);
                 return affectedRows > 0;
