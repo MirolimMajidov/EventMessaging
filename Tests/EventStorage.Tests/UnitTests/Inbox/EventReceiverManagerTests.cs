@@ -30,7 +30,7 @@ public class EventReceiverManagerTests
         // Arrange
         var receiveEvent = new SimpleEntityWasCreated()
         {
-            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -47,7 +47,7 @@ public class EventReceiverManagerTests
         result.Should().BeTrue();
 
         _inboxRepository.Received(1)
-            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.Id
+            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.EventId
                                                  && x.EventName == receiveEvent.GetType().Name
                                                  && x.Payload == JsonConvert.SerializeObject(receiveEvent)
                                                  && x.AdditionalData == null
@@ -63,7 +63,7 @@ public class EventReceiverManagerTests
         // Arrange
         var receiveEvent = new SimpleEntityWasCreated()
         {
-            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -85,7 +85,7 @@ public class EventReceiverManagerTests
         result.Should().BeTrue();
 
         _inboxRepository.Received(1)
-            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.Id
+            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.EventId
                                                  && x.EventName == receiveEvent.GetType().Name
                                                  && x.Payload == JsonConvert.SerializeObject(receiveEvent)
                                                  && x.Headers == JsonConvert.SerializeObject(headers)
@@ -101,7 +101,7 @@ public class EventReceiverManagerTests
         // Arrange
         var receiveEvent = new SimpleEntityWasCreated
         {
-            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -125,7 +125,7 @@ public class EventReceiverManagerTests
         result.Should().BeTrue();
 
         _inboxRepository.Received(1)
-            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.Id
+            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.EventId
                                                  && x.EventName == receiveEvent.GetType().Name
                                                  && x.Payload == JsonConvert.SerializeObject(receiveEvent)
                                                  && x.AdditionalData == JsonConvert.SerializeObject(additionalData)
@@ -141,7 +141,7 @@ public class EventReceiverManagerTests
         // Arrange
         var receiveEvent = new SimpleEntityWasCreated
         {
-            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -169,7 +169,7 @@ public class EventReceiverManagerTests
         result.Should().BeTrue();
 
         _inboxRepository.Received(1)
-            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.Id
+            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.EventId
                                                  && x.EventName == receiveEvent.GetType().Name
                                                  && x.Payload == JsonConvert.SerializeObject(receiveEvent)
                                                  && x.Headers == JsonConvert.SerializeObject(headers)
@@ -188,7 +188,7 @@ public class EventReceiverManagerTests
         // Arrange
         var receiveEvent = new SimpleEntityWasCreated
         {
-            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -205,7 +205,7 @@ public class EventReceiverManagerTests
         result.Should().BeTrue();
 
         _inboxRepository.Received(1)
-            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.Id
+            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.EventId
                                                  && x.EventName == receiveEvent.GetType().Name
                                                  && x.Payload == JsonConvert.SerializeObject(receiveEvent)
                                                  && x.AdditionalData == null
@@ -221,7 +221,7 @@ public class EventReceiverManagerTests
         // Arrange
         var receiveEvent = new SimpleEntityWasCreated
         {
-            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
             Type = "type",
             Date = DateTime.Now,
             CreatedAt = DateTime.Now
@@ -243,7 +243,7 @@ public class EventReceiverManagerTests
         result.Should().BeTrue();
 
         _inboxRepository.Received(1)
-            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.Id
+            .InsertEvent(Arg.Is<InboxEvent>(x => x.Id == receiveEvent.EventId
                                                  && x.EventName == receiveEvent.GetType().Name
                                                  && x.Payload == JsonConvert.SerializeObject(receiveEvent)
                                                  && x.Headers == JsonConvert.SerializeObject(headers)

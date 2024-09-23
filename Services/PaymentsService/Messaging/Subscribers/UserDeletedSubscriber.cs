@@ -14,7 +14,7 @@ public class UserDeletedSubscriber : IEventSubscriber<UserDeleted>
 
     public async Task<bool> Receive(UserDeleted @event)
     {
-        _logger.LogInformation("Id ({Id}): {UserName} user is deleted, the User id is {UserId}", @event.Id,
+        _logger.LogInformation("Id ({Id}): {UserName} user is deleted, the User id is {UserId}", @event.EventId,
             @event.UserName, @event.UserId);
 
         return await Task.FromResult(true);

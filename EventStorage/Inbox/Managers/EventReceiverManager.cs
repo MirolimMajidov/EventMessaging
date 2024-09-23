@@ -44,14 +44,14 @@ internal class EventReceiverManager : IEventReceiverManager
 
             var payload = SerializeData(receivedEvent);
 
-            return Received(receivedEvent.Id, receivedEventType, eventPath, eventProvider, payload, headers,
+            return Received(receivedEvent.EventId, receivedEventType, eventPath, eventProvider, payload, headers,
                 additionalData);
         }
         catch (Exception e) when (e is not EventStoreException)
         {
             _logger.LogError(e,
                 "Error while serializing data of the {EventType} received event with the {EventId} id to store to the the table of Inbox.",
-                receivedEventType, receivedEvent.Id);
+                receivedEventType, receivedEvent.EventId);
             throw;
         }
 
@@ -70,14 +70,14 @@ internal class EventReceiverManager : IEventReceiverManager
         {
             var payload = SerializeData(receivedEvent);
 
-            return Received(receivedEvent.Id, receivedEventType, eventPath, eventProvider, payload, headers,
+            return Received(receivedEvent.EventId, receivedEventType, eventPath, eventProvider, payload, headers,
                 additionalData);
         }
         catch (Exception e) when (e is not EventStoreException)
         {
             _logger.LogError(e,
                 "Error while serializing data of the {EventType} received event with the {EventId} id to store to the the table of Inbox.",
-                receivedEventType, receivedEvent.Id);
+                receivedEventType, receivedEvent.EventId);
             throw;
         }
     }

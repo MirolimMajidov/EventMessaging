@@ -5,7 +5,7 @@ namespace EventStorage.Tests.Domain;
 
 public class SimpleSendEventCreated: ISendEvent, IHasHeaders
 { 
-    public Guid Id { get; set; }
+    public Guid EventId { get; init; }
     public string Type { get; set; }
     public DateTime Date { get; set; }
     public DateTime CreatedAt { get; set; }

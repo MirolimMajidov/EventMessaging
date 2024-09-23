@@ -7,7 +7,7 @@ namespace EventBus.RabbitMQ.Subscribers.Models;
 /// </summary>
 public abstract record SubscribeEvent : ISubscribeEvent
 {
-    public Guid Id { get; init; }
+    public Guid EventId { get; set; }
 
     public DateTime CreatedAt { get; init; }
 

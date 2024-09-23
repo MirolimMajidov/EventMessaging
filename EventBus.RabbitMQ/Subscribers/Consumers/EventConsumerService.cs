@@ -98,13 +98,15 @@ internal class EventConsumerService : IEventConsumerService
             if (_subscribers.TryGetValue(eventType,
                     out (Type eventType, Type eventHandlerType, EventSubscriberOptions eventSettings) info))
             {
-                _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and Id is {EventId}", eventType,
+                _logger.LogTrace("Received RabbitMQ event, Type is {EventType} and EventId is {EventId}", eventType,
                     eventArgs.BasicProperties.MessageId);
                 var jsonSerializerSetting = info.eventSettings.GetJsonSerializer();
                 var receivedEvent =
                     JsonSerializer.Deserialize(message, info.eventType, jsonSerializerSetting) as ISubscribeEvent;
+                if(string.IsNullOrEmpty(eventArgs.BasicProperties.MessageId))
+                    receivedEvent.EventId = Guid.NewGuid();
+                
                 var headers = GetEventHeaders();
-
                 using var scope = _serviceProvider.CreateScope();
                 if (_useInbox)
                 {
@@ -122,7 +124,7 @@ internal class EventConsumerService : IEventConsumerService
 
                     _logger.LogWarning(
                         "The RabbitMQ is configured to use the Inbox for received events, but the Inbox functionality of the EventStorage is not enabled. So, the {EventSubscriber} event subscriber of an event will be executed immediately for the event id: {EventId};",
-                        info.eventHandlerType.Name, receivedEvent!.Id);
+                        info.eventHandlerType.Name, receivedEvent!.EventId);
                 }
 
                 receivedEvent!.Headers = headers;

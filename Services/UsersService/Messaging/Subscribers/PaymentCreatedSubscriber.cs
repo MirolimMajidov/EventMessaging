@@ -17,7 +17,7 @@ public class PaymentCreatedSubscriber : IEventSubscriber<PaymentCreated>
 
     public async Task<bool> Receive(PaymentCreated @event)
     {
-        _logger.LogInformation("Id ({Id}): Payment has been created for {UserId} user id with the {PaymentId} payment id, for {Amount} amount.", @event.Id,
+        _logger.LogInformation("Id ({Id}): Payment has been created for {UserId} user id with the {PaymentId} payment id, for {Amount} amount.", @event.EventId,
             @event.UserId, @event.PaymentId, @event.Amount);
 
         return await Task.FromResult(true);

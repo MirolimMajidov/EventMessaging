@@ -7,13 +7,13 @@ namespace EventBus.RabbitMQ.Publishers.Models;
 /// </summary>
 public abstract record PublishEvent : IPublishEvent
 {
-    public PublishEvent(Guid? id = null)
+    protected PublishEvent(Guid? id = null)
     {
-        Id = id ?? Guid.NewGuid();
+        EventId = id ?? Guid.NewGuid();
         CreatedAt = DateTime.Now;
     }
 
-    public Guid Id { get; }
+    public Guid EventId { get; }
 
     public DateTime CreatedAt { get; }
 

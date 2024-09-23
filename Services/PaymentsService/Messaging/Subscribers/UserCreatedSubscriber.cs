@@ -18,7 +18,7 @@ public class UserCreatedSubscriber : IEventSubscriber<UserCreated>
         {
         }
 
-        _logger.LogInformation("Id ({Id}): {UserName} user is created with the {UserId} id", @event.Id,
+        _logger.LogInformation("Id ({Id}): {UserName} user is created with the {UserId} id", @event.EventId,
             @event.UserName, @event.UserId);
 
         return await Task.FromResult(true);

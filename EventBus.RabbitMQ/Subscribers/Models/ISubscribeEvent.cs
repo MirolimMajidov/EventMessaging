@@ -8,4 +8,8 @@ namespace EventBus.RabbitMQ.Subscribers.Models;
 /// </summary>
 public interface ISubscribeEvent : IBaseEvent, IReceiveEvent
 {
+    /// <summary>
+    /// The id of event
+    /// </summary>
+    public new Guid EventId { get; set; }
 }
