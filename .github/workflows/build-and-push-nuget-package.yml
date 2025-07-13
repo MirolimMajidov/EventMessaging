@@ -49,7 +49,7 @@ jobs:
       - name: Generate release notes
         run: |
           echo "## Release notes of ${{ inputs.application_name }} library 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "- Image name: **${{ inputs.package_name }}"** >> $GITHUB_STEP_SUMMARY
+          echo "- NuGet package name: **${{ inputs.package_name }}"** >> $GITHUB_STEP_SUMMARY
           echo "- New version: **${{ env.version }}"** >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
         shell: bash
