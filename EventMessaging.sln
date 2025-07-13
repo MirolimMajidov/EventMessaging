@@ -1,29 +1,34 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{117B3A66-E3B5-436E-B433-50729FC9B0D6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService", "Services\OrdersService\OrdersService.csproj", "{36FDE216-C96A-4CA3-9C8A-B0D89CC22DEC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentsService", "Services\PaymentsService\PaymentsService.csproj", "{F959D984-1A49-4532-82FE-B6299AE78EA1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsersService", "Services\UsersService\UsersService.csproj", "{A30E0EF9-2631-4C14-8AFA-63F37D665A33}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventBus.RabbitMQ", "EventBus.RabbitMQ\EventBus.RabbitMQ.csproj", "{AEDCDA7C-D0B6-4DD9-AC03-550459731666}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStorage", "EventStorage\EventStorage.csproj", "{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{55759CAB-391D-453E-8688-BE3D650740E6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStorage.Tests", "Tests\EventStorage.Tests\EventStorage.Tests.csproj", "{E36D4823-1F3D-4F4D-94DE-7EB9FF9C577D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployments", "Deployments", "{393CF034-2108-4DDE-B3E5-87D38D5626D9}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\building-main-solution.yml = .github\workflows\building-main-solution.yml
 		.github\workflows\event-storage-tests.yml = .github\workflows\event-storage-tests.yml
-		.github\workflows\service-tests.yml = .github\workflows\service-tests.yml
-		.github\workflows\service-versioning.yml = .github\workflows\service-versioning.yml
 		.github\workflows\release-event-storage.yml = .github\workflows\release-event-storage.yml
 		.github\workflows\build-and-push-nuget-package.yml = .github\workflows\build-and-push-nuget-package.yml
+		.github\workflows\eventbus-rabbitmq-tests.yml = .github\workflows\eventbus-rabbitmq-tests.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStorage", "src\EventStorage\EventStorage.csproj", "{C8B43562-7D4B-4765-93BB-005A4BE7A6AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventBus.RabbitMQ", "src\EventBus.RabbitMQ\EventBus.RabbitMQ.csproj", "{4F242670-AEE4-46E8-9520-5A3E5041564F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventBus.RabbitMQ.Tests", "Tests\EventBus.RabbitMQ.Tests\EventBus.RabbitMQ.Tests.csproj", "{F7E99F70-9C9F-4FFE-A234-4C45FB51EEBF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{DCEA88B2-CAF4-4310-9DD1-8EA6FB662165}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersService", "Tests\Services\OrdersService\OrdersService.csproj", "{29BDD32D-0882-4EBD-8BA7-D445E6747544}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsersService", "Tests\Services\UsersService\UsersService.csproj", "{606C39DD-AAD6-4E19-A281-CBE7615FC4B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStorage.Tests", "Tests\EventStorage.Tests\EventStorage.Tests.csproj", "{24786669-E3BA-4BB2-BDE1-18A59A5374FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedWorkflows", "SharedWorkflows", "{22E13D9B-41CC-4CE4-A373-C87CBD8B196E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\service-tests.yml = .github\workflows\service-tests.yml
+		.github\workflows\service-versioning.yml = .github\workflows\service-versioning.yml
 	EndProjectSection
 EndProject
 Global
@@ -32,35 +37,37 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{36FDE216-C96A-4CA3-9C8A-B0D89CC22DEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36FDE216-C96A-4CA3-9C8A-B0D89CC22DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36FDE216-C96A-4CA3-9C8A-B0D89CC22DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36FDE216-C96A-4CA3-9C8A-B0D89CC22DEC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F959D984-1A49-4532-82FE-B6299AE78EA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F959D984-1A49-4532-82FE-B6299AE78EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F959D984-1A49-4532-82FE-B6299AE78EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F959D984-1A49-4532-82FE-B6299AE78EA1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A30E0EF9-2631-4C14-8AFA-63F37D665A33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A30E0EF9-2631-4C14-8AFA-63F37D665A33}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A30E0EF9-2631-4C14-8AFA-63F37D665A33}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A30E0EF9-2631-4C14-8AFA-63F37D665A33}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEDCDA7C-D0B6-4DD9-AC03-550459731666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEDCDA7C-D0B6-4DD9-AC03-550459731666}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEDCDA7C-D0B6-4DD9-AC03-550459731666}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEDCDA7C-D0B6-4DD9-AC03-550459731666}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88BBCAE7-2A5E-4801-A8A1-1D515912EAF1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E36D4823-1F3D-4F4D-94DE-7EB9FF9C577D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E36D4823-1F3D-4F4D-94DE-7EB9FF9C577D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E36D4823-1F3D-4F4D-94DE-7EB9FF9C577D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E36D4823-1F3D-4F4D-94DE-7EB9FF9C577D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8B43562-7D4B-4765-93BB-005A4BE7A6AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8B43562-7D4B-4765-93BB-005A4BE7A6AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8B43562-7D4B-4765-93BB-005A4BE7A6AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8B43562-7D4B-4765-93BB-005A4BE7A6AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F242670-AEE4-46E8-9520-5A3E5041564F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F242670-AEE4-46E8-9520-5A3E5041564F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F242670-AEE4-46E8-9520-5A3E5041564F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F242670-AEE4-46E8-9520-5A3E5041564F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7E99F70-9C9F-4FFE-A234-4C45FB51EEBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7E99F70-9C9F-4FFE-A234-4C45FB51EEBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7E99F70-9C9F-4FFE-A234-4C45FB51EEBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7E99F70-9C9F-4FFE-A234-4C45FB51EEBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29BDD32D-0882-4EBD-8BA7-D445E6747544}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29BDD32D-0882-4EBD-8BA7-D445E6747544}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29BDD32D-0882-4EBD-8BA7-D445E6747544}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29BDD32D-0882-4EBD-8BA7-D445E6747544}.Release|Any CPU.Build.0 = Release|Any CPU
+		{606C39DD-AAD6-4E19-A281-CBE7615FC4B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{606C39DD-AAD6-4E19-A281-CBE7615FC4B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{606C39DD-AAD6-4E19-A281-CBE7615FC4B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{606C39DD-AAD6-4E19-A281-CBE7615FC4B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24786669-E3BA-4BB2-BDE1-18A59A5374FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24786669-E3BA-4BB2-BDE1-18A59A5374FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24786669-E3BA-4BB2-BDE1-18A59A5374FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24786669-E3BA-4BB2-BDE1-18A59A5374FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{36FDE216-C96A-4CA3-9C8A-B0D89CC22DEC} = {117B3A66-E3B5-436E-B433-50729FC9B0D6}
-		{F959D984-1A49-4532-82FE-B6299AE78EA1} = {117B3A66-E3B5-436E-B433-50729FC9B0D6}
-		{A30E0EF9-2631-4C14-8AFA-63F37D665A33} = {117B3A66-E3B5-436E-B433-50729FC9B0D6}
-		{E36D4823-1F3D-4F4D-94DE-7EB9FF9C577D} = {55759CAB-391D-453E-8688-BE3D650740E6}
+		{F7E99F70-9C9F-4FFE-A234-4C45FB51EEBF} = {55759CAB-391D-453E-8688-BE3D650740E6}
+		{DCEA88B2-CAF4-4310-9DD1-8EA6FB662165} = {55759CAB-391D-453E-8688-BE3D650740E6}
+		{29BDD32D-0882-4EBD-8BA7-D445E6747544} = {DCEA88B2-CAF4-4310-9DD1-8EA6FB662165}
+		{606C39DD-AAD6-4E19-A281-CBE7615FC4B5} = {DCEA88B2-CAF4-4310-9DD1-8EA6FB662165}
+		{24786669-E3BA-4BB2-BDE1-18A59A5374FF} = {55759CAB-391D-453E-8688-BE3D650740E6}
+		{22E13D9B-41CC-4CE4-A373-C87CBD8B196E} = {393CF034-2108-4DDE-B3E5-87D38D5626D9}
 	EndGlobalSection
 EndGlobal

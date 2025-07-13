@@ -2,10 +2,10 @@ using EventStorage.Inbox.Providers;
 
 namespace EventStorage.Tests.Domain;
 
-public class SimpleEntityWasCreatedHandler: IEventReceiver<SimpleEntityWasCreated>
+public class SimpleEntityWasCreatedHandler : IUnknownEventHandler<SimpleEntityWasCreated>
 {
-    public Task<bool> Receive(SimpleEntityWasCreated @event)
+    public async Task HandleAsync(SimpleEntityWasCreated @event)
     {
-        return Task.FromResult(true);
+        await Task.CompletedTask;
     }
 }
