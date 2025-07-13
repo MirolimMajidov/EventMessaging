@@ -47,7 +47,6 @@ jobs:
         run: dotnet nuget push ./nupkgs/*.nupkg --source "${{ vars.NUGET_SOURCE }}"
 
       - name: Generate release notes
-        if: ${{ inputs.should_increase_version == 'true' }}
         run: |
           echo "## Release notes of ${{ inputs.application_name }} library 🚀" >> $GITHUB_STEP_SUMMARY
           echo "- Image name: **${{ inputs.package_name }}"** >> $GITHUB_STEP_SUMMARY
