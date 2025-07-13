@@ -20,4 +20,5 @@ jobs:
       project_file_path: 'src/EventBus.RabbitMQ/EventBus.RabbitMQ.csproj'
       package_name: ${{ vars.EVENT_STORAGE_PACKAGE_NAME }}
       version: ${{ needs.Versioning.outputs.version }}
+      application_name: 'EventBus.RabbitMQ'
     secrets: inherit
