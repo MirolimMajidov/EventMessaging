@@ -19,5 +19,6 @@ jobs:
     with:
       project_file_path: 'src/EventStorage/EventStorage.csproj'
       version: ${{ needs.Versioning.outputs.version }}
+      package_name: 'Mirolim.EventStorage'
       application_name: 'EventStorage'
     secrets: inherit

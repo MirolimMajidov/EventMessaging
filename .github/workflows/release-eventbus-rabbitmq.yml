@@ -19,5 +19,6 @@ jobs:
     with:
       project_file_path: 'src/EventBus.RabbitMQ/EventBus.RabbitMQ.csproj'
       version: ${{ needs.Versioning.outputs.version }}
+      package_name: 'Mirolim.EventBus.RabbitMQ'
       application_name: 'EventBus.RabbitMQ'
     secrets: inherit

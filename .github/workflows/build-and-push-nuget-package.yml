@@ -3,6 +3,9 @@ name: Push NuGet package
 on:
   workflow_call:
     inputs:
+      package_name:
+        required: false
+        type: string
       application_name:
         required: true
         type: string
