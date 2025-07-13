@@ -1,8 +1,7 @@
-using InMemoryMessaging.Models;
 
 namespace EventStorage.Models;
 
-public interface IEvent : IMessage
+public interface IEvent
 {
     /// <summary>
     /// The id of event
