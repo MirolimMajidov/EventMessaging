@@ -100,12 +100,12 @@ jobs:
           fi
         shell: bash
 
-      - name: Create a Git tag for the new version
-        if: ${{ inputs.should_add_version_tag }}
-        id: create_tag
-        run: |
-          git tag "v${{ env.NEW_VERSION }}"
-          git push origin "v${{ env.NEW_VERSION }}"
+#      - name: Create a Git tag for the new version
+#        if: ${{ inputs.should_add_version_tag }}
+#        id: create_tag
+#        run: |
+#          git tag "v${{ env.NEW_VERSION }}"
+#          git push origin "v${{ env.NEW_VERSION }}"
 
     outputs:
       new_version: ${{ env.NEW_VERSION }}
