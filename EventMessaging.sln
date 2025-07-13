@@ -5,10 +5,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployments", "Deployments", "{393CF034-2108-4DDE-B3E5-87D38D5626D9}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\building-main-solution.yml = .github\workflows\building-main-solution.yml
-		.github\workflows\event-storage-tests.yml = .github\workflows\event-storage-tests.yml
-		.github\workflows\release-event-storage.yml = .github\workflows\release-event-storage.yml
-		.github\workflows\build-and-push-nuget-package.yml = .github\workflows\build-and-push-nuget-package.yml
-		.github\workflows\eventbus-rabbitmq-tests.yml = .github\workflows\eventbus-rabbitmq-tests.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStorage", "src\EventStorage\EventStorage.csproj", "{C8B43562-7D4B-4765-93BB-005A4BE7A6AA}"
@@ -29,6 +25,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedWorkflows", "SharedWo
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\service-tests.yml = .github\workflows\service-tests.yml
 		.github\workflows\service-versioning.yml = .github\workflows\service-versioning.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B9475E0F-A0C4-44A9-BA9E-BCBA1E6338D2}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\event-storage-tests.yml = .github\workflows\event-storage-tests.yml
+		.github\workflows\eventbus-rabbitmq-tests.yml = .github\workflows\eventbus-rabbitmq-tests.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Versioning", "Versioning", "{36379309-8264-45C3-9442-3CF15409CC42}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\release-event-storage.yml = .github\workflows\release-event-storage.yml
+		.github\workflows\build-and-push-nuget-package.yml = .github\workflows\build-and-push-nuget-package.yml
+		.github\workflows\release-eventbus-rabbitmq.yml = .github\workflows\release-eventbus-rabbitmq.yml
 	EndProjectSection
 EndProject
 Global
@@ -69,5 +78,7 @@ Global
 		{606C39DD-AAD6-4E19-A281-CBE7615FC4B5} = {DCEA88B2-CAF4-4310-9DD1-8EA6FB662165}
 		{24786669-E3BA-4BB2-BDE1-18A59A5374FF} = {55759CAB-391D-453E-8688-BE3D650740E6}
 		{22E13D9B-41CC-4CE4-A373-C87CBD8B196E} = {393CF034-2108-4DDE-B3E5-87D38D5626D9}
+		{B9475E0F-A0C4-44A9-BA9E-BCBA1E6338D2} = {393CF034-2108-4DDE-B3E5-87D38D5626D9}
+		{36379309-8264-45C3-9442-3CF15409CC42} = {393CF034-2108-4DDE-B3E5-87D38D5626D9}
 	EndGlobalSection
 EndGlobal

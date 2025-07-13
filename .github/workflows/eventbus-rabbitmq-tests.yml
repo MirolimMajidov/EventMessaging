@@ -1,4 +1,4 @@
-name: Event storage's tests
+name: EventBus RabbitMQ's tests
 
 on:
   pull_request:
