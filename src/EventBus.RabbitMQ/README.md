@@ -1,5 +1,5 @@
 ## EventBus.RabbitMQ
-EventBus.RabbitMQ is a messaging library designed to simplify the implementation of communication using RabbitMQ. It enables seamless publishing and receiving of events between microservices or other types of applications. The library is easy to set up and is compatible with .NET8 or recent frameworks. Additionally, it supports working with multiple virtual hosts in RabbitMQ.
+EventBus.RabbitMQ is a messaging library designed to simplify the implementation of communication using RabbitMQ. It enables seamless publishing and receiving of events between microservices or other types of applications. The library is easy to set up and is compatible with .NET9 or recent frameworks. Additionally, it supports working with multiple virtual hosts in RabbitMQ.
 
 ### Setting up the library
 
@@ -26,7 +26,7 @@ You can choose one of two methods to add GitHub Packages as a source: either by 
 Add the GitHub Package source with the token dynamically using the environment variable:
 
 ```bash
-dotnet nuget add source https://nuget.pkg.github.com/alifcapital/index.json --name github --username GITHUB_USERNAME --password YOUR_PERSONAL_ACCESS_TOKEN --store-password-in-clear-text
+dotnet nuget add source https://nuget.pkg.github.com/MirolimMajidov/index.json --name github --username GITHUB_USERNAME --password YOUR_PERSONAL_ACCESS_TOKEN --store-password-in-clear-text
 ```
 * Replace GITHUB_USERNAME with your GitHub username or any non-empty string if you are using the Personal Access Token (PAT).
 * Replace YOUR_PERSONAL_ACCESS_TOKEN with the generated PAT.
@@ -57,13 +57,13 @@ Once you deal with the nuget source, install the package by:
 **Via CLI:**
 
 ```bash
-dotnet add package AlifCapital.EventBus.RabbitMQ --version <VERSION>
+dotnet add package Mirolim.EventBus.RabbitMQ --version <VERSION>
 ```
 
 Or add it to your .csproj file:
 
 ```xml
-<PackageReference Include="AlifCapital.EventBus.RabbitMQ" Version="<VERSION>" />
+<PackageReference Include="Mirolim.EventBus.RabbitMQ" Version="<VERSION>" />
 ```
 Make sure to replace <VERSION> with the correct version of the package you want to install.
 

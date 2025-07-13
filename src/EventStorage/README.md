@@ -29,7 +29,7 @@ You can choose one of two methods to add GitHub Packages as a source: either by 
 Add the GitHub Package source with the token dynamically using the environment variable:
 
 ```bash
-dotnet nuget add source https://nuget.pkg.github.com/alifcapital/index.json --name github --username GITHUB_USERNAME --password YOUR_PERSONAL_ACCESS_TOKEN --store-password-in-clear-text
+dotnet nuget add source https://nuget.pkg.github.com/MirolimMajidov/index.json --name github --username GITHUB_USERNAME --password YOUR_PERSONAL_ACCESS_TOKEN --store-password-in-clear-text
 ```
 * Replace GITHUB_USERNAME with your GitHub username or any non-empty string if you are using the Personal Access Token (PAT).
 * Replace YOUR_PERSONAL_ACCESS_TOKEN with the generated PAT.
@@ -41,7 +41,7 @@ Add or update the `NuGet.config` file in your project root with the following co
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
-    <add key="github" value="https://nuget.pkg.github.com/alifcapital/index.json" />
+    <add key="github" value="https://nuget.pkg.github.com/MirolimMajidov/index.json" />
   </packageSources>
   <packageSourceCredentials>
     <github>
@@ -60,13 +60,13 @@ Once you deal with the nuget source, install the package by:
 **Via CLI:**
 
 ```bash
-dotnet add package AlifCapital.EventStorage --version <VERSION>
+dotnet add package Mirolim.EventStorage --version <VERSION>
 ```
 
 Or add it to your .csproj file:
 
 ```xml
-<PackageReference Include="AlifCapital.EventStorage" Version="<VERSION>" />
+<PackageReference Include="Mirolim.EventStorage" Version="<VERSION>" />
 ```
 Make sure to replace <VERSION> with the correct version of the package you want to install.
 
