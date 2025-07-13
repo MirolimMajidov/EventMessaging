@@ -8,7 +8,7 @@
         <Description>Inbox and outbox patterns implementation.</Description>
         <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
         <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
-        <PackageReadmeFile>https://github.com/MirolimMajidov/EventMessaging/blob/main/src/EventStorage/README.md</PackageReadmeFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>EventStorage, inbox, outbox</PackageTags>
         <Company>Alif Capital</Company>
         <NeutralLanguage>en</NeutralLanguage>
@@ -36,5 +36,9 @@
             <_Parameter1>Shared.Tests</_Parameter1>
         </AssemblyAttribute>
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="src/EventStorage/" />
     </ItemGroup>
 </Project>
