@@ -25,6 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedWorkflows", "SharedWo
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\service-tests.yml = .github\workflows\service-tests.yml
 		.github\workflows\service-versioning.yml = .github\workflows\service-versioning.yml
+		.github\workflows\build-and-push-nuget-package.yml = .github\workflows\build-and-push-nuget-package.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B9475E0F-A0C4-44A9-BA9E-BCBA1E6338D2}"
@@ -36,7 +37,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Versioning", "Versioning", "{36379309-8264-45C3-9442-3CF15409CC42}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\release-event-storage.yml = .github\workflows\release-event-storage.yml
-		.github\workflows\build-and-push-nuget-package.yml = .github\workflows\build-and-push-nuget-package.yml
 		.github\workflows\release-eventbus-rabbitmq.yml = .github\workflows\release-eventbus-rabbitmq.yml
 	EndProjectSection
 EndProject
