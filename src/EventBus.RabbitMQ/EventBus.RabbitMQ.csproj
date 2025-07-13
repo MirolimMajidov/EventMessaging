@@ -6,14 +6,14 @@
         <Title>EventBus.RabbitMQ</Title>
         <Authors>MirolimMajidov</Authors>
         <Description>It's easier to implement EventBus with RabbitMQ to publish and receive events. It is designed to work with multiple virtual hosts.</Description>
-        <PackageProjectUrl>https://github.com/alifcapital/EventBus.RabbitMQ</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/alifcapital/EventBus.RabbitMQ</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
         <RepositoryType>private</RepositoryType>
         <PackageTags>EventBus.RabbitMQ, RabbitMQ, EventBus</PackageTags>
         <Company>Alif Capital</Company>
         <NeutralLanguage>en</NeutralLanguage>
-        <PackageId>AlifCapital.EventBus.RabbitMQ</PackageId>
-        <AssemblyName>AlifCapital.EventBus.RabbitMQ</AssemblyName>
+        <PackageId>Mirolim.EventBus.RabbitMQ</PackageId>
+        <AssemblyName>Mirolim.EventBus.RabbitMQ</AssemblyName>
         <Version>9.0.32</Version>
     </PropertyGroup>
 

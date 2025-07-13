@@ -6,15 +6,15 @@
         <Title>EventStorage</Title>
         <Authors>MirolimMajidov</Authors>
         <Description>Inbox and outbox patterns implementation.</Description>
-        <PackageProjectUrl>https://github.com/alifcapital/EventStorage</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/alifcapital/EventStorage</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
         <RepositoryType>private</RepositoryType>
         <PackageTags>EventStorage, inbox, outbox</PackageTags>
         <Company>Alif Capital</Company>
         <NeutralLanguage>en</NeutralLanguage>
-        <PackageId>AlifCapital.EventStorage</PackageId>
-        <AssemblyName>AlifCapital.EventStorage</AssemblyName>
-        <Version>9.0.32</Version>
+        <PackageId>Mirolim.EventStorage</PackageId>
+        <AssemblyName>Mirolim.EventStorage</AssemblyName>
+        <Version>9.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
