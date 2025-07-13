@@ -18,7 +18,6 @@ jobs:
     uses: ./.github/workflows/build-and-push-nuget-package.yml
     with:
       project_file_path: 'src/EventStorage/EventStorage.csproj'
-      package_name: ${{ vars.EVENT_STORAGE_PACKAGE_NAME }}
       version: ${{ needs.Versioning.outputs.version }}
       application_name: 'EventStorage'
     secrets: inherit
