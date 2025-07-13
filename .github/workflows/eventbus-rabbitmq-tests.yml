@@ -1,0 +1,21 @@
+name: EventBus RabbitMQ's tests
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - src/EventBus.RabbitMQ/**
+      - tests/EventBus.RabbitMQ.Tests/**
+      - .github/workflows/event-storage-tests.yml
+      - .github/workflows/service-tests.yml
+  workflow_dispatch:
+
+jobs:
+  Testing:
+    uses: ./.github/workflows/service-tests.yml
+    with:
+      postgres_image: ${{ vars.POSTGRES_IMAGE }}
+      postgres_user: ${{ vars.POSTGRES_USER }}
+      postgres_password: ${{ vars.POSTGRES_PASSWORD }}
+      database_name: ${{ vars.POSTGRES_DB }}
+      unit_and_functionality_tests_project_path: 'Tests/EventBus.RabbitMQ.Tests/EventBus.RabbitMQ.Tests.csproj'

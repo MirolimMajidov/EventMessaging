@@ -1,4 +1,8 @@
 using EventStorage.Configurations;
+using EventStorage.Extensions;
+using EventStorage.Inbox.EventArgs;
+using EventStorage.Inbox.Repositories;
+using EventStorage.Outbox.Repositories;
 using EventStorage.Tests.Infrastructure;
 using EventStorage.Tests.Infrastructure.Config;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +15,12 @@ public class TestInit
     /// <summary>
     /// The connection string of the database to connect the Postgres
     /// </summary>
-    internal static string DatabaseConnectionString { get; set; }
+    internal static string DatabaseConnectionString { get; private set; }
+    
+    /// <summary>
+    /// Object to lock the creation of the database to avoid concurrency problems
+    /// </summary>
+    private static readonly Lock LockCreateDatabase = new();
     
     [OneTimeSetUp]
     public void RunBeforeAllTests()
@@ -29,11 +38,22 @@ public class TestInit
         }
         
         DatabaseConnectionString = connectionString;
+        
+        var inboxAndOutboxSettings = GetDefaultSettings(configuration: configuration);
 
-        using (var context = new EventStorageContext())
+        lock (LockCreateDatabase)
+        {
+            using var context = new EventStorageContext();
             context.Database.EnsureCreated();
+            
+            var inboxRepository = new InboxRepository(inboxAndOutboxSettings.Inbox);
+            inboxRepository.CreateTableIfNotExists();
+            
+            var outboxRepository = new OutboxRepository(inboxAndOutboxSettings.Outbox);
+            outboxRepository.CreateTableIfNotExists();
+        }
 
-        BaseTestEntity.InboxAndOutboxSettings = GetDefaultSettings(configuration: configuration);
+        BaseTestEntity.InboxAndOutboxSettings = inboxAndOutboxSettings;
     }
     
     [OneTimeTearDown]

@@ -2,10 +2,10 @@ using EventStorage.Outbox.Providers.EventProviders;
 
 namespace EventStorage.Tests.Domain;
 
-public class SimpleSendEventCreatedHandler: IMessageBrokerEventPublisher<SimpleSendEventCreated>
+public class SimpleSendEventCreatedHandler : IMessageBrokerEventPublisher<SimpleOutboxEventCreated>
 {
-    public Task<bool> Publish(SimpleSendEventCreated @event, string eventPath)
+    public async Task PublishAsync(SimpleOutboxEventCreated outboxEvent)
     {
-        return Task.FromResult(true);
+        await Task.CompletedTask;
     }
 }
