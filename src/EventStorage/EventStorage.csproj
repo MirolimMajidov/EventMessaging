@@ -9,6 +9,7 @@
         <PackageProjectUrl>https://github.com/MirolimMajidov/EventMessaging</PackageProjectUrl>
         <RepositoryUrl>https://github.com/MirolimMajidov/EventMessaging</RepositoryUrl>
         <RepositoryType>private</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>EventStorage, inbox, outbox</PackageTags>
         <Company>Alif Capital</Company>
         <NeutralLanguage>en</NeutralLanguage>
