@@ -6,11 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Mirolim.EventBus.RabbitMQ" Version="9.0.5" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\src\EventBus.RabbitMQ\EventBus.RabbitMQ.csproj" />
+<!--      <ProjectReference Include="..\..\..\src\EventBus.RabbitMQ\EventBus.RabbitMQ.csproj" />-->
     </ItemGroup>
 
 </Project>
