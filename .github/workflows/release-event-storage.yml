@@ -21,4 +21,5 @@ jobs:
       version: ${{ needs.Versioning.outputs.version }}
       package_name: 'Mirolim.EventStorage'
       application_name: 'EventStorage'
+      nuget_org_api_key: ${{ secrets.EVENT_STORAGE_NUGET_ORG_API_KEY }}
     secrets: inherit

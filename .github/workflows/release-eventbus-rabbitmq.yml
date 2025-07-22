@@ -21,4 +21,5 @@ jobs:
       version: ${{ needs.Versioning.outputs.version }}
       package_name: 'Mirolim.EventBus.RabbitMQ'
       application_name: 'EventBus.RabbitMQ'
+      nuget_org_api_key: ${{ secrets.EVENT_BUS_NUGET_ORG_API_KEY }}
     secrets: inherit

@@ -15,6 +15,9 @@ on:
       project_file_path:
         required: true
         type: string
+    secrets:
+      nuget_org_api_key:
+        required: true
 
 jobs:
   PushNugetPackage:
@@ -45,6 +48,9 @@ jobs:
 
       - name: Push the package to GitHub Packages
         run: dotnet nuget push ./nupkgs/*.nupkg --source "${{ vars.NUGET_SOURCE }}"
+
+      - name: Push the package to NuGet.org
+        run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.nuget_org_api_key }} --source https://api.nuget.org/v3/index.json
 
       - name: Generate release notes
         run: |
